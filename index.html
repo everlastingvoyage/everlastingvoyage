@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#020814" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Everlasting Voyage" />
+  <title>Everlasting Voyage</title>
+  <style>
+    :root{
+      --bg:#020814;
+      --bg2:#051221;
+      --cyan:#79c9e3;
+      --cyan2:#b0deeb;
+      --text:#d9e7ee;
+      --muted:#7e96a5;
+      --line:rgba(121,201,227,.2);
+      --line2:rgba(121,201,227,.42);
+      --max:1180px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth;background:var(--bg)}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Avenir Next","Segoe UI",sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 50% 0%, rgba(30,88,118,.15), transparent 28rem),
+        linear-gradient(180deg,#030b16 0%,#020814 48%,#01060d 100%);
+      overflow-x:hidden;
+    }
+    body.locked{overflow:hidden}
+    a{text-decoration:none;color:inherit}
+    button,input{font:inherit}
+    .wrap{width:min(var(--max),calc(100% - 34px));margin:auto}
+    .site{opacity:0;transition:opacity .9s ease}
+    .site.ready{opacity:1}
+
+    /* intro */
+    .intro{
+      position:fixed;inset:0;z-index:1000;
+      display:grid;place-items:center;
+      background:
+        radial-gradient(circle at 50% 48%,rgba(37,111,142,.12),transparent 260px),
+        #01060c;
+      transition:opacity .95s ease, visibility .95s ease, transform 1.15s ease;
+      overflow:hidden;
+    }
+    .intro.exit{opacity:0;visibility:hidden;transform:scale(1.035)}
+    .intro-inner{text-align:center;padding:24px;width:min(760px,92vw)}
+    .intro-symbol{width:min(420px,78vw);height:auto;margin:auto;position:relative}
+    .intro-symbol svg{width:100%;height:auto;overflow:visible}
+    .infinity-base{
+      fill:none;
+      stroke:rgba(121,201,227,.16);
+      stroke-width:7;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+    }
+    .infinity-energy{
+      fill:none;
+      stroke:var(--cyan);
+      stroke-width:5;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+      stroke-dasharray:900;
+      stroke-dashoffset:900;
+      filter:drop-shadow(0 0 8px rgba(121,201,227,.55));
+      animation:drawInfinity 2.7s cubic-bezier(.55,0,.16,1) forwards,
+                breathe 4.5s ease-in-out 2.7s infinite;
+    }
+    .infinity-core{
+      fill:rgba(177,224,236,.75);
+      filter:drop-shadow(0 0 10px rgba(121,201,227,.75));
+      opacity:0;
+      animation:coreIn .7s ease 2.45s forwards, corePulse 4.5s ease-in-out 3s infinite;
+    }
+    @keyframes drawInfinity{to{stroke-dashoffset:0}}
+    @keyframes breathe{50%{filter:drop-shadow(0 0 24px rgba(121,201,227,.82))}}
+    @keyframes coreIn{to{opacity:1}}
+    @keyframes corePulse{50%{opacity:.45}}
+    .freq{
+      position:absolute;
+      color:var(--muted);
+      font-size:11px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      opacity:0;
+      transform:translateY(7px);
+      animation:freqIn .8s ease forwards;
+    }
+    .freq.f1{left:3%;top:18%;animation-delay:1.65s}
+    .freq.f2{right:2%;top:20%;animation-delay:1.9s}
+    .freq.f3{left:8%;bottom:15%;animation-delay:2.1s}
+    .freq.f4{right:5%;bottom:14%;animation-delay:2.3s}
+    @keyframes freqIn{to{opacity:.72;transform:none}}
+    .wordmark{
+      margin-top:8px;
+      opacity:0;
+      transform:translateY(10px);
+      animation:reveal .9s ease 1.9s forwards;
+    }
+    .everlasting{
+      font-family:"Eurostile Extended","Microgramma D Extended","Orbitron","Avenir Next",sans-serif;
+      font-size:clamp(13px,2vw,20px);
+      font-weight:500;
+      letter-spacing:.48em;
+      margin-left:.48em;
+      color:var(--text);
+    }
+    .voyage{
+      font-family:"Eurostile Extended","Microgramma D Extended","Orbitron","Avenir Next",sans-serif;
+      font-size:clamp(34px,7vw,72px);
+      font-weight:300;
+      letter-spacing:.2em;
+      margin-left:.2em;
+      color:#e7f3f8;
+      line-height:1.05;
+      text-shadow:0 0 14px rgba(121,201,227,.14);
+    }
+    .tagline{
+      opacity:0;
+      transform:translateY(8px);
+      animation:reveal .9s ease 2.2s forwards;
+      margin-top:13px;
+      color:var(--muted);
+      font-size:12px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+    .enter{
+      opacity:0;
+      transform:translateY(8px);
+      animation:reveal .9s ease 2.55s forwards;
+      margin-top:28px;
+      min-height:48px;
+      padding:0 25px;
+      border-radius:999px;
+      border:1px solid var(--line2);
+      background:rgba(7,23,36,.48);
+      color:var(--cyan2);
+      font-weight:700;
+      letter-spacing:.06em;
+    }
+    .enter:hover{background:rgba(121,201,227,.08);border-color:var(--cyan)}
+    @keyframes reveal{to{opacity:1;transform:none}}
+
+    /* nav */
+    .nav{
+      position:fixed;inset:0 0 auto 0;z-index:50;
+      background:linear-gradient(180deg,rgba(2,8,20,.88),rgba(2,8,20,.35),transparent);
+      backdrop-filter:blur(12px);
+    }
+    .nav-inner{
+      width:min(var(--max),calc(100% - 30px));
+      margin:auto;height:74px;
+      display:flex;align-items:center;justify-content:space-between;
+      gap:18px;
+    }
+    .mini-brand{display:flex;align-items:center;gap:10px}
+    .mini-brand svg{width:44px;height:26px}
+    .mini-brand path{fill:none;stroke:var(--cyan);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .mini-type{line-height:1}
+    .mini-ever{
+      font-family:"Eurostile Extended","Microgramma D Extended","Orbitron","Avenir Next",sans-serif;
+      font-size:8px;letter-spacing:.35em;margin-left:.35em;color:var(--muted)
+    }
+    .mini-voyage{
+      font-family:"Eurostile Extended","Microgramma D Extended","Orbitron","Avenir Next",sans-serif;
+      font-size:16px;letter-spacing:.18em;margin-left:.18em;color:var(--text)
+    }
+    .nav-links{display:flex;gap:25px;color:var(--muted);font-size:13px}
+    .nav-links a:hover{color:var(--text)}
+    .nav-cta{
+      border:1px solid var(--line2);
+      background:rgba(8,24,38,.5);
+      color:var(--cyan2);
+      padding:10px 15px;border-radius:999px;font-size:13px
+    }
+
+    /* hero */
+    .hero{
+      min-height:100svh;
+      display:grid;place-items:center;
+      position:relative;overflow:hidden;
+      padding:118px 0 72px;
+    }
+    .hero-inner{text-align:center;max-width:900px;position:relative;z-index:2}
+    .hero-symbol{width:min(510px,82vw);margin:auto}
+    .hero-symbol svg{width:100%;height:auto}
+    .hero-symbol path{
+      fill:none;stroke:rgba(121,201,227,.82);stroke-width:4.5;
+      stroke-linecap:round;stroke-linejoin:round;
+      filter:drop-shadow(0 0 13px rgba(121,201,227,.35));
+      animation:heroBreathe 5s ease-in-out infinite;
+    }
+    @keyframes heroBreathe{50%{filter:drop-shadow(0 0 26px rgba(121,201,227,.58))}}
+    .hero h1{
+      margin:22px 0 12px;
+      font-family:"Eurostile Extended","Microgramma D Extended","Orbitron","Avenir Next",sans-serif;
+      font-size:clamp(44px,8vw,88px);
+      font-weight:300;
+      letter-spacing:.19em;
+      margin-left:.19em;
+      line-height:.95;
+      color:#e7f2f7;
+    }
+    .hero p{
+      color:var(--muted);
+      max-width:620px;
+      margin:0 auto 28px;
+      font-size:18px;line-height:1.6;
+    }
+    .hero-actions{display:flex;justify-content:center;gap:11px;flex-wrap:wrap}
+    .primary,.secondary{
+      min-height:50px;padding:0 21px;border-radius:999px;
+      display:inline-flex;align-items:center;justify-content:center;
+      font-weight:700;transition:.2s ease
+    }
+    .primary{background:var(--cyan);color:#03101a;border:1px solid var(--cyan)}
+    .secondary{border:1px solid var(--line2);background:rgba(8,24,38,.42);color:var(--text)}
+    .primary:hover,.secondary:hover{transform:translateY(-1px)}
+    .ambient-wave{
+      position:absolute;left:-8%;right:-8%;bottom:7%;height:180px;opacity:.5
+    }
+    .ambient-wave svg{width:100%;height:100%}
+    .ambient-wave path{
+      fill:none;stroke:rgba(121,201,227,.48);stroke-width:1.2;
+      stroke-dasharray:11 8;
+      animation:waveMove 18s linear infinite
+    }
+    .ambient-wave path:last-child{stroke:rgba(152,147,200,.22);animation-duration:26s;animation-direction:reverse}
+    @keyframes waveMove{to{stroke-dashoffset:-380}}
+
+    /* story */
+    section.story{padding:120px 0}
+    .reveal{opacity:0;transform:translateY(40px);transition:opacity .9s ease,transform .9s ease}
+    .reveal.visible{opacity:1;transform:none}
+    .kicker{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);font-weight:800}
+    .story h2{
+      max-width:850px;
+      font-size:clamp(42px,7vw,80px);
+      line-height:.98;letter-spacing:-.045em;
+      margin:14px 0 18px;font-weight:650;color:var(--text)
+    }
+    .story p{max-width:660px;color:var(--muted);font-size:18px;line-height:1.65}
+    .panel{
+      margin-top:52px;border:1px solid var(--line);border-radius:32px;
+      min-height:440px;padding:26px;
+      background:linear-gradient(180deg,rgba(9,27,43,.62),rgba(4,15,25,.62));
+      position:relative;overflow:hidden
+    }
+    .timeline{max-width:720px;margin:36px auto 0}
+    .row{
+      display:grid;grid-template-columns:82px 1fr;
+      gap:20px;padding:0 0 27px
+    }
+    .time{color:var(--muted);font-size:12px;padding-top:4px}
+    .event{border-left:1px solid var(--line2);padding-left:23px;position:relative}
+    .event:before{
+      content:"";position:absolute;left:-4px;top:3px;width:7px;height:7px;border-radius:50%;
+      background:var(--cyan);box-shadow:0 0 0 6px rgba(121,201,227,.05)
+    }
+    .event strong{display:block;font-size:17px;margin-bottom:5px}
+    .event span{color:var(--muted);font-size:13px}
+
+    .frequency-line{
+      display:grid;grid-template-columns:repeat(5,1fr);
+      gap:12px;margin-top:55px
+    }
+    .frequency{
+      min-height:170px;border:1px solid var(--line);border-radius:999px;
+      display:grid;place-items:center;text-align:center;
+      background:radial-gradient(circle at 50% 40%,rgba(121,201,227,.09),transparent 68%);
+      transition:.25s ease
+    }
+    .frequency:hover{border-color:var(--cyan);transform:translateY(-4px)}
+    .frequency strong{display:block;font-size:18px}
+    .frequency span{display:block;color:var(--muted);font-size:11px;margin-top:5px}
+    .frequency.gold{border-color:rgba(200,174,111,.35)}
+
+    .final{
+      min-height:80svh;display:grid;place-items:center;text-align:center;padding:120px 0
+    }
+    .final h2{
+      font-family:"Eurostile Extended","Microgramma D Extended","Orbitron","Avenir Next",sans-serif;
+      font-size:clamp(42px,7vw,82px);font-weight:300;letter-spacing:.15em;margin-left:.15em;
+      margin-bottom:18px
+    }
+    .final p{color:var(--muted);font-size:18px;max-width:600px;margin:0 auto 28px;line-height:1.6}
+    .waitlist{display:flex;gap:10px;max-width:530px;margin:auto}
+    .waitlist input{
+      flex:1;min-height:50px;border-radius:999px;border:1px solid var(--line);
+      background:rgba(5,17,27,.7);color:var(--text);padding:0 18px;outline:none
+    }
+    .waitlist input:focus{border-color:var(--cyan)}
+    .message{height:18px;color:var(--cyan);font-size:13px;margin-top:12px}
+    footer{padding:38px 0 52px;color:var(--muted);font-size:12px}
+    .footer-inner{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
+
+    @media(max-width:900px){
+      .nav-links{display:none}
+      .frequency-line{grid-template-columns:repeat(2,1fr)}
+      .frequency:last-child{grid-column:1/-1;max-width:50%;width:100%;margin:auto}
+    }
+    @media(max-width:620px){
+      .wrap{width:calc(100% - 24px)}
+      .nav-inner{height:66px;width:calc(100% - 24px)}
+      .nav-cta{display:none}
+      .hero{padding-top:106px}
+      .hero h1{font-size:46px;letter-spacing:.13em;margin-left:.13em}
+      .hero p{font-size:17px}
+      .hero-actions{display:grid}
+      .primary,.secondary{width:100%}
+      section.story{padding:90px 0}
+      .panel{padding:18px;border-radius:26px}
+      .row{grid-template-columns:62px 1fr}
+      .frequency-line{grid-template-columns:1fr 1fr}
+      .frequency{min-height:145px}
+      .frequency:last-child{max-width:none}
+      .waitlist{display:grid}
+      .waitlist button{width:100%}
+      .footer-inner{display:block;text-align:center}
+      .footer-inner div+div{margin-top:8px}
+      .freq{font-size:9px}
+    }
+  </style>
+</head>
+<body class="locked">
+  <div class="intro" id="intro">
+    <div class="intro-inner">
+      <div class="intro-symbol">
+        <svg viewBox="0 0 460 250" aria-label="Everlasting Voyage infinity logo">
+          <path class="infinity-base" d="M28 125
+            C66 52 130 38 178 66
+            C202 80 216 101 230 125
+            C244 149 258 170 282 184
+            C330 212 394 198 432 125
+            C394 52 330 38 282 66
+            C258 80 244 101 230 125
+            C216 149 202 170 178 184
+            C130 212 66 198 28 125"/>
+          <path class="infinity-energy" d="M28 125
+            C66 52 130 38 178 66
+            C202 80 216 101 230 125
+            C244 149 258 170 282 184
+            C330 212 394 198 432 125
+            C394 52 330 38 282 66
+            C258 80 244 101 230 125
+            C216 149 202 170 178 184
+            C130 212 66 198 28 125"/>
+          <circle class="infinity-core" cx="230" cy="125" r="4"/>
+        </svg>
+        <div class="freq f1">Gamma · 40 Hz</div>
+        <div class="freq f2">Delta · 2 Hz</div>
+        <div class="freq f3">Alpha · 10 Hz</div>
+        <div class="freq f4">Theta · 4 Hz</div>
+      </div>
+
+      <div class="wordmark">
+        <div class="everlasting">EVERLASTING</div>
+        <div class="voyage">VOYAGE</div>
+      </div>
+      <div class="tagline">Focus · Meditation · Brainwave Sync</div>
+      <button class="enter" id="enterBtn" type="button">Enter</button>
+    </div>
+  </div>
+
+  <div class="site" id="site">
+    <header class="nav">
+      <div class="nav-inner">
+        <a class="mini-brand" href="#top" aria-label="Everlasting Voyage">
+          <svg viewBox="0 0 80 44">
+            <path d="M5 22 C14 5 29 5 40 22 C51 39 66 39 75 22 C66 5 51 5 40 22 C29 39 14 39 5 22"/>
+          </svg>
+          <div class="mini-type">
+            <div class="mini-ever">EVERLASTING</div>
+            <div class="mini-voyage">VOYAGE</div>
+          </div>
+        </a>
+        <nav class="nav-links">
+          <a href="#experience">Experience</a>
+          <a href="#frequencies">Frequencies</a>
+          <a href="#join">Early Access</a>
+        </nav>
+        <a class="nav-cta" href="#join">Join Early Access</a>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="hero-inner wrap">
+          <div class="hero-symbol">
+            <svg viewBox="0 0 460 250">
+              <path d="M28 125
+                C66 52 130 38 178 66
+                C202 80 216 101 230 125
+                C244 149 258 170 282 184
+                C330 212 394 198 432 125
+                C394 52 330 38 282 66
+                C258 80 244 101 230 125
+                C216 149 202 170 178 184
+                C130 212 66 198 28 125"/>
+            </svg>
+          </div>
+          <div class="kicker">Focus · Meditation · Brainwave Sync</div>
+          <h1>EVERLASTING VOYAGE</h1>
+          <p>A calmer way to plan your week, adapt when life changes, and enter focused work without pressure.</p>
+          <div class="hero-actions">
+            <a href="#experience" class="primary">Enter the experience</a>
+            <a href="#join" class="secondary">Join early access</a>
+          </div>
+        </div>
+        <div class="ambient-wave">
+          <svg viewBox="0 0 1500 200" preserveAspectRatio="none">
+            <path d="M0,110 C130,30 260,190 390,110 C520,30 650,190 780,110 C910,30 1040,190 1170,110 C1300,30 1400,190 1500,110"/>
+            <path d="M0,110 C130,75 260,145 390,110 C520,75 650,145 780,110 C910,75 1040,145 1170,110 C1300,75 1400,145 1500,110"/>
+          </svg>
+        </div>
+      </section>
+
+      <section class="story" id="experience">
+        <div class="wrap">
+          <div class="reveal">
+            <div class="kicker">Productivity without pressure</div>
+            <h2>One clear next step.</h2>
+            <p>Everlasting Voyage turns classes, shifts and deadlines into a realistic plan that protects your time instead of filling every empty minute.</p>
+          </div>
+
+          <div class="panel reveal">
+            <div class="timeline">
+              <div class="row">
+                <div class="time">9:00 AM</div>
+                <div class="event"><strong>Consumer Behaviour</strong><span>Class · fixed commitment</span></div>
+              </div>
+              <div class="row">
+                <div class="time">12:10 PM</div>
+                <div class="event"><strong>Finance review · 40 minutes</strong><span>Suggested focus window before work</span></div>
+              </div>
+              <div class="row">
+                <div class="time">2:00 PM</div>
+                <div class="event"><strong>Best Buy shift</strong><span>Work · protected time</span></div>
+              </div>
+              <div class="row">
+                <div class="time">7:30 PM</div>
+                <div class="event"><strong>Light review · 20 minutes</strong><span>Low-pressure task after work</span></div>
+              </div>
+              <div class="row">
+                <div class="time">10:30 PM</div>
+                <div class="event"><strong>Sleep protected</strong><span>No tasks scheduled after this time</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="story" id="frequencies">
+        <div class="wrap">
+          <div class="reveal">
+            <div class="kicker">Everlasting Voyage library</div>
+            <h2>Choose how the session should feel.</h2>
+            <p>Each atmosphere supports a different kind of session. The interface stays quiet; only the selected frequency comes alive.</p>
+          </div>
+
+          <div class="frequency-line reveal">
+            <div class="frequency"><div><strong>Alpha</strong><span>10 Hz · Calm Focus</span></div></div>
+            <div class="frequency"><div><strong>Gamma</strong><span>40 Hz · Deep Focus</span></div></div>
+            <div class="frequency"><div><strong>Theta</strong><span>4 Hz · Creative Flow</span></div></div>
+            <div class="frequency"><div><strong>Delta</strong><span>2 Hz · Deep Sleep</span></div></div>
+            <div class="frequency gold"><div><strong>888</strong><span>Hz · Abundance</span></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="final" id="join">
+        <div class="wrap reveal">
+          <div class="kicker">Early access</div>
+          <h2>ENTER THE VOYAGE</h2>
+          <p>Join the first users testing Everlasting Voyage directly from phone, tablet and desktop.</p>
+          <form class="waitlist" id="waitlistForm">
+            <input type="email" id="email" placeholder="Your email address" required />
+            <button class="primary" type="submit">Join early access</button>
+          </form>
+          <div class="message" id="message"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap footer-inner">
+        <div>© 2026 Everlasting Voyage</div>
+        <div>Focus · Meditation · Brainwave Sync</div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const intro = document.getElementById('intro');
+    const site = document.getElementById('site');
+    const enterBtn = document.getElementById('enterBtn');
+
+    function enterVoyage(){
+      intro.classList.add('exit');
+      site.classList.add('ready');
+      document.body.classList.remove('locked');
+      window.scrollTo(0,0);
+      setTimeout(() => { intro.style.display = 'none'; }, 1000);
+    }
+
+    enterBtn.addEventListener('click', enterVoyage);
+    enterBtn.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      enterVoyage();
+    }, {passive:false});
+
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, {threshold:.16});
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    document.getElementById('waitlistForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim().toLowerCase();
+      const saved = JSON.parse(localStorage.getItem('everlastingVoyageWaitlist') || '[]');
+      if(!saved.includes(email)) saved.push(email);
+      localStorage.setItem('everlastingVoyageWaitlist', JSON.stringify(saved));
+      document.getElementById('message').textContent = "You’re on the early-access list.";
+      document.getElementById('email').value = "";
+    });
+  </script>
+</body>
+</html>
