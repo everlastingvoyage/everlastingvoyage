@@ -1,0 +1,9 @@
+{
+  "name": "Everlasting Voyage",
+  "short_name": "Everlasting",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#020814",
+  "theme_color": "#020814",
+  "icons": [{"src": "/icon.svg", "sizes": "any", "type": "image/svg+xml"}]
+}
