@@ -1,0 +1,645 @@
+/* V9.1 mobile-first polish layer */
+:root {
+  --gutter: clamp(18px, 4vw, 40px);
+  --radius-lg: 30px;
+  --radius-md: 22px;
+  --surface-selected: rgba(17, 55, 84, 0.72);
+  --violet: #8d8cff;
+}
+
+* {
+  min-width: 0;
+}
+
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+  -webkit-text-size-adjust: 100%;
+}
+
+body.session-is-open {
+  overflow: hidden;
+}
+
+.pageShell {
+  width: 100%;
+  overflow-x: clip;
+  isolation: isolate;
+}
+
+.pageNoise {
+  z-index: -2;
+}
+
+.pageGlow {
+  z-index: -1;
+  animation: ambientDrift 16s ease-in-out infinite alternate;
+}
+
+.glowTwo {
+  animation-delay: -7s;
+}
+
+.topbar,
+.heroSection,
+.section {
+  width: 100%;
+}
+
+.topbar {
+  max-width: var(--max);
+  padding-left: var(--gutter);
+  padding-right: var(--gutter);
+}
+
+.heroSection {
+  max-width: var(--max);
+  padding-left: var(--gutter);
+  padding-right: var(--gutter);
+}
+
+.section {
+  max-width: var(--max);
+  padding-left: var(--gutter);
+  padding-right: var(--gutter);
+}
+
+.sectionBand {
+  max-width: none;
+  padding-left: max(var(--gutter), calc((100% - var(--max)) / 2 + var(--gutter)));
+  padding-right: max(var(--gutter), calc((100% - var(--max)) / 2 + var(--gutter)));
+}
+
+.heroCopyCol,
+.sessionBuilder,
+.sectionIntro > *,
+.stepsRow > *,
+.qualityGrid > *,
+.joinCard > * {
+  min-width: 0;
+}
+
+.heroCopyCol h1 {
+  max-width: 9.4ch;
+  font-size: clamp(3.6rem, 5.8vw, 5.8rem);
+  line-height: 0.94;
+  letter-spacing: -0.058em;
+  text-wrap: balance;
+}
+
+.heroCopy {
+  font-size: 1.06rem;
+  line-height: 1.72;
+}
+
+.navCta,
+.primaryButton,
+.secondaryButton,
+.saveButton {
+  position: relative;
+  gap: 10px;
+  overflow: hidden;
+  font-weight: 700;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.navCta,
+.secondaryButton {
+  border-color: rgba(117, 216, 255, 0.38);
+  background: linear-gradient(180deg, rgba(18, 49, 73, 0.82), rgba(7, 22, 38, 0.9));
+  color: #e9f8ff;
+}
+
+.saveButton {
+  border-color: rgba(141, 140, 255, 0.34);
+  background: linear-gradient(180deg, rgba(44, 42, 98, 0.62), rgba(18, 20, 53, 0.82));
+  color: #dcdcff;
+}
+
+.primaryButton {
+  border-color: rgba(151, 232, 255, 0.84);
+  background: linear-gradient(180deg, #c7f7ff 0%, #7bd8ff 100%);
+  box-shadow: 0 12px 30px rgba(62, 166, 222, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+.primaryButton::before {
+  content: '';
+  position: absolute;
+  inset: -30% auto -30% -45%;
+  width: 32%;
+  transform: skewX(-22deg);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.48), transparent);
+  animation: buttonShine 5.5s ease-in-out infinite;
+}
+
+.navCta:hover,
+.primaryButton:hover,
+.secondaryButton:hover,
+.saveButton:hover {
+  transform: translateY(-2px);
+}
+
+.navCta:active,
+.primaryButton:active,
+.secondaryButton:active,
+.saveButton:active,
+.stateChoice:active,
+.frequencyCard:active,
+.durationRow button:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+.mobileOnly {
+  display: none;
+}
+
+.carouselHint {
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.hintArrow {
+  color: var(--blue);
+  font-size: 1.25rem;
+  animation: nudgeRight 1.6s ease-in-out infinite;
+}
+
+.glassCard {
+  border-radius: var(--radius-lg);
+}
+
+.builderHeader h2,
+.sectionIntro h2,
+.joinCard h2 {
+  text-wrap: balance;
+}
+
+.stateChoice {
+  min-height: 116px;
+  position: relative;
+  border-color: rgba(108, 188, 240, 0.14);
+  background: linear-gradient(180deg, rgba(7, 22, 38, 0.74), rgba(3, 12, 22, 0.88));
+  transition: transform 0.2s ease, border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+}
+
+.stateChoice:hover {
+  transform: translateY(-2px);
+  border-color: rgba(117, 216, 255, 0.3);
+}
+
+.stateChoice.active {
+  border-color: rgba(117, 216, 255, 0.7);
+  background: linear-gradient(180deg, rgba(25, 76, 112, 0.72), rgba(10, 35, 57, 0.9));
+  box-shadow: 0 0 0 1px rgba(117, 216, 255, 0.08), 0 14px 32px rgba(30, 119, 170, 0.16);
+}
+
+.stateChoice.abundance.active {
+  border-color: rgba(216, 176, 106, 0.62);
+  background: linear-gradient(180deg, rgba(82, 61, 25, 0.58), rgba(35, 27, 13, 0.88));
+  box-shadow: 0 0 0 1px rgba(216, 176, 106, 0.08), 0 14px 32px rgba(126, 88, 26, 0.12);
+}
+
+.selectionMark {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--blue);
+  color: #03121f;
+  font-size: 0.78rem;
+  font-style: normal;
+  font-weight: 900;
+  opacity: 0;
+  transform: scale(0.72);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.stateChoice.active .selectionMark {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.stateChoice.abundance.active .selectionMark {
+  background: var(--gold);
+  color: #181005;
+}
+
+.durationRow button {
+  min-height: 48px;
+  border-color: rgba(108, 188, 240, 0.16);
+  background: linear-gradient(180deg, rgba(8, 24, 40, 0.78), rgba(4, 14, 25, 0.9));
+  transition: transform 0.15s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.durationRow button.active {
+  border-color: rgba(117, 216, 255, 0.7);
+  background: linear-gradient(180deg, rgba(30, 94, 137, 0.82), rgba(13, 48, 77, 0.92));
+  box-shadow: 0 0 0 1px rgba(117, 216, 255, 0.08), 0 10px 24px rgba(33, 132, 184, 0.12);
+}
+
+.intentionField input,
+.waitlistForm input,
+.thoughtCapture input {
+  background: linear-gradient(180deg, rgba(6, 20, 34, 0.9), rgba(3, 12, 22, 0.94));
+}
+
+.selectedSummary {
+  grid-template-columns: minmax(0, 1fr) minmax(15rem, auto);
+  border-color: rgba(108, 188, 240, 0.12);
+  background: linear-gradient(180deg, rgba(5, 18, 31, 0.8), rgba(2, 10, 19, 0.78));
+}
+
+.technicalSummary {
+  line-height: 1.45;
+}
+
+.stepsRow {
+  align-items: stretch;
+}
+
+.stepsRow article {
+  min-height: 184px;
+  padding: 22px;
+  border: 1px solid rgba(108, 188, 240, 0.13);
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, rgba(7, 22, 38, 0.62), rgba(3, 12, 22, 0.72));
+}
+
+.stepConnector {
+  align-self: center;
+}
+
+.frequencyCard {
+  position: relative;
+  min-height: 286px;
+  transition: transform 0.2s ease, border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+}
+
+.frequencyCard:hover {
+  transform: translateY(-3px);
+  border-color: rgba(117, 216, 255, 0.34);
+}
+
+.frequencyCard.active {
+  border-color: rgba(117, 216, 255, 0.66);
+  background: linear-gradient(180deg, rgba(16, 54, 82, 0.82), rgba(5, 21, 36, 0.98));
+  box-shadow: 0 0 0 1px rgba(117, 216, 255, 0.08), 0 18px 42px rgba(25, 112, 163, 0.12);
+}
+
+.frequencyCard.abundance.active {
+  border-color: rgba(216, 176, 106, 0.56);
+  background: linear-gradient(180deg, rgba(75, 54, 21, 0.66), rgba(24, 19, 11, 0.96));
+}
+
+.useStateLabel {
+  position: absolute;
+  left: 20px;
+  bottom: 18px;
+  color: var(--blue);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.frequencyCard.abundance .useStateLabel {
+  color: #efd9aa;
+}
+
+.qualityPoint {
+  min-height: 190px;
+  padding: 22px;
+  border: 1px solid rgba(108, 188, 240, 0.13);
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, rgba(7, 22, 38, 0.58), rgba(3, 12, 22, 0.68));
+}
+
+.sessionOverlay {
+  overflow-x: clip;
+  animation: overlayIn 0.35s ease both;
+}
+
+.sessionAmbient {
+  animation: ambientDrift 12s ease-in-out infinite alternate;
+}
+
+.ambientTwo {
+  animation-delay: -5s;
+}
+
+.sessionHeader,
+.sessionFooter,
+.sessionMain {
+  width: 100%;
+  padding-left: var(--gutter);
+  padding-right: var(--gutter);
+}
+
+.timerDisplay {
+  text-shadow: 0 0 40px color-mix(in srgb, var(--session-accent) 20%, transparent);
+}
+
+@supports (animation-timeline: view()) {
+  .sectionIntro,
+  .sessionBuilder,
+  .stepsRow,
+  .frequencyCarousel,
+  .qualityGrid,
+  .joinCard {
+    animation: sectionReveal linear both;
+    animation-timeline: view();
+    animation-range: entry 6% cover 28%;
+  }
+}
+
+@keyframes ambientDrift {
+  from { transform: translate3d(-2%, -2%, 0) scale(0.96); }
+  to { transform: translate3d(5%, 4%, 0) scale(1.08); }
+}
+
+@keyframes buttonShine {
+  0%, 70% { left: -45%; opacity: 0; }
+  78% { opacity: 0.7; }
+  100% { left: 125%; opacity: 0; }
+}
+
+@keyframes nudgeRight {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(7px); }
+}
+
+@keyframes overlayIn {
+  from { opacity: 0; transform: scale(1.01); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes sectionReveal {
+  from { opacity: 0.22; transform: translateY(26px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 1120px) {
+  .successMessage {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 860px) {
+  :root {
+    --gutter: 18px;
+    --radius-lg: 28px;
+  }
+
+  .mobileOnly {
+    display: flex;
+  }
+
+  .heroSection {
+    padding-top: 24px;
+    padding-bottom: 56px;
+    gap: 28px;
+  }
+
+  .heroCopyCol h1 {
+    max-width: 12ch;
+    font-size: clamp(3rem, 11.8vw, 4.5rem);
+    letter-spacing: -0.052em;
+  }
+
+  .heroCopy {
+    font-size: 1rem;
+  }
+
+  .trustRow,
+  .stateScroller,
+  .frequencyCarousel,
+  .stepsRow {
+    display: flex;
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .trustRow::-webkit-scrollbar,
+  .stateScroller::-webkit-scrollbar,
+  .frequencyCarousel::-webkit-scrollbar,
+  .stepsRow::-webkit-scrollbar {
+    display: none;
+  }
+
+  .trustRow {
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+  }
+
+  .stateScroller,
+  .frequencyCarousel,
+  .stepsRow {
+    gap: 10px;
+    padding: 0 14% 10px 0;
+    scroll-padding-inline: 0 18px;
+  }
+
+  .stateChoice {
+    flex: 0 0 min(44vw, 180px);
+    min-height: 124px;
+    scroll-snap-align: start;
+  }
+
+  .frequencyCarousel,
+  .stepsRow {
+    margin-top: 10px;
+  }
+
+  .frequencyCard {
+    flex: 0 0 min(78vw, 360px);
+    min-height: 294px;
+    scroll-snap-align: start;
+  }
+
+  .stepsRow article {
+    flex: 0 0 min(82vw, 380px);
+    min-height: 208px;
+    scroll-snap-align: start;
+  }
+
+  .stepConnector {
+    display: none;
+  }
+
+  .builderLower,
+  .selectedSummary {
+    grid-template-columns: 1fr;
+  }
+
+  .technicalSummary {
+    text-align: left;
+  }
+
+  .sectionBand {
+    padding-left: var(--gutter);
+    padding-right: var(--gutter);
+  }
+}
+
+@media (max-width: 620px) {
+  :root {
+    --gutter: 16px;
+    --radius-lg: 26px;
+    --radius-md: 20px;
+  }
+
+  .topbar {
+    padding-top: 18px;
+  }
+
+  .brandMark {
+    width: 52px;
+  }
+
+  .brandWordmark {
+    width: 152px;
+  }
+
+  .heroSection {
+    padding-top: 18px;
+    padding-bottom: 48px;
+  }
+
+  .heroCopyCol h1 {
+    max-width: 100%;
+    font-size: clamp(2.85rem, 12.3vw, 3.65rem);
+    line-height: 0.96;
+  }
+
+  .heroCopy {
+    line-height: 1.65;
+  }
+
+  .heroActions .primaryButton,
+  .heroActions .secondaryButton {
+    min-height: 54px;
+  }
+
+  .sessionBuilder {
+    padding: 18px;
+  }
+
+  .builderHeader {
+    align-items: flex-start;
+  }
+
+  .signalBadge {
+    order: -1;
+  }
+
+  .stateChoice {
+    flex-basis: min(48vw, 176px);
+  }
+
+  .section {
+    padding-top: 52px;
+    padding-bottom: 52px;
+  }
+
+  .sectionIntro h2,
+  .joinCard h2 {
+    font-size: clamp(2.15rem, 10.4vw, 2.95rem);
+  }
+
+  .qualityGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .qualityPoint {
+    min-height: 168px;
+    padding: 16px;
+  }
+
+  .qualityPoint h3 {
+    margin-top: 14px;
+    font-size: 1.18rem;
+  }
+
+  .qualityPoint p {
+    font-size: 0.88rem;
+    line-height: 1.52;
+  }
+
+  .joinCard {
+    padding: 21px;
+  }
+
+  .timerDisplay {
+    font-size: clamp(4.2rem, 22vw, 6.5rem);
+  }
+}
+
+@media (max-width: 390px) {
+  :root {
+    --gutter: 14px;
+  }
+
+  .brandMark {
+    width: 46px;
+  }
+
+  .brandWordmark {
+    width: 138px;
+  }
+
+  .heroCopyCol h1 {
+    font-size: clamp(2.58rem, 12vw, 3.15rem);
+  }
+
+  .heroCopy,
+  .sectionIntro > p,
+  .joinCard > div > p {
+    font-size: 0.95rem;
+  }
+
+  .sessionBuilder,
+  .joinCard {
+    padding: 16px;
+  }
+
+  .stateChoice {
+    flex-basis: 156px;
+  }
+
+  .frequencyCard {
+    flex-basis: 82vw;
+  }
+
+  .stepsRow article {
+    flex-basis: 84vw;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
