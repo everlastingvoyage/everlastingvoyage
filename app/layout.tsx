@@ -3,7 +3,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Everlasting Voyage',
-  description: 'Focus, meditation and brainwave sync in a cleaner brand-first experience.',
+  description: 'An immersive focus, meditation and brainwave sync experience built around calm, clarity and premium brand atmosphere.',
   icons: {
     icon: '/icon.png'
   },
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#020814',
+  themeColor: '#000000',
   colorScheme: 'dark'
 };
 
