@@ -1,8 +1,15 @@
-# Everlasting Voyage
+# Everlasting Voyage v0.6
 
-Next.js 16 foundation for the Everlasting Voyage web application.
+Brand refresh with real transparent assets:
+- Real infinity logo PNG
+- Real Everlasting Voyage wordmark PNG
+- Cleaner desktop hero
+- Less clutter, more brand fidelity
+- Working Enter intro transition
 
-## Development
+## Run locally
 
+```bash
 npm install
 npm run dev
+```
