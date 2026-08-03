@@ -12,7 +12,7 @@ type Frequency = {
   tag: string;
   summary: string;
   detail: string;
-  benefits: string[];
+  uses: string[];
 };
 
 const frequencies: Frequency[] = [
@@ -21,75 +21,104 @@ const frequencies: Frequency[] = [
     name: 'Alpha',
     hz: '10 Hz',
     tag: 'Calm Focus',
-    summary: 'A softer starting point for studying, planning, reading and steady attention.',
-    detail:
-      'Alpha is designed for the kind of work that should feel clear instead of frantic — ideal for class prep, admin tasks and quiet concentration.',
-    benefits: ['Study sessions', 'Morning clarity', 'Low-pressure deep work']
+    summary: 'A softer starting point for steady concentration and low-pressure clarity.',
+    detail: 'Best for studying, reading, planning and entering work gently without mental noise.',
+    uses: ['Study', 'Planning', 'Morning clarity']
   },
   {
     id: 'gamma',
     name: 'Gamma',
     hz: '40 Hz',
     tag: 'Deep Focus',
-    summary: 'More intensity, more presence, and a sharper atmosphere for demanding mental work.',
-    detail:
-      'Gamma fits when you need full cognitive engagement — extended review, harder problem solving, research or focused production.',
-    benefits: ['Exam review', 'Research blocks', 'Focused production']
+    summary: 'A sharper state with more intensity for full mental engagement.',
+    detail: 'Designed for demanding sessions, higher attention work and longer focus windows.',
+    uses: ['Deep work', 'Research', 'High attention']
   },
   {
     id: 'theta',
     name: 'Theta',
     hz: '4 Hz',
     tag: 'Creative Flow',
-    summary: 'A more fluid, reflective mode for writing, ideation, visualization and slower thinking.',
-    detail:
-      'Theta is for the sessions that need imagination and space: journaling, sketching ideas, meditating or moving through a calmer flow state.',
-    benefits: ['Writing flow', 'Meditation', 'Creative ideation']
+    summary: 'A more fluid mode for reflection, ideas, visualization and inner space.',
+    detail: 'Useful when the session should feel imaginative, reflective and less structured.',
+    uses: ['Meditation', 'Creativity', 'Journaling']
   },
   {
     id: 'delta',
     name: 'Delta',
     hz: '2 Hz',
     tag: 'Deep Sleep',
-    summary: 'A slower, darker atmosphere built to support decompression, recovery and night sessions.',
-    detail:
-      'Delta is reserved for bedtime, sleep support and full unwind mode — less stimulation, fewer visual distractions, more spacious calm.',
-    benefits: ['Sleep rituals', 'Recovery', 'Night routine']
+    summary: 'A slower atmosphere dedicated to release, recovery and night rituals.',
+    detail: 'Built for wind-down sessions, decompression and transitions into sleep.',
+    uses: ['Sleep', 'Recovery', 'Night routine']
   },
   {
     id: 'abundance',
     name: '888',
     hz: '888 Hz',
     tag: 'Abundance',
-    summary: 'A ceremonial atmosphere with brighter energy for manifestation, confidence and momentum.',
-    detail:
-      'The 888 space feels a little richer and more elevated — still on brand, but tuned to visualization, abundance and intentional repetition.',
-    benefits: ['Manifestation', 'Confidence', 'Energy reset']
+    summary: 'A brighter ceremonial state with a richer tone and elevated energy.',
+    detail: 'Made for visualization, abundance rituals and more intentional mindset work.',
+    uses: ['Manifestation', 'Confidence', 'Energy reset']
   }
 ];
 
-const timeline = [
-  ['9:00 AM', 'Consumer Behaviour', 'Fixed class commitment'],
-  ['12:10 PM', 'Finance review · 40 minutes', 'Suggested focus window'],
-  ['2:00 PM', 'Best Buy shift', 'Protected work block'],
-  ['7:30 PM', 'Light review · 20 minutes', 'A realistic next step'],
-  ['10:30 PM', 'Sleep protected', 'No tasks after this time']
-] as const;
-
-const immersionCards = [
+const promiseCards = [
   {
-    title: 'Brand-first atmosphere',
-    text: 'Real Everlasting Voyage branding, richer glow work, a darker palette and cleaner motion that feels intentional instead of generic.'
+    title: 'Premium atmosphere',
+    text: 'A darker navy system, cleaner spacing and restrained glow give the product a more elevated presence.'
   },
   {
-    title: 'Less pressure, more direction',
-    text: 'The experience guides you into the right session without turning your day into a wall of aggressive productivity.'
+    title: 'Horizontal rhythm',
+    text: 'Wider compositions reduce visual fatigue and make the page easier to scan from left to right.'
   },
   {
-    title: 'Built like an experience',
-    text: 'This should feel closer to a premium product launch than a rough planner — cinematic, calm and immersive from the first second.'
+    title: 'Clearer sections',
+    text: 'Every block now has a more defined role so the story feels ordered instead of cluttered.'
+  },
+  {
+    title: 'Brand as entity',
+    text: 'The product is presented as Everlasting Voyage itself, not as a personal dashboard or profile.'
   }
 ];
+
+function BrainVisual({ className = '' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 620 430" className={className} aria-hidden="true" fill="none">
+      <ellipse cx="310" cy="216" rx="186" ry="124" fill="var(--brain-fill)" opacity="0.72" />
+      <ellipse cx="310" cy="216" rx="220" ry="150" stroke="var(--brain-outline-soft)" strokeWidth="1.5" />
+      <ellipse cx="310" cy="216" rx="160" ry="104" stroke="var(--brain-outline-soft)" strokeWidth="1" opacity="0.75" />
+
+      <path
+        d="M301 106C270 72 214 67 171 92C123 120 107 173 126 217C102 253 109 312 149 343C191 374 245 371 288 338C309 322 319 301 319 274"
+        stroke="var(--brain-main)"
+        strokeWidth="10"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M319 106C350 72 406 67 449 92C497 120 513 173 494 217C518 253 511 312 471 343C429 374 375 371 332 338C311 322 301 301 301 274"
+        stroke="var(--brain-main)"
+        strokeWidth="10"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+
+      <path d="M309 138V286" stroke="var(--brain-soft)" strokeWidth="7" strokeLinecap="round" opacity="0.9" />
+      <circle cx="310" cy="216" r="11" fill="var(--brain-soft)" />
+
+      <path d="M286 138C257 124 224 126 198 143" stroke="var(--brain-soft)" strokeWidth="5" strokeLinecap="round" />
+      <path d="M274 177C243 164 208 166 182 188" stroke="var(--brain-soft)" strokeWidth="5" strokeLinecap="round" opacity="0.9" />
+      <path d="M274 218C242 210 212 214 188 235" stroke="var(--brain-soft)" strokeWidth="5" strokeLinecap="round" opacity="0.82" />
+      <path d="M286 258C256 260 229 273 208 295" stroke="var(--brain-soft)" strokeWidth="5" strokeLinecap="round" opacity="0.78" />
+
+      <path d="M334 138C363 124 396 126 422 143" stroke="var(--brain-soft)" strokeWidth="5" strokeLinecap="round" />
+      <path d="M346 177C377 164 412 166 438 188" stroke="var(--brain-soft)" strokeWidth="5" strokeLinecap="round" opacity="0.9" />
+      <path d="M346 218C378 210 408 214 432 235" stroke="var(--brain-soft)" strokeWidth="5" strokeLinecap="round" opacity="0.82" />
+      <path d="M334 258C364 260 391 273 412 295" stroke="var(--brain-soft)" strokeWidth="5" strokeLinecap="round" opacity="0.78" />
+    </svg>
+  );
+}
 
 export default function Home() {
   const [selected, setSelected] = useState<FrequencyId>('alpha');
@@ -149,187 +178,134 @@ export default function Home() {
             <p className="eyebrow">Immersive focus · meditation · brainwave sync</p>
             <h1>One clear next step, without the pressure.</h1>
             <p className="heroCopy">
-              Everlasting Voyage turns classes, shifts and deadlines into a calmer digital experience — a premium space
-              for planning, focusing, meditating and entering the right state of mind.
+              Everlasting Voyage is a premium digital atmosphere built around focus, meditation and guided brainwave states.
+              Less noise. Better attention. A more cinematic ritual.
             </p>
 
             <div className="heroActions">
-              <a href="#experience" className="primaryButton">
+              <a href="#frequencies" className="primaryButton">
                 Enter the experience
               </a>
-              <a href="#frequencies" className="secondaryButton">
-                Explore frequencies
+              <a href="#experience" className="secondaryButton">
+                View the system
               </a>
             </div>
 
-            <div className="heroStats">
-              <div>
-                <strong>5</strong>
-                <span>Core frequency spaces</span>
-              </div>
-              <div>
-                <strong>01</strong>
-                <span>Immersive product story</span>
-              </div>
-              <div>
-                <strong>∞</strong>
-                <span>Brand-led identity</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="heroVisualCol">
-            <div className="signalField">
-              <span className="signalLabel signalTopLeft">Gamma · 40 Hz</span>
-              <span className="signalLabel signalTopRight">Delta · 2 Hz</span>
-              <span className="signalLabel signalBottomLeft">Alpha · 10 Hz</span>
-              <span className="signalLabel signalBottomRight">Theta · 4 Hz</span>
-
-              <div className="signalRing signalRingOne" />
-              <div className="signalRing signalRingTwo" />
-              <div className="signalCoreGlow" />
-
-              <img src="/brand-infinity.png" alt="Everlasting Voyage energy mark" className="heroInfinity" />
-            </div>
-
-            <div className="heroBrandPanel">
-              <img src="/brand-wordmark.png" alt="Everlasting Voyage" className="heroWordmark" />
-              <p>Focus · Meditation · Brainwave Sync</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="section experienceSection" id="experience">
-        <div className="sectionHeader">
-          <p className="eyebrow">A calmer system for real life</p>
-          <h2>Productivity without the clutter.</h2>
-          <p className="sectionCopy">
-            The page should not feel generic or unfinished. It should feel premium, intentional and alive — with a cleaner
-            structure, stronger branding and a sense of immersion from the first scroll.
-          </p>
-        </div>
-
-        <div className="experienceGrid">
-          <article className="glassCard timelineCard">
-            <div className="cardHeader">
-              <span>Sample flow</span>
-              <strong>One clear next step</strong>
-            </div>
-
-            <div className="timelineList">
-              {timeline.map(([time, title, detail]) => (
-                <div className="timelineItem" key={time + title}>
-                  <div className="timelineTime">{time}</div>
-                  <div className="timelineDot" />
-                  <div className="timelineContent">
-                    <h3>{title}</h3>
-                    <p>{detail}</p>
-                  </div>
-                </div>
+            <div className="heroPills">
+              {frequencies.map((item) => (
+                <span key={item.id} className={`heroPill ${item.id === 'abundance' ? 'gold' : ''}`}>
+                  {item.name} · {item.hz}
+                </span>
               ))}
             </div>
-          </article>
-
-          <div className="immersionStack">
-            {immersionCards.map((item) => (
-              <article className="glassCard featureCard" key={item.title}>
-                <h3>{item.title}</h3>
-                <p>{item.text}</p>
-              </article>
-            ))}
           </div>
+
+          <article className="glassCard heroPreviewCard">
+            <div className="previewHead">
+              <span>Everlasting Voyage signal preview</span>
+              <strong>Five guided states</strong>
+            </div>
+
+            <BrainVisual className="heroBrainVisual" />
+
+            <div className="previewFoot">
+              <div>
+                <span className="miniLabel">Design language</span>
+                <p>Quiet, premium, immersive</p>
+              </div>
+              <div>
+                <span className="miniLabel">Core modes</span>
+                <p>Focus, rest, creativity, abundance</p>
+              </div>
+            </div>
+          </article>
         </div>
       </section>
 
-      <section className="section frequenciesSection" id="frequencies">
-        <div className="sectionHeader narrow">
-          <p className="eyebrow">Everlasting Voyage library</p>
-          <h2>Choose how the session should feel.</h2>
-          <p className="sectionCopy">
-            Each frequency space carries its own atmosphere. The interface stays quiet — only the selected state comes alive.
+      <section className="section sectionSeparated" id="experience">
+        <div className="sectionHeaderSplit">
+          <div>
+            <p className="eyebrow">A clearer product story</p>
+            <h2>Cleaner sections, less clutter, more identity.</h2>
+          </div>
+          <p className="sectionCopy compact">
+            Everlasting Voyage should read like a premium entity. The layout stays wider, the hierarchy stays calmer and the message stays easier to absorb.
           </p>
         </div>
 
-        <div className="libraryLayout">
-          <div className="frequencyRail" role="tablist" aria-label="Frequency options">
-            {frequencies.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className={`frequencyRailItem ${item.id} ${selected === item.id ? 'active' : ''}`}
-                onClick={() => setSelected(item.id)}
-              >
-                <span className="railMeta">{item.hz}</span>
-                <strong>{item.name}</strong>
-                <p>{item.tag}</p>
-              </button>
-            ))}
+        <div className="promiseGrid">
+          {promiseCards.map((item) => (
+            <article className="glassCard promiseCard" key={item.title}>
+              <h3>{item.title}</h3>
+              <p>{item.text}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="section sectionSeparated" id="frequencies">
+        <div className="sectionHeaderSplit">
+          <div>
+            <p className="eyebrow">Everlasting Voyage library</p>
+            <h2>Choose how the session should feel.</h2>
           </div>
+          <p className="sectionCopy compact">
+            The experience remains quiet while the selected state becomes the hero. Shorter copy, stronger visuals and a more horizontal composition keep the page easier to navigate.
+          </p>
+        </div>
 
-          <article className={`glassCard stageCard ${activeFrequency.id}`}>
-            <div className="stageBackground stageBackgroundOne" />
-            <div className="stageBackground stageBackgroundTwo" />
+        <div className="frequencyRail" role="tablist" aria-label="Frequency options">
+          {frequencies.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={`frequencyRailItem ${item.id} ${selected === item.id ? 'active' : ''}`}
+              onClick={() => setSelected(item.id)}
+            >
+              <span className="railMeta">{item.hz}</span>
+              <strong>{item.name}</strong>
+              <p>{item.tag}</p>
+            </button>
+          ))}
+        </div>
 
+        <article className={`glassCard stageCard ${activeFrequency.id}`}>
+          <div className="stageCopyCol">
             <div className="stageLabelRow">
               <span>{activeFrequency.name}</span>
               <strong>{activeFrequency.hz}</strong>
             </div>
 
-            <div className="stageVisualWrap">
-              <span className="stageOrbit stageOrbitTopLeft">Brainwave sync</span>
-              <span className="stageOrbit stageOrbitTopRight">Focused immersion</span>
-              <span className="stageOrbit stageOrbitBottomLeft">Calmer interface</span>
-              <span className="stageOrbit stageOrbitBottomRight">Premium atmosphere</span>
+            <h3>{activeFrequency.tag}</h3>
+            <p className="stageLead">{activeFrequency.summary}</p>
+            <p className="stageDetail">{activeFrequency.detail}</p>
 
-              <img src="/brand-infinity.png" alt="Everlasting Voyage symbol" className="stageInfinity" />
+            <div className="chipRow">
+              {activeFrequency.uses.map((chip) => (
+                <span className="benefitChip" key={chip}>
+                  {chip}
+                </span>
+              ))}
             </div>
-
-            <div className="stageBody">
-              <h3>{activeFrequency.tag}</h3>
-              <p className="stageLead">{activeFrequency.summary}</p>
-              <p className="stageDetail">{activeFrequency.detail}</p>
-
-              <div className="chipRow">
-                {activeFrequency.benefits.map((chip) => (
-                  <span className="benefitChip" key={chip}>
-                    {chip}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section className="section showcaseSection">
-        <div className="showcasePanel glassCard">
-          <div className="showcaseText">
-            <p className="eyebrow">What this should feel like</p>
-            <h2>Not another page. An actual arrival.</h2>
-            <p>
-              Darker background. Stronger blue energy. Better proportions. Better typography. More depth. More calm. More
-              confidence. The kind of product page that feels intentional before the user even clicks anything.
-            </p>
           </div>
 
-          <div className="quoteCard">
-            <span className="quoteSymbol">∞</span>
-            <p>
-              “The experience should feel premium, immersive and alive — never cluttered, never generic, never cringe.”
-            </p>
+          <div className="stageVisualCol">
+            <span className="stageOrbit stageOrbitTopLeft">Brainwave sync</span>
+            <span className="stageOrbit stageOrbitTopRight">Focused immersion</span>
+            <span className="stageOrbit stageOrbitBottomLeft">Calmer interface</span>
+            <span className="stageOrbit stageOrbitBottomRight">Premium atmosphere</span>
+            <BrainVisual className="stageBrainVisual" />
           </div>
-        </div>
+        </article>
       </section>
 
-      <section className="section joinSection" id="join">
-        <article className="joinCard glassCard">
+      <section className="section sectionSeparated joinSection" id="join">
+        <article className="glassCard joinCard">
           <div className="joinText">
             <p className="eyebrow">Early access</p>
             <h2>Enter the voyage.</h2>
             <p>
-              Follow the evolution of Everlasting Voyage and be among the first to try the experience as it becomes more immersive,
-              more polished and more powerful.
+              Follow the evolution of Everlasting Voyage and be among the first to experience a more polished, more immersive and more refined release.
             </p>
           </div>
 
