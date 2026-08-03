@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Everlasting Voyage',
-  description: 'An immersive focus, meditation and brainwave sync experience built around calm, clarity and premium brand atmosphere.',
+  title: 'Everlasting Voyage — Pure Frequencies & Focus Sessions',
+  description: 'Choose your state, set your time and enter an immersive focus session with pure frequencies, a Pomodoro timer and distraction-free intention.',
   icons: {
     icon: '/icon.png'
   },
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#000000',
+  themeColor: '#020a17',
   colorScheme: 'dark'
 };
 
