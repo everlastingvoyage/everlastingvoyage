@@ -68,23 +68,23 @@ const durations = [15, 25, 40, 60];
 const qualityPoints = [
   {
     number: '01',
-    title: 'Pure by design',
-    text: 'Clean tones and transparent signal information, without hiding what you are listening to.'
+    title: 'Pure signals',
+    text: 'Clean tones with transparent signal information.'
   },
   {
     number: '02',
     title: 'Built for sessions',
-    text: 'Frequency, timer, intention and idea capture live inside one focused environment.'
+    text: 'Frequency, timer, intention and idea capture in one place.'
   },
   {
     number: '03',
     title: 'No forced setup',
-    text: 'No calendar migration, no complicated onboarding and no account required to understand the value.'
+    text: 'No calendar migration, complicated onboarding or required account.'
   },
   {
     number: '04',
-    title: 'Your space, repeated',
-    text: 'Save the state and duration that work for you, then return to them in one tap.'
+    title: 'Saved spaces',
+    text: 'Return to the state and duration that work for you in one tap.'
   }
 ];
 
@@ -127,6 +127,11 @@ export default function Home() {
 
     return () => window.clearInterval(interval);
   }, [running]);
+
+  useEffect(() => {
+    document.body.classList.toggle('session-is-open', sessionOpen);
+    return () => document.body.classList.remove('session-is-open');
+  }, [sessionOpen]);
 
   const beginSession = () => {
     setRemaining(selectedDuration * 60);
@@ -191,7 +196,7 @@ export default function Home() {
         </nav>
 
         <a href="#session-builder" className="navCta">
-          Start a session
+          Start a session <span aria-hidden="true">↗</span>
         </a>
       </header>
 
@@ -200,16 +205,15 @@ export default function Home() {
           <p className="eyebrow">Pure frequencies · immersive focus sessions</p>
           <h1>Choose your state. Set your time. Enter the voyage.</h1>
           <p className="heroCopy">
-            Everlasting Voyage is a focused environment for pure frequencies, Pomodoro sessions and distraction-free intention.
-            Begin in seconds. Stay inside the state you chose.
+            Everlasting Voyage combines pure frequencies, a focused timer and one clear intention. Begin in seconds and stay inside the state you chose.
           </p>
 
           <div className="heroActions">
             <a href="#session-builder" className="primaryButton">
-              Start a session
+              Start a session <span aria-hidden="true">→</span>
             </a>
             <a href="#library" className="secondaryButton">
-              Explore the library
+              Explore the library <span aria-hidden="true">↘</span>
             </a>
           </div>
 
@@ -229,17 +233,25 @@ export default function Home() {
             <span className={`signalBadge ${selectedState.id}`}>{selectedState.frequency} · {selectedState.hz}</span>
           </div>
 
+          <div className="carouselHint mobileOnly" aria-hidden="true">
+            <span>Swipe to explore states</span>
+            <span className="hintArrow">→</span>
+          </div>
+
           <div className="stateScroller" role="tablist" aria-label="Choose a state">
             {voyageStates.map((item) => (
               <button
                 type="button"
                 key={item.id}
+                role="tab"
+                aria-selected={selectedId === item.id}
                 className={`stateChoice ${item.id} ${selectedId === item.id ? 'active' : ''}`}
                 onClick={() => setSelectedId(item.id)}
               >
                 <span>{item.frequency}</span>
                 <strong>{item.state}</strong>
                 <small>{item.hz}</small>
+                <i className="selectionMark" aria-hidden="true">✓</i>
               </button>
             ))}
           </div>
@@ -253,6 +265,7 @@ export default function Home() {
                     type="button"
                     key={duration}
                     className={selectedDuration === duration ? 'active' : ''}
+                    aria-pressed={selectedDuration === duration}
                     onClick={() => setSelectedDuration(duration)}
                   >
                     {duration} min
@@ -286,10 +299,10 @@ export default function Home() {
 
           <div className="builderActions">
             <button type="button" className="primaryButton" onClick={beginSession}>
-              Enter the voyage
+              Enter the voyage <span aria-hidden="true">→</span>
             </button>
             <button type="button" className="saveButton" onClick={saveSpace}>
-              {spaceSaved ? 'Space saved' : 'Save this space'}
+              {spaceSaved ? 'Space saved ✓' : 'Save this space'}
             </button>
           </div>
         </article>
@@ -302,8 +315,13 @@ export default function Home() {
             <h2>Three decisions. Then the world gets quieter.</h2>
           </div>
           <p>
-            Everlasting Voyage removes setup friction. You do not need to organize your whole life before receiving value.
+            No setup marathon. Choose the state, choose the time and enter a focused environment.
           </p>
+        </div>
+
+        <div className="carouselHint mobileOnly" aria-hidden="true">
+          <span>Swipe through the ritual</span>
+          <span className="hintArrow">→</span>
         </div>
 
         <div className="stepsRow">
@@ -322,7 +340,7 @@ export default function Home() {
           <article>
             <span>03</span>
             <h3>Enter the voyage</h3>
-            <p>Timer, frequency and idea capture stay inside one space.</p>
+            <p>Timer, frequency and idea capture remain in one space.</p>
           </article>
         </div>
       </section>
@@ -334,8 +352,13 @@ export default function Home() {
             <h2>Pure signals with nothing hidden.</h2>
           </div>
           <p>
-            Every session explains the signal, its intended use and whether headphones are recommended. No mystery labels required.
+            Every session explains the signal, intended use and headphone guidance before you begin.
           </p>
+        </div>
+
+        <div className="carouselHint mobileOnly" aria-hidden="true">
+          <span>Swipe to explore frequencies</span>
+          <span className="hintArrow">→</span>
         </div>
 
         <div className="frequencyCarousel">
@@ -356,6 +379,7 @@ export default function Home() {
               <h3>{item.state}</h3>
               <p>{item.purpose}</p>
               <small>{item.technical}</small>
+              <span className="useStateLabel">Use this state →</span>
             </button>
           ))}
         </div>
@@ -368,7 +392,7 @@ export default function Home() {
             <h2>More than audio. A place to remain focused.</h2>
           </div>
           <p>
-            Other platforms give you a video, a timer or a playlist. Everlasting Voyage combines the entire session without the surrounding noise.
+            Frequency, timer, intention and idea capture live together without recommendations, comments or surrounding noise.
           </p>
         </div>
 
@@ -388,12 +412,12 @@ export default function Home() {
           <div>
             <p className="eyebrow">Early access</p>
             <h2>Your next session should be one click away.</h2>
-            <p>Join the first release of Everlasting Voyage as the pure audio library and full session engine come online.</p>
+            <p>Join the first release as the pure audio library and full session engine come online.</p>
           </div>
 
           <form className="waitlistForm" onSubmit={joinWaitlist}>
             <input type="email" name="email" placeholder="Your email address" required aria-label="Email address" />
-            <button type="submit" className="primaryButton">Join early access</button>
+            <button type="submit" className="primaryButton">Join early access →</button>
           </form>
 
           <p className="successMessage" aria-live="polite">{waitlistMessage}</p>
