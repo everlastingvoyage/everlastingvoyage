@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 const signalStates = ['alpha', 'gamma', 'theta', 'delta', 'abundance'] as const;
 type SignalState = (typeof signalStates)[number];
 type SoundDirection = 'open' | 'close' | 'confirm';
+type DataState = 'signalState' | 'restState' | 'enterState' | 'exitState';
 
 function getSignalState(element: Element | null): SignalState | null {
   if (!element) return null;
@@ -25,7 +26,7 @@ export default function SignalChamberBlend() {
     let arrivalTimer: number | undefined;
     let audioContext: AudioContext | null = null;
 
-    const setDataState = (name: 'signalState' | 'enterState' | 'exitState', state: SignalState | null) => {
+    const setDataState = (name: DataState, state: SignalState | null) => {
       if (state) {
         stage.dataset[name] = state;
         library.dataset[name] = state;
@@ -46,39 +47,69 @@ export default function SignalChamberBlend() {
         audioContext ??= new AudioContextClass();
         if (audioContext.state === 'suspended') void audioContext.resume();
 
-        const baseFrequency: Record<SignalState, number> = {
-          alpha: 520,
-          gamma: 660,
-          theta: 440,
-          delta: 330,
-          abundance: 740
+        const roots: Record<SignalState, number> = {
+          alpha: 523.25,
+          gamma: 659.25,
+          theta: 587.33,
+          delta: 392,
+          abundance: 698.46
+        };
+
+        const patterns: Record<SoundDirection, number[]> = {
+          open: [1, 1.25, 1.5],
+          close: [1.5, 1.25, 1],
+          confirm: [1, 1.25, 1.5, 2]
         };
 
         const now = audioContext.currentTime;
-        const oscillator = audioContext.createOscillator();
-        const gain = audioContext.createGain();
-        const base = baseFrequency[state];
+        const master = audioContext.createGain();
+        const filter = audioContext.createBiquadFilter();
+        const notes = patterns[direction];
 
-        oscillator.type = direction === 'confirm' ? 'triangle' : 'sine';
-        oscillator.frequency.setValueAtTime(
-          direction === 'close' ? base * 0.94 : base * 0.78,
-          now
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(direction === 'confirm' ? 5200 : 4400, now);
+        filter.Q.setValueAtTime(0.55, now);
+
+        master.gain.setValueAtTime(0.0001, now);
+        master.gain.exponentialRampToValueAtTime(0.72, now + 0.012);
+        master.gain.exponentialRampToValueAtTime(
+          0.0001,
+          now + (direction === 'confirm' ? 0.42 : 0.34)
         );
-        oscillator.frequency.exponentialRampToValueAtTime(
-          direction === 'close' ? base * 0.68 : direction === 'confirm' ? base * 1.28 : base,
-          now + 0.13
-        );
+        master.connect(filter);
+        filter.connect(audioContext.destination);
 
-        gain.gain.setValueAtTime(0.0001, now);
-        gain.gain.exponentialRampToValueAtTime(0.016, now + 0.018);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
+        notes.forEach((ratio, index) => {
+          const start = now + index * (direction === 'confirm' ? 0.052 : 0.058);
+          const duration = direction === 'confirm' ? 0.27 : 0.22;
+          const oscillator = audioContext!.createOscillator();
+          const noteGain = audioContext!.createGain();
+          const frequency = roots[state] * ratio;
 
-        oscillator.connect(gain);
-        gain.connect(audioContext.destination);
-        oscillator.start(now);
-        oscillator.stop(now + 0.16);
+          oscillator.type = index % 2 === 0 ? 'triangle' : 'sine';
+          oscillator.frequency.setValueAtTime(
+            direction === 'close' ? frequency * 1.035 : frequency * 0.975,
+            start
+          );
+          oscillator.frequency.exponentialRampToValueAtTime(
+            direction === 'close' ? frequency * 0.97 : frequency * 1.018,
+            start + duration
+          );
+
+          noteGain.gain.setValueAtTime(0.0001, start);
+          noteGain.gain.exponentialRampToValueAtTime(
+            direction === 'confirm' ? 0.014 : 0.011,
+            start + 0.018
+          );
+          noteGain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+
+          oscillator.connect(noteGain);
+          noteGain.connect(master);
+          oscillator.start(start);
+          oscillator.stop(start + duration + 0.02);
+        });
       } catch {
-        // Sound is an enhancement only; interaction must remain silent-safe.
+        // Sound is optional. Visual interaction always remains available.
       }
     };
 
@@ -87,23 +118,25 @@ export default function SignalChamberBlend() {
       wave.className = `signalTransitionWave signal${direction}Wave ${state}`;
       wave.setAttribute('aria-hidden', 'true');
       stage.appendChild(wave);
-      window.setTimeout(() => wave.remove(), direction === 'Enter' ? 900 : 980);
+      window.setTimeout(() => wave.remove(), direction === 'Enter' ? 980 : 1500);
     };
 
     const arriveSignal = (state: SignalState) => {
       window.clearTimeout(arrivalTimer);
+      setDataState('restState', state);
       setDataState('enterState', state);
       createTransitionWave(state, 'Enter');
 
       arrivalTimer = window.setTimeout(() => {
         setDataState('enterState', null);
-      }, 860);
+      }, 940);
     };
 
     const releaseSignal = (popup: HTMLElement, state: SignalState) => {
       window.clearTimeout(releaseTimer);
       setDataState('signalState', null);
       setDataState('enterState', null);
+      setDataState('restState', state);
       setDataState('exitState', state);
 
       const ghost = popup.cloneNode(true) as HTMLElement;
@@ -116,10 +149,10 @@ export default function SignalChamberBlend() {
 
       createTransitionWave(state, 'Exit');
 
-      window.setTimeout(() => ghost.remove(), 430);
+      window.setTimeout(() => ghost.remove(), 520);
       releaseTimer = window.setTimeout(() => {
         setDataState('exitState', null);
-      }, 980);
+      }, 1480);
     };
 
     const syncPopup = () => {
@@ -131,9 +164,12 @@ export default function SignalChamberBlend() {
       if (currentPopup && currentState) {
         window.clearTimeout(releaseTimer);
         setDataState('exitState', null);
+        setDataState('restState', currentState);
         setDataState('signalState', currentState);
 
-        if (currentPopup !== previousPopup) arriveSignal(currentState);
+        if (currentPopup !== previousPopup || currentState !== previousState) {
+          arriveSignal(currentState);
+        }
 
         previousPopup = currentPopup;
         previousState = currentState;
@@ -192,7 +228,7 @@ export default function SignalChamberBlend() {
 
   return (
     <style jsx global>{`
-      /* The chamber now belongs to the page instead of sitting inside a rectangle. */
+      /* One full-width atmosphere: no rectangular chamber or nested card. */
       #library {
         --library-rgb: 92, 155, 255;
         position: relative;
@@ -200,22 +236,27 @@ export default function SignalChamberBlend() {
         overflow: visible;
       }
 
+      #library[data-rest-state='alpha'],
       #library[data-signal-state='alpha'],
       #library[data-enter-state='alpha'],
       #library[data-exit-state='alpha'] { --library-rgb: var(--ev-alpha-rgb); }
 
+      #library[data-rest-state='gamma'],
       #library[data-signal-state='gamma'],
       #library[data-enter-state='gamma'],
       #library[data-exit-state='gamma'] { --library-rgb: var(--ev-gamma-rgb); }
 
+      #library[data-rest-state='theta'],
       #library[data-signal-state='theta'],
       #library[data-enter-state='theta'],
       #library[data-exit-state='theta'] { --library-rgb: var(--ev-theta-rgb); }
 
+      #library[data-rest-state='delta'],
       #library[data-signal-state='delta'],
       #library[data-enter-state='delta'],
       #library[data-exit-state='delta'] { --library-rgb: var(--ev-delta-rgb); }
 
+      #library[data-rest-state='abundance'],
       #library[data-signal-state='abundance'],
       #library[data-enter-state='abundance'],
       #library[data-exit-state='abundance'] { --library-rgb: var(--ev-abundance-rgb); }
@@ -223,56 +264,82 @@ export default function SignalChamberBlend() {
       #library::before {
         content: '';
         position: absolute;
-        z-index: -2;
-        top: 5%;
+        z-index: 0;
+        top: -7%;
         bottom: -10%;
         left: 50%;
         width: 100vw;
         transform: translateX(-50%);
         pointer-events: none;
         background:
-          radial-gradient(ellipse 64% 48% at 50% 53%, rgba(var(--library-rgb), 0.14), rgba(var(--library-rgb), 0.045) 46%, transparent 76%),
-          radial-gradient(ellipse 26% 24% at 16% 45%, rgba(var(--ev-alpha-rgb), 0.045), transparent 76%),
-          radial-gradient(ellipse 26% 24% at 84% 45%, rgba(var(--ev-gamma-rgb), 0.038), transparent 76%),
-          linear-gradient(180deg, transparent 0%, rgba(3, 11, 23, 0.32) 24%, rgba(2, 7, 15, 0.46) 76%, transparent 100%);
-        opacity: 0.95;
-        transition: background 620ms ease, opacity 620ms ease, filter 620ms ease;
+          radial-gradient(ellipse 76% 57% at 50% 53%, rgba(var(--library-rgb), 0.105), rgba(var(--library-rgb), 0.035) 48%, transparent 78%),
+          radial-gradient(ellipse 31% 25% at 13% 48%, rgba(var(--ev-alpha-rgb), 0.035), transparent 80%),
+          radial-gradient(ellipse 31% 25% at 87% 48%, rgba(var(--ev-gamma-rgb), 0.03), transparent 80%),
+          linear-gradient(180deg, transparent 0%, rgba(3, 11, 23, 0.26) 17%, rgba(2, 8, 17, 0.44) 82%, transparent 100%);
+        mask-image: linear-gradient(to bottom, transparent 0%, #000 8%, #000 92%, transparent 100%);
+        -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 8%, #000 92%, transparent 100%);
+        transition: background 1500ms cubic-bezier(0.2, 0.7, 0.2, 1), filter 1500ms ease, opacity 1500ms ease;
+      }
+
+      #library[data-rest-state]::before {
+        background:
+          radial-gradient(ellipse 82% 60% at 50% 53%, rgba(var(--library-rgb), 0.14), rgba(var(--library-rgb), 0.045) 49%, transparent 80%),
+          radial-gradient(ellipse 40% 31% at 14% 50%, rgba(var(--library-rgb), 0.035), transparent 80%),
+          radial-gradient(ellipse 40% 31% at 86% 50%, rgba(var(--library-rgb), 0.032), transparent 80%),
+          linear-gradient(180deg, transparent 0%, rgba(3, 11, 23, 0.28) 17%, rgba(2, 8, 17, 0.46) 82%, transparent 100%);
       }
 
       #library[data-signal-state]::before,
-      #library[data-enter-state]::before,
-      #library[data-exit-state]::before {
+      #library[data-enter-state]::before {
         background:
-          radial-gradient(ellipse 72% 54% at 50% 52%, rgba(var(--library-rgb), 0.2), rgba(var(--library-rgb), 0.07) 44%, transparent 78%),
-          radial-gradient(ellipse 32% 28% at 18% 48%, rgba(var(--library-rgb), 0.055), transparent 78%),
-          radial-gradient(ellipse 32% 28% at 82% 48%, rgba(var(--library-rgb), 0.05), transparent 78%),
-          linear-gradient(180deg, transparent 0%, rgba(3, 11, 23, 0.34) 24%, rgba(2, 7, 15, 0.5) 76%, transparent 100%);
-        filter: saturate(1.08);
+          radial-gradient(ellipse 90% 67% at 50% 52%, rgba(var(--library-rgb), 0.235), rgba(var(--library-rgb), 0.082) 47%, transparent 82%),
+          radial-gradient(ellipse 45% 34% at 13% 48%, rgba(var(--library-rgb), 0.055), transparent 80%),
+          radial-gradient(ellipse 45% 34% at 87% 48%, rgba(var(--library-rgb), 0.052), transparent 80%),
+          linear-gradient(180deg, transparent 0%, rgba(3, 11, 23, 0.25) 17%, rgba(2, 8, 17, 0.43) 82%, transparent 100%);
+        filter: saturate(1.08) brightness(1.025);
+      }
+
+      #library[data-exit-state]::before {
+        animation: evLibraryRelease 1480ms cubic-bezier(0.18, 0.76, 0.2, 1) both;
       }
 
       #library::after {
         content: '';
         position: absolute;
-        z-index: -1;
+        z-index: 0;
         left: 50%;
-        top: 22%;
-        width: min(1500px, 100vw);
-        height: 76%;
+        top: 13%;
+        width: 100vw;
+        height: 82%;
         transform: translateX(-50%);
-        border-radius: 50%;
         pointer-events: none;
-        background: radial-gradient(ellipse at center, rgba(var(--library-rgb), 0.11), transparent 72%);
-        filter: blur(72px);
-        transition: background 620ms ease, opacity 620ms ease;
+        background: radial-gradient(ellipse 67% 59% at center, rgba(var(--library-rgb), 0.1), transparent 75%);
+        filter: blur(76px);
+        opacity: 0.88;
+        transition: background 1500ms cubic-bezier(0.2, 0.7, 0.2, 1), opacity 1500ms ease;
       }
 
       #library .sectionIntro,
       #library .signalExperience {
         position: relative;
-        z-index: 1;
+        z-index: 2;
       }
 
-      #library .signalExperience.glassCard {
+      #library .eyebrow,
+      #library .compactHint .hintArrow {
+        transition: color 1000ms ease, text-shadow 1000ms ease;
+      }
+
+      #library[data-rest-state] .eyebrow,
+      #library[data-signal-state] .eyebrow,
+      #library[data-rest-state] .compactHint .hintArrow,
+      #library[data-signal-state] .compactHint .hintArrow {
+        color: rgb(var(--library-rgb)) !important;
+        text-shadow: 0 0 20px rgba(var(--library-rgb), 0.22);
+      }
+
+      #library .signalExperience.glassCard,
+      #library .signalExperience {
         overflow: visible !important;
         margin-top: clamp(20px, 3vw, 38px) !important;
         padding: 0 !important;
@@ -283,24 +350,21 @@ export default function SignalChamberBlend() {
       }
 
       #library .signalExperience::before {
-        inset: -18% -16% !important;
+        content: '' !important;
+        position: absolute !important;
+        z-index: 0 !important;
+        inset: -18% -22% -12% !important;
+        border: 0 !important;
         border-radius: 50% !important;
-        filter: blur(120px) !important;
-        opacity: 0.38 !important;
+        background: radial-gradient(ellipse at center, rgba(var(--library-rgb), 0.09), transparent 73%) !important;
+        filter: blur(70px) !important;
+        opacity: 0.86 !important;
+        pointer-events: none !important;
+        transition: background 1500ms ease !important;
       }
 
       #library .signalExperience::after {
-        content: '';
-        position: absolute;
-        z-index: 0;
-        inset: -8% -12% -5%;
-        pointer-events: none;
-        border-radius: 50%;
-        background:
-          radial-gradient(ellipse 62% 54% at 50% 52%, rgba(var(--library-rgb), 0.115), rgba(22, 56, 108, 0.05) 50%, transparent 78%),
-          conic-gradient(from 25deg at 50% 52%, rgba(var(--ev-alpha-rgb), 0.022), transparent 17%, rgba(var(--ev-gamma-rgb), 0.02) 29%, transparent 46%, rgba(var(--ev-theta-rgb), 0.022) 65%, transparent 82%, rgba(var(--ev-abundance-rgb), 0.018));
-        filter: blur(38px);
-        transition: background 620ms ease;
+        content: none !important;
       }
 
       #library .signalExperienceTop,
@@ -310,7 +374,7 @@ export default function SignalChamberBlend() {
       }
 
       #library .signalExperienceTop {
-        z-index: 3 !important;
+        z-index: 4 !important;
         padding-right: clamp(4px, 1vw, 16px);
       }
 
@@ -319,7 +383,15 @@ export default function SignalChamberBlend() {
         color: #a9b9ca !important;
       }
 
-      #library .signalStage {
+      /* Override every earlier state background, including the high-specificity :has rules. */
+      #library .signalStage,
+      #library .signalStage.popupOpen,
+      #library .signalStage:has(.signalNode.active),
+      #library .signalStage:has(.signalNode.alpha.active),
+      #library .signalStage:has(.signalNode.gamma.active),
+      #library .signalStage:has(.signalNode.theta.active),
+      #library .signalStage:has(.signalNode.delta.active),
+      #library .signalStage:has(.signalNode.abundance.active) {
         --release-rgb: 92, 155, 255;
         overflow: visible !important;
         min-height: clamp(680px, 56vw, 790px) !important;
@@ -328,75 +400,83 @@ export default function SignalChamberBlend() {
         border-radius: 0 !important;
         background: transparent !important;
         box-shadow: none !important;
-        transition: filter 560ms ease, opacity 560ms ease !important;
       }
 
+      #library .signalStage[data-rest-state='alpha'],
       #library .signalStage[data-signal-state='alpha'],
       #library .signalStage[data-enter-state='alpha'],
       #library .signalStage[data-exit-state='alpha'] { --release-rgb: var(--ev-alpha-rgb); }
 
+      #library .signalStage[data-rest-state='gamma'],
       #library .signalStage[data-signal-state='gamma'],
       #library .signalStage[data-enter-state='gamma'],
       #library .signalStage[data-exit-state='gamma'] { --release-rgb: var(--ev-gamma-rgb); }
 
+      #library .signalStage[data-rest-state='theta'],
       #library .signalStage[data-signal-state='theta'],
       #library .signalStage[data-enter-state='theta'],
       #library .signalStage[data-exit-state='theta'] { --release-rgb: var(--ev-theta-rgb); }
 
+      #library .signalStage[data-rest-state='delta'],
       #library .signalStage[data-signal-state='delta'],
       #library .signalStage[data-enter-state='delta'],
       #library .signalStage[data-exit-state='delta'] { --release-rgb: var(--ev-delta-rgb); }
 
+      #library .signalStage[data-rest-state='abundance'],
       #library .signalStage[data-signal-state='abundance'],
       #library .signalStage[data-enter-state='abundance'],
       #library .signalStage[data-exit-state='abundance'] { --release-rgb: var(--ev-abundance-rgb); }
 
       #library .signalStage[data-enter-state] {
-        animation: evChamberArrive 820ms cubic-bezier(0.16, 0.72, 0.26, 1) both;
+        animation: evChamberArrive 920ms cubic-bezier(0.16, 0.72, 0.26, 1) both;
       }
 
       #library .signalStage[data-exit-state] {
-        animation: evChamberSettle 920ms cubic-bezier(0.2, 0.72, 0.2, 1) both;
+        animation: evChamberSettle 1480ms cubic-bezier(0.2, 0.72, 0.2, 1) both;
       }
 
       #library .signalStage::before {
-        inset: 7% 8% !important;
-        opacity: 0.78 !important;
+        inset: 6% 5% !important;
+        opacity: 0.72 !important;
         border: 0 !important;
         background: repeating-radial-gradient(
           ellipse at center,
-          rgba(116, 196, 255, 0.09) 0 1px,
+          rgba(var(--release-rgb), 0.085) 0 1px,
           transparent 1px 66px
         ) !important;
-        mask-image: radial-gradient(ellipse at center, #000 0%, #000 66%, transparent 91%) !important;
-        -webkit-mask-image: radial-gradient(ellipse at center, #000 0%, #000 66%, transparent 91%) !important;
+        mask-image: radial-gradient(ellipse at center, #000 0%, #000 66%, transparent 92%) !important;
+        -webkit-mask-image: radial-gradient(ellipse at center, #000 0%, #000 66%, transparent 92%) !important;
+        transition: background 1200ms ease, opacity 1200ms ease !important;
       }
 
       #library .signalStage::after {
-        inset: -3% -4% !important;
+        inset: -8% -12% !important;
         border: 0 !important;
         border-radius: 50% !important;
-        opacity: 0.45 !important;
+        opacity: 0.42 !important;
         background:
-          linear-gradient(90deg, transparent 49.9%, rgba(114, 196, 255, 0.08) 50%, transparent 50.1%),
-          linear-gradient(0deg, transparent 49.9%, rgba(114, 196, 255, 0.055) 50%, transparent 50.1%),
-          conic-gradient(from 45deg at 50% 50%, transparent 0 11%, rgba(92, 177, 255, 0.045) 12%, transparent 13% 37%, rgba(92, 177, 255, 0.04) 38%, transparent 39% 62%, rgba(92, 177, 255, 0.04) 63%, transparent 64% 87%, rgba(92, 177, 255, 0.04) 88%, transparent 89% 100%) !important;
-        mask-image: radial-gradient(ellipse at center, #000 0%, rgba(0, 0, 0, 0.88) 62%, transparent 88%);
-        -webkit-mask-image: radial-gradient(ellipse at center, #000 0%, rgba(0, 0, 0, 0.88) 62%, transparent 88%);
+          linear-gradient(90deg, transparent 49.9%, rgba(var(--release-rgb), 0.075) 50%, transparent 50.1%),
+          linear-gradient(0deg, transparent 49.9%, rgba(var(--release-rgb), 0.052) 50%, transparent 50.1%),
+          conic-gradient(from 45deg at 50% 50%, transparent 0 11%, rgba(var(--release-rgb), 0.04) 12%, transparent 13% 37%, rgba(var(--release-rgb), 0.035) 38%, transparent 39% 62%, rgba(var(--release-rgb), 0.035) 63%, transparent 64% 87%, rgba(var(--release-rgb), 0.035) 88%, transparent 89% 100%) !important;
+        mask-image: radial-gradient(ellipse at center, #000 0%, rgba(0, 0, 0, 0.9) 64%, transparent 91%);
+        -webkit-mask-image: radial-gradient(ellipse at center, #000 0%, rgba(0, 0, 0, 0.9) 64%, transparent 91%);
+        transition: background 1200ms ease, opacity 1200ms ease !important;
       }
 
-      /* Each frequency has a stronger, unmistakable color identity. */
+      /* Richer frequency nodes without becoming toy-like. */
       #library .signalNode {
         overflow: hidden;
-        border-color: rgba(var(--node-rgb), 0.62) !important;
+        border-color: rgba(var(--node-rgb), 0.72) !important;
         background:
-          radial-gradient(circle at 50% -8%, rgba(var(--node-rgb), 0.36), transparent 52%),
-          linear-gradient(155deg, rgba(var(--node-rgb), 0.18), rgba(7, 19, 36, 0.96) 48%, rgba(2, 8, 18, 0.985)) !important;
+          radial-gradient(circle at 22% -4%, rgba(var(--node-rgb), 0.46), transparent 48%),
+          radial-gradient(circle at 88% 118%, rgba(var(--node-rgb), 0.12), transparent 48%),
+          linear-gradient(150deg, rgba(var(--node-rgb), 0.2), rgba(7, 19, 36, 0.965) 48%, rgba(2, 8, 18, 0.99)) !important;
         box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.055),
-          inset 0 0 34px rgba(var(--node-rgb), 0.055),
+          inset 0 1px 0 rgba(255, 255, 255, 0.08),
+          inset 0 0 38px rgba(var(--node-rgb), 0.075),
           0 20px 44px rgba(0, 0, 0, 0.3),
-          0 0 34px rgba(var(--node-rgb), 0.1) !important;
+          0 0 38px rgba(var(--node-rgb), 0.13) !important;
+        filter: saturate(1.08);
       }
 
       #library .signalNode::before {
@@ -404,40 +484,55 @@ export default function SignalChamberBlend() {
         position: absolute;
         inset: 0;
         pointer-events: none;
-        background: linear-gradient(120deg, transparent 18%, rgba(255, 255, 255, 0.07) 42%, transparent 62%);
-        transform: translateX(-120%);
-        transition: transform 520ms ease;
+        background: linear-gradient(118deg, transparent 14%, rgba(255, 255, 255, 0.11) 41%, transparent 61%);
+        transform: translateX(-125%);
+        transition: transform 580ms ease;
+      }
+
+      #library .signalNode::after {
+        content: '';
+        position: absolute;
+        left: 16%;
+        right: 16%;
+        bottom: 9px;
+        height: 2px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, transparent, rgba(var(--node-rgb), 0.9), transparent);
+        opacity: 0.56;
+        box-shadow: 0 0 14px rgba(var(--node-rgb), 0.48);
+        pointer-events: none;
       }
 
       #library .signalNode:hover::before,
       #library .signalNode:focus-visible::before,
       #library .signalNode.active::before {
-        transform: translateX(120%);
+        transform: translateX(125%);
       }
 
       #library .signalNode:hover,
       #library .signalNode:focus-visible,
       #library .signalNode.active {
-        border-color: rgba(var(--node-rgb), 0.98) !important;
+        border-color: rgba(var(--node-rgb), 1) !important;
         background:
-          radial-gradient(circle at 50% -4%, rgba(var(--node-rgb), 0.52), transparent 56%),
-          linear-gradient(155deg, rgba(var(--node-rgb), 0.3), rgba(7, 20, 38, 0.98) 50%, rgba(2, 8, 18, 1)) !important;
+          radial-gradient(circle at 25% -2%, rgba(var(--node-rgb), 0.64), transparent 54%),
+          radial-gradient(circle at 90% 115%, rgba(var(--node-rgb), 0.2), transparent 50%),
+          linear-gradient(150deg, rgba(var(--node-rgb), 0.34), rgba(7, 20, 38, 0.985) 52%, rgba(2, 8, 18, 1)) !important;
         box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.09),
-          inset 0 0 38px rgba(var(--node-rgb), 0.12),
-          0 26px 54px rgba(0, 0, 0, 0.34),
-          0 0 44px rgba(var(--node-rgb), 0.25) !important;
+          inset 0 1px 0 rgba(255, 255, 255, 0.12),
+          inset 0 0 42px rgba(var(--node-rgb), 0.15),
+          0 26px 56px rgba(0, 0, 0, 0.34),
+          0 0 48px rgba(var(--node-rgb), 0.3) !important;
       }
 
       #library .signalPopupOverlay:not(.signalPopupExitGhost) {
         z-index: 6 !important;
-        animation: evPopupArrival 500ms cubic-bezier(0.16, 0.82, 0.24, 1) both !important;
+        animation: evPopupArrival 560ms cubic-bezier(0.16, 0.82, 0.24, 1) both !important;
       }
 
       #library .signalPopupExitGhost {
         z-index: 6 !important;
         pointer-events: none !important;
-        animation: evPopupExit 400ms cubic-bezier(0.4, 0, 0.8, 0.4) forwards !important;
+        animation: evPopupExit 500ms cubic-bezier(0.4, 0, 0.8, 0.4) forwards !important;
       }
 
       #library .signalTransitionWave {
@@ -452,8 +547,8 @@ export default function SignalChamberBlend() {
         border-radius: 50%;
         border: 1px solid rgba(var(--wave-rgb), 0.76);
         box-shadow:
-          0 0 28px rgba(var(--wave-rgb), 0.36),
-          inset 0 0 26px rgba(var(--wave-rgb), 0.14);
+          0 0 32px rgba(var(--wave-rgb), 0.38),
+          inset 0 0 28px rgba(var(--wave-rgb), 0.15);
         pointer-events: none;
       }
 
@@ -464,23 +559,23 @@ export default function SignalChamberBlend() {
       #library .signalTransitionWave.abundance { --wave-rgb: var(--ev-abundance-rgb); }
 
       #library .signalEnterWave {
-        animation: evSignalArrival 860ms cubic-bezier(0.16, 0.72, 0.26, 1) forwards;
+        animation: evSignalArrival 940ms cubic-bezier(0.16, 0.72, 0.26, 1) forwards;
       }
 
       #library .signalExitWave {
-        animation: evSignalRelease 940ms cubic-bezier(0.16, 0.72, 0.26, 1) forwards;
+        animation: evSignalRelease 1480ms cubic-bezier(0.16, 0.72, 0.26, 1) forwards;
       }
 
       @keyframes evPopupArrival {
         0% {
           opacity: 0;
-          transform: translate(-50%, -50%) scale(0.76);
-          filter: blur(10px) brightness(1.26);
+          transform: translate(-50%, -50%) scale(0.74);
+          filter: blur(11px) brightness(1.28);
         }
-        62% {
+        64% {
           opacity: 1;
-          transform: translate(-50%, -50%) scale(1.025);
-          filter: blur(0) brightness(1.08);
+          transform: translate(-50%, -50%) scale(1.024);
+          filter: blur(0) brightness(1.07);
         }
         100% {
           opacity: 1;
@@ -497,45 +592,39 @@ export default function SignalChamberBlend() {
         }
         100% {
           opacity: 0;
-          transform: translate(-50%, -52%) scale(0.965);
-          filter: blur(7px);
+          transform: translate(-50%, -52%) scale(0.955);
+          filter: blur(8px);
         }
       }
 
       @keyframes evSignalArrival {
-        0% {
-          opacity: 0;
-          transform: translate(-50%, -50%) scale(0.32);
-        }
+        0% { opacity: 0; transform: translate(-50%, -50%) scale(0.28); }
         18% { opacity: 0.96; }
-        100% {
-          opacity: 0;
-          transform: translate(-50%, -50%) scale(5.3);
-        }
+        100% { opacity: 0; transform: translate(-50%, -50%) scale(6.2); }
       }
 
       @keyframes evSignalRelease {
-        0% {
-          opacity: 0;
-          transform: translate(-50%, -50%) scale(0.48);
-        }
-        18% { opacity: 0.9; }
-        100% {
-          opacity: 0;
-          transform: translate(-50%, -50%) scale(5.2);
-        }
+        0% { opacity: 0; transform: translate(-50%, -50%) scale(0.48); }
+        18% { opacity: 0.88; }
+        100% { opacity: 0; transform: translate(-50%, -50%) scale(6.4); }
       }
 
       @keyframes evChamberArrive {
         0% { filter: saturate(0.92) brightness(0.94); }
-        46% { filter: saturate(1.28) brightness(1.1); }
-        100% { filter: saturate(1.06) brightness(1); }
+        46% { filter: saturate(1.25) brightness(1.08); }
+        100% { filter: saturate(1.07) brightness(1); }
       }
 
       @keyframes evChamberSettle {
-        0% { filter: saturate(1.22) brightness(1.08); }
-        45% { filter: saturate(1.08) brightness(1.025); }
+        0% { filter: saturate(1.18) brightness(1.06); }
+        52% { filter: saturate(1.08) brightness(1.02); }
         100% { filter: saturate(1) brightness(1); }
+      }
+
+      @keyframes evLibraryRelease {
+        0% { filter: saturate(1.12) brightness(1.035); opacity: 1; }
+        58% { filter: saturate(1.04) brightness(1.012); opacity: 0.98; }
+        100% { filter: saturate(1) brightness(1); opacity: 0.95; }
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -543,23 +632,20 @@ export default function SignalChamberBlend() {
         #library .signalPopupExitGhost,
         #library .signalTransitionWave,
         #library .signalStage[data-enter-state],
-        #library .signalStage[data-exit-state] {
+        #library .signalStage[data-exit-state],
+        #library[data-exit-state]::before {
           animation-duration: 1ms !important;
         }
       }
 
       @media (max-width: 860px) {
         #library::before {
-          top: 9%;
+          top: -2%;
           bottom: -4%;
         }
 
         #library .signalExperienceTop {
           padding-right: 0;
-        }
-
-        #library .signalExperience::after {
-          inset: -4% -22% 0;
         }
       }
 
@@ -573,15 +659,15 @@ export default function SignalChamberBlend() {
         }
 
         #library .signalTransitionWave {
-          width: 25%;
+          width: 26%;
         }
 
         #library .signalNode {
           box-shadow:
-            inset 0 1px 0 rgba(255, 255, 255, 0.05),
-            inset 0 0 26px rgba(var(--node-rgb), 0.06),
+            inset 0 1px 0 rgba(255, 255, 255, 0.07),
+            inset 0 0 28px rgba(var(--node-rgb), 0.08),
             0 14px 30px rgba(0, 0, 0, 0.26),
-            0 0 24px rgba(var(--node-rgb), 0.09) !important;
+            0 0 28px rgba(var(--node-rgb), 0.14) !important;
         }
       }
     `}</style>
