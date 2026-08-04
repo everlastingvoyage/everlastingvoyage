@@ -4,7 +4,6 @@ import './v9-1.css';
 import HumanoidSwap from './HumanoidSwap';
 import SignalChamberPolish from './SignalChamberPolish';
 import SignalChamberBlend from './SignalChamberBlend';
-import SignalLibraryUpgrade from './SignalLibraryUpgrade';
 
 export const metadata: Metadata = {
   title: 'Everlasting Voyage — Pure Frequencies & Focus Sessions',
@@ -28,7 +27,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         {children}
         <SignalChamberPolish />
         <SignalChamberBlend />
-        <SignalLibraryUpgrade />
       </body>
     </html>
   );
