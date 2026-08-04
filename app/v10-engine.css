@@ -1,0 +1,660 @@
+:root {
+  --v10-alpha: 108, 215, 255;
+  --v10-gamma: 105, 225, 166;
+  --v10-theta: 139, 125, 255;
+  --v10-delta: 194, 216, 233;
+  --v10-abundance: 225, 186, 93;
+}
+
+body.v10-session-open {
+  overflow: hidden;
+}
+
+body.v10-session-open .sessionOverlay {
+  display: none !important;
+}
+
+.v10SessionOverlay,
+.v10ContinueVoyage {
+  --v10-accent-rgb: var(--v10-alpha);
+  --v10-accent: rgb(var(--v10-accent-rgb));
+}
+
+.v10SessionOverlay.gamma,
+.v10ContinueVoyage.gamma { --v10-accent-rgb: var(--v10-gamma); }
+.v10SessionOverlay.theta,
+.v10ContinueVoyage.theta { --v10-accent-rgb: var(--v10-theta); }
+.v10SessionOverlay.delta,
+.v10ContinueVoyage.delta { --v10-accent-rgb: var(--v10-delta); }
+.v10SessionOverlay.abundance,
+.v10ContinueVoyage.abundance { --v10-accent-rgb: var(--v10-abundance); }
+
+.v10ContinueVoyage {
+  position: fixed;
+  z-index: 70;
+  right: 24px;
+  bottom: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 54px;
+  padding: 0 18px 0 22px;
+  border: 1px solid rgba(var(--v10-accent-rgb), 0.52);
+  border-radius: 999px;
+  background:
+    linear-gradient(135deg, rgba(var(--v10-accent-rgb), 0.18), rgba(5, 14, 28, 0.97) 55%),
+    #06101f;
+  color: #f5f9ff;
+  box-shadow: 0 18px 52px rgba(0, 0, 0, 0.42), 0 0 34px rgba(var(--v10-accent-rgb), 0.15);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  animation: v10ContinueArrival 460ms cubic-bezier(0.16, 0.84, 0.24, 1) both;
+}
+
+.v10ContinueVoyage span {
+  display: inline-flex;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: rgba(var(--v10-accent-rgb), 0.14);
+  color: var(--v10-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.v10SessionOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100dvh;
+  overflow: auto;
+  background:
+    radial-gradient(circle at 50% 34%, rgba(var(--v10-accent-rgb), 0.16), transparent 26%),
+    radial-gradient(circle at 12% 0%, rgba(var(--v10-accent-rgb), 0.09), transparent 32%),
+    linear-gradient(145deg, #071224 0%, #020812 48%, #01050b 100%);
+  color: #f4f8fc;
+  isolation: isolate;
+  animation: v10OverlayArrival 620ms cubic-bezier(0.16, 0.86, 0.25, 1) both;
+}
+
+.v10SessionOverlay.abundance {
+  background:
+    radial-gradient(circle at 50% 32%, rgba(var(--v10-accent-rgb), 0.2), transparent 29%),
+    radial-gradient(circle at 8% 0%, rgba(202, 126, 29, 0.11), transparent 34%),
+    linear-gradient(145deg, #171209 0%, #070604 48%, #020201 100%);
+}
+
+.v10SessionAtmosphere {
+  position: fixed;
+  z-index: -2;
+  inset: -20%;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 42%, rgba(var(--v10-accent-rgb), 0.13), transparent 34%),
+    conic-gradient(from 210deg at 50% 42%, transparent, rgba(var(--v10-accent-rgb), 0.07), transparent 34%, rgba(var(--v10-accent-rgb), 0.04), transparent 68%);
+  filter: blur(18px);
+  animation: v10AtmosphereBreath 9s ease-in-out infinite alternate;
+}
+
+.v10SessionParticles {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.v10SessionParticles span {
+  --size: calc(2px + (var(--particle-index) % 3) * 1px);
+  position: absolute;
+  left: calc(8% + (var(--particle-index) * 7.3%));
+  top: calc(12% + ((var(--particle-index) * 13%) % 76%));
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: rgba(var(--v10-accent-rgb), 0.85);
+  box-shadow: 0 0 13px rgba(var(--v10-accent-rgb), 0.6);
+  animation: v10ParticleDrift calc(6s + var(--particle-index) * 0.38s) ease-in-out infinite alternate;
+  animation-delay: calc(var(--particle-index) * -0.31s);
+}
+
+.v10SessionHeader {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px clamp(24px, 4vw, 64px);
+  background: linear-gradient(180deg, rgba(2, 7, 15, 0.84), rgba(2, 7, 15, 0));
+  backdrop-filter: blur(10px);
+}
+
+.v10SessionBrand {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  color: #d8e4f1;
+  font-size: 0.9rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.v10SessionBrand img {
+  width: 42px;
+  height: auto;
+  filter: drop-shadow(0 0 12px rgba(var(--v10-accent-rgb), 0.34));
+}
+
+.v10CloseSession,
+.v10SecondaryAction,
+.v10TextAction,
+.v10AudioControls button,
+.v10ThoughtCapture button {
+  border: 1px solid rgba(136, 182, 224, 0.28);
+  background: rgba(8, 20, 37, 0.72);
+  color: #eef6ff;
+  font: inherit;
+  cursor: pointer;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+}
+
+.v10CloseSession {
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+}
+
+.v10CloseSession:hover,
+.v10SecondaryAction:hover,
+.v10AudioControls button:hover,
+.v10ThoughtCapture button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(var(--v10-accent-rgb), 0.55);
+  background: rgba(var(--v10-accent-rgb), 0.1);
+  box-shadow: 0 0 24px rgba(var(--v10-accent-rgb), 0.1);
+}
+
+.v10SessionMain,
+.v10Completion {
+  width: min(1120px, calc(100% - 48px));
+  margin: auto;
+  padding: 36px 0 64px;
+}
+
+.v10SessionMain {
+  display: grid;
+  grid-template-columns: minmax(250px, 0.78fr) minmax(370px, 1.15fr) minmax(280px, 0.9fr);
+  align-items: center;
+  gap: clamp(30px, 5vw, 72px);
+}
+
+.v10SessionIdentity {
+  animation: v10ContentArrival 620ms 100ms cubic-bezier(0.16, 0.82, 0.24, 1) both;
+}
+
+.v10SessionEyebrow,
+.v10ThoughtCapture > label,
+.v10CompletionIntention span,
+.v10CompletionThoughts > span {
+  display: block;
+  margin-bottom: 15px;
+  color: var(--v10-accent);
+  font-size: 0.86rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.v10SessionIdentity h2,
+.v10Completion h2 {
+  margin: 0;
+  color: #f5f8fc;
+  font-size: clamp(3rem, 6vw, 6rem);
+  line-height: 0.94;
+  letter-spacing: -0.065em;
+}
+
+.v10SessionIdentity p {
+  max-width: 34rem;
+  margin: 25px 0 0;
+  color: #a8b6c9;
+  font-size: clamp(1.05rem, 1.5vw, 1.35rem);
+  line-height: 1.65;
+}
+
+.v10TimerArea {
+  display: grid;
+  justify-items: center;
+  gap: 30px;
+  animation: v10ContentArrival 620ms 170ms cubic-bezier(0.16, 0.82, 0.24, 1) both;
+}
+
+.v10ProgressRing {
+  position: relative;
+  display: grid;
+  place-content: center;
+  width: min(30vw, 390px);
+  min-width: 330px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  text-align: center;
+  background:
+    radial-gradient(circle, rgba(3, 10, 20, 0.98) 61%, transparent 62%),
+    conic-gradient(var(--v10-accent) var(--session-progress), rgba(122, 163, 201, 0.14) 0);
+  box-shadow:
+    inset 0 0 54px rgba(var(--v10-accent-rgb), 0.09),
+    0 0 80px rgba(var(--v10-accent-rgb), 0.1);
+}
+
+.v10ProgressRing::before,
+.v10ProgressRing::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.v10ProgressRing::before {
+  inset: 8%;
+  border: 1px solid rgba(var(--v10-accent-rgb), 0.23);
+}
+
+.v10ProgressRing::after {
+  inset: -5%;
+  border: 1px solid rgba(var(--v10-accent-rgb), 0.1);
+  animation: v10RingPulse 4.6s ease-in-out infinite;
+}
+
+.v10TimerDisplay {
+  color: #f7faff;
+  font-size: clamp(4.4rem, 8vw, 8rem);
+  line-height: 0.9;
+  letter-spacing: -0.07em;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 35px rgba(var(--v10-accent-rgb), 0.13);
+}
+
+.v10ProgressRing > span {
+  margin-top: 20px;
+  color: #91a1b5;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+}
+
+.v10TimerControls,
+.v10CompletionActions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.v10PrimaryAction,
+.v10SecondaryAction,
+.v10TextAction {
+  min-height: 52px;
+  padding: 0 24px;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.v10PrimaryAction {
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: linear-gradient(135deg, rgba(var(--v10-accent-rgb), 1), rgba(var(--v10-accent-rgb), 0.63));
+  color: #03101b;
+  box-shadow: 0 18px 44px rgba(var(--v10-accent-rgb), 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.42);
+  transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+}
+
+.v10SessionOverlay.abundance .v10PrimaryAction {
+  color: #1d1403;
+}
+
+.v10PrimaryAction:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+  box-shadow: 0 22px 54px rgba(var(--v10-accent-rgb), 0.27), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.v10TextAction {
+  border-color: transparent;
+  background: transparent;
+  color: #92a4ba;
+}
+
+.v10TextAction:hover {
+  color: #f1f7ff;
+}
+
+.v10SessionTools {
+  display: grid;
+  gap: 24px;
+  animation: v10ContentArrival 620ms 240ms cubic-bezier(0.16, 0.82, 0.24, 1) both;
+}
+
+.v10AudioControls,
+.v10ThoughtCapture,
+.v10ThoughtList,
+.v10CompletionIntention,
+.v10CompletionThoughts {
+  border: 1px solid rgba(126, 174, 216, 0.18);
+  border-radius: 24px;
+  background: linear-gradient(150deg, rgba(10, 25, 45, 0.78), rgba(3, 10, 20, 0.78));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+  backdrop-filter: blur(14px);
+}
+
+.v10AudioControls {
+  display: grid;
+  gap: 20px;
+  padding: 22px;
+}
+
+.v10AudioControls > div {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.v10AudioIndicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #53657a;
+  box-shadow: 0 0 0 rgba(var(--v10-accent-rgb), 0);
+  transition: background 220ms ease, box-shadow 220ms ease;
+}
+
+.v10AudioIndicator.active {
+  background: var(--v10-accent);
+  box-shadow: 0 0 18px rgba(var(--v10-accent-rgb), 0.72);
+  animation: v10AudioPulse 1.6s ease-in-out infinite;
+}
+
+.v10AudioControls label {
+  display: grid;
+  gap: 10px;
+  color: #95a6bb;
+  font-size: 0.83rem;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.v10AudioControls input[type='range'] {
+  width: 100%;
+  accent-color: var(--v10-accent);
+}
+
+.v10AudioControls button {
+  min-height: 44px;
+  border-radius: 14px;
+}
+
+.v10ThoughtCapture {
+  padding: 22px;
+}
+
+.v10ThoughtCapture > div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+}
+
+.v10ThoughtCapture input {
+  min-width: 0;
+  height: 50px;
+  padding: 0 16px;
+  border: 1px solid rgba(128, 174, 214, 0.2);
+  border-radius: 14px;
+  outline: none;
+  background: rgba(1, 8, 17, 0.78);
+  color: #f4f8fc;
+  font: inherit;
+}
+
+.v10ThoughtCapture input:focus {
+  border-color: rgba(var(--v10-accent-rgb), 0.6);
+  box-shadow: 0 0 0 3px rgba(var(--v10-accent-rgb), 0.08);
+}
+
+.v10ThoughtCapture button {
+  padding: 0 18px;
+  border-radius: 14px;
+}
+
+.v10ThoughtList {
+  display: grid;
+  gap: 8px;
+  padding: 18px 20px;
+}
+
+.v10ThoughtList span {
+  color: #b7c5d6;
+  line-height: 1.5;
+}
+
+.v10ThoughtList span + span {
+  padding-top: 8px;
+  border-top: 1px solid rgba(139, 182, 220, 0.11);
+}
+
+.v10SessionFooter {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px clamp(24px, 4vw, 64px) 26px;
+  color: #778a9f;
+  font-size: 0.86rem;
+}
+
+.v10Completion {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  min-height: 72vh;
+  text-align: center;
+  animation: v10ContentArrival 620ms cubic-bezier(0.16, 0.82, 0.24, 1) both;
+}
+
+.v10Completion h2 {
+  max-width: 850px;
+}
+
+.v10CompletionSummary {
+  margin: 28px 0 36px;
+  color: #a8b7c9;
+  font-size: 1.2rem;
+}
+
+.v10CompletionIntention,
+.v10CompletionThoughts {
+  width: min(650px, 100%);
+  padding: 24px;
+  margin-bottom: 18px;
+  text-align: left;
+}
+
+.v10CompletionIntention strong {
+  display: block;
+  color: #f4f8fc;
+  font-size: 1.35rem;
+  line-height: 1.45;
+}
+
+.v10CompletionThoughts p {
+  margin: 0;
+  color: #c0ccda;
+  line-height: 1.6;
+}
+
+.v10CompletionThoughts p + p {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(139, 182, 220, 0.12);
+}
+
+.v10CompletionActions {
+  margin-top: 18px;
+}
+
+@keyframes v10OverlayArrival {
+  from { opacity: 0; transform: scale(1.012); filter: blur(5px); }
+  to { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+
+@keyframes v10ContentArrival {
+  from { opacity: 0; transform: translateY(18px); filter: blur(4px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+@keyframes v10AtmosphereBreath {
+  from { transform: scale(0.96) rotate(-1.5deg); opacity: 0.68; }
+  to { transform: scale(1.04) rotate(1.5deg); opacity: 1; }
+}
+
+@keyframes v10ParticleDrift {
+  from { transform: translate3d(-8px, 10px, 0); opacity: 0.24; }
+  to { transform: translate3d(12px, -16px, 0); opacity: 0.9; }
+}
+
+@keyframes v10RingPulse {
+  0%, 100% { transform: scale(0.98); opacity: 0.42; }
+  50% { transform: scale(1.035); opacity: 0.9; }
+}
+
+@keyframes v10AudioPulse {
+  0%, 100% { transform: scale(0.86); opacity: 0.65; }
+  50% { transform: scale(1.18); opacity: 1; }
+}
+
+@keyframes v10ContinueArrival {
+  from { opacity: 0; transform: translateY(15px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 1050px) {
+  .v10SessionMain {
+    grid-template-columns: 1fr 1.15fr;
+  }
+
+  .v10SessionTools {
+    grid-column: 1 / -1;
+    grid-template-columns: 0.8fr 1.2fr;
+  }
+
+  .v10ThoughtList {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .v10SessionHeader {
+    padding: 18px 20px;
+  }
+
+  .v10SessionBrand span {
+    font-size: 0.72rem;
+    letter-spacing: 0.13em;
+  }
+
+  .v10SessionBrand img {
+    width: 34px;
+  }
+
+  .v10SessionMain,
+  .v10Completion {
+    width: min(100% - 36px, 620px);
+    padding: 20px 0 42px;
+  }
+
+  .v10SessionMain {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .v10SessionIdentity {
+    text-align: center;
+  }
+
+  .v10SessionIdentity p {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .v10ProgressRing {
+    width: min(82vw, 360px);
+    min-width: 0;
+  }
+
+  .v10SessionTools {
+    grid-column: auto;
+    grid-template-columns: 1fr;
+  }
+
+  .v10SessionFooter {
+    flex-direction: column;
+    align-items: center;
+    padding: 18px 22px 28px;
+    text-align: center;
+  }
+
+  .v10ContinueVoyage {
+    right: 16px;
+    bottom: 16px;
+  }
+}
+
+@media (max-width: 460px) {
+  .v10SessionIdentity h2,
+  .v10Completion h2 {
+    font-size: clamp(2.7rem, 15vw, 4.2rem);
+  }
+
+  .v10TimerDisplay {
+    font-size: clamp(4rem, 23vw, 6rem);
+  }
+
+  .v10ThoughtCapture > div {
+    grid-template-columns: 1fr;
+  }
+
+  .v10ThoughtCapture button {
+    min-height: 48px;
+  }
+
+  .v10PrimaryAction,
+  .v10SecondaryAction {
+    min-width: 128px;
+  }
+
+  .v10ContinueVoyage {
+    left: 16px;
+    right: 16px;
+    justify-content: space-between;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v10SessionOverlay,
+  .v10SessionAtmosphere,
+  .v10SessionParticles span,
+  .v10ProgressRing::after,
+  .v10AudioIndicator.active,
+  .v10ContinueVoyage,
+  .v10SessionIdentity,
+  .v10TimerArea,
+  .v10SessionTools,
+  .v10Completion {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
