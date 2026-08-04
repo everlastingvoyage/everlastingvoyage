@@ -3,11 +3,13 @@ import './globals.css';
 import './v9-1.css';
 import './v10-engine.css';
 import './v10-polish.css';
+import './v10-saved-spaces.css';
 import HumanoidSwap from './HumanoidSwap';
 import SignalChamberPolish from './SignalChamberPolish';
 import SignalChamberBlend from './SignalChamberBlend';
 import V10VoyageEngine from './V10VoyageEngine';
 import V10SessionPolish from './V10SessionPolish';
+import V10SavedSpaces from './V10SavedSpaces';
 
 export const metadata: Metadata = {
   title: 'Everlasting Voyage — Pure Frequencies & Focus Sessions',
@@ -33,6 +35,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <SignalChamberBlend />
         <V10VoyageEngine />
         <V10SessionPolish />
+        <V10SavedSpaces />
       </body>
     </html>
   );
