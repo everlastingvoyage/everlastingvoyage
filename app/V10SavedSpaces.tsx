@@ -3,6 +3,7 @@
 import type { FormEvent } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { usePathname } from 'next/navigation';
 
 type StateId = 'alpha' | 'gamma' | 'theta' | 'delta' | 'abundance';
 
@@ -36,9 +37,7 @@ function readSpaces(): SavedSpace[] {
   try {
     const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') as SavedSpace[];
     if (!Array.isArray(parsed)) return [];
-    return parsed
-      .filter((space) => space && stateMeta[space.stateId] && Number.isFinite(space.durationMinutes))
-      .slice(0, MAX_SPACES);
+    return parsed.filter((space) => space && stateMeta[space.stateId] && Number.isFinite(space.durationMinutes)).slice(0, MAX_SPACES);
   } catch {
     localStorage.removeItem(STORAGE_KEY);
     return [];
@@ -77,33 +76,46 @@ function makeId() {
 }
 
 export default function V10SavedSpaces() {
-  const [mountNode, setMountNode] = useState<HTMLElement | null>(null);
+  const pathname = usePathname();
+  const enabled = pathname === '/voyage';
+  const [buttonMount, setButtonMount] = useState<HTMLElement | null>(null);
   const [spaces, setSpaces] = useState<SavedSpace[]>([]);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [savedPulse, setSavedPulse] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftName, setDraftName] = useState('');
 
   useEffect(() => {
+    if (!enabled) return;
     setSpaces(readSpaces());
 
-    const hero = document.querySelector<HTMLElement>('.heroSection');
-    if (!hero) return;
-
-    const existing = document.getElementById('v10-saved-spaces-root');
-    const root = existing ?? document.createElement('div');
-    root.id = 'v10-saved-spaces-root';
-    if (!existing) hero.insertAdjacentElement('afterend', root);
-    setMountNode(root);
+    const header = document.querySelector<HTMLElement>('.builderHeader');
+    if (!header) return;
+    const root = document.createElement('div');
+    root.id = 'ev-saved-spaces-button-root';
+    header.appendChild(root);
+    setButtonMount(root);
 
     return () => {
-      if (!existing) root.remove();
+      root.remove();
+      setButtonMount(null);
     };
-  }, []);
+  }, [enabled]);
+
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const closeOnEscape = (event: KeyboardEvent) => event.key === 'Escape' && setDrawerOpen(false);
+    window.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.body.style.overflow = previous;
+      window.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [drawerOpen]);
 
   const commitSpaces = useCallback((nextSpaces: SavedSpace[]) => {
-    const ordered = [...nextSpaces]
-      .sort((a, b) => b.lastUsedAt - a.lastUsedAt)
-      .slice(0, MAX_SPACES);
+    const ordered = [...nextSpaces].sort((a, b) => b.lastUsedAt - a.lastUsedAt).slice(0, MAX_SPACES);
     setSpaces(ordered);
     persistSpaces(ordered);
   }, []);
@@ -114,20 +126,11 @@ export default function V10SavedSpaces() {
     const rawVolume = Number(localStorage.getItem(VOLUME_STORAGE_KEY));
     const volumePercent = Number.isFinite(rawVolume) && rawVolume >= 0 && rawVolume <= 100 ? rawVolume : 35;
     const signature = `${config.stateId}|${config.durationMinutes}|${config.intention.trim().toLowerCase()}`;
-    const existingSpace = spaces.find(
-      (space) => `${space.stateId}|${space.durationMinutes}|${space.intention.trim().toLowerCase()}` === signature
-    );
+    const existingSpace = spaces.find((space) => `${space.stateId}|${space.durationMinutes}|${space.intention.trim().toLowerCase()}` === signature);
 
     const nextSpace: SavedSpace = existingSpace
       ? { ...existingSpace, volumePercent, lastUsedAt: now }
-      : {
-          id: makeId(),
-          name: defaultName(config),
-          ...config,
-          volumePercent,
-          createdAt: now,
-          lastUsedAt: now
-        };
+      : { id: makeId(), name: defaultName(config), ...config, volumePercent, createdAt: now, lastUsedAt: now };
 
     commitSpaces([nextSpace, ...spaces.filter((space) => space.id !== nextSpace.id)]);
     setSavedPulse(true);
@@ -135,39 +138,33 @@ export default function V10SavedSpaces() {
   }, [commitSpaces, spaces]);
 
   useEffect(() => {
+    if (!enabled) return;
     const handleSaveClick = (event: MouseEvent) => {
-      const target = event.target as Element | null;
-      const button = target?.closest<HTMLButtonElement>('.builderActions .saveButton');
+      const button = (event.target as Element | null)?.closest<HTMLButtonElement>('.builderActions .saveButton');
       if (!button) return;
       window.setTimeout(saveCurrentSpace, 0);
     };
-
     document.addEventListener('click', handleSaveClick, true);
     return () => document.removeEventListener('click', handleSaveClick, true);
-  }, [saveCurrentSpace]);
+  }, [enabled, saveCurrentSpace]);
 
   const applySpaceToBuilder = useCallback((space: SavedSpace, startImmediately: boolean) => {
     document.querySelector<HTMLButtonElement>(`.stateChoice.${space.stateId}`)?.click();
-
-    const durationButton = Array.from(document.querySelectorAll<HTMLButtonElement>('.durationRow button')).find(
-      (button) => Number.parseInt(button.textContent || '', 10) === space.durationMinutes
-    );
-    durationButton?.click();
+    Array.from(document.querySelectorAll<HTMLButtonElement>('.durationRow button'))
+      .find((button) => Number.parseInt(button.textContent || '', 10) === space.durationMinutes)?.click();
 
     const intentionInput = document.querySelector<HTMLInputElement>('.intentionField input');
     if (intentionInput) setReactInputValue(intentionInput, space.intention);
-
     localStorage.setItem(VOLUME_STORAGE_KEY, String(space.volumePercent));
-    const now = Date.now();
-    commitSpaces(spaces.map((item) => (item.id === space.id ? { ...item, lastUsedAt: now } : item)));
 
-    if (startImmediately) {
-      window.setTimeout(() => {
-        document.querySelector<HTMLButtonElement>('.builderActions .primaryButton')?.click();
-      }, 90);
-    } else {
-      document.getElementById('session-builder')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
+    const now = Date.now();
+    commitSpaces(spaces.map((item) => item.id === space.id ? { ...item, lastUsedAt: now } : item));
+    setDrawerOpen(false);
+
+    window.setTimeout(() => {
+      if (startImmediately) document.querySelector<HTMLButtonElement>('.builderActions .primaryButton')?.click();
+      else document.getElementById('session-builder')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 120);
   }, [commitSpaces, spaces]);
 
   const deleteSpace = (id: string) => {
@@ -184,72 +181,76 @@ export default function V10SavedSpaces() {
     event.preventDefault();
     const cleanName = draftName.trim();
     if (!cleanName) return;
-    commitSpaces(spaces.map((space) => (space.id === id ? { ...space, name: cleanName } : space)));
+    commitSpaces(spaces.map((space) => space.id === id ? { ...space, name: cleanName } : space));
     setEditingId(null);
   };
 
   const visibleSpaces = useMemo(() => spaces.slice(0, MAX_SPACES), [spaces]);
+  if (!enabled) return null;
 
-  if (!mountNode || visibleSpaces.length === 0) return null;
+  return (
+    <>
+      {buttonMount && createPortal(
+        <button type="button" className={`evSavedSpacesTrigger ${savedPulse ? 'saved' : ''}`} onClick={() => setDrawerOpen(true)}>
+          <span>{savedPulse ? 'Space saved ✓' : 'Saved spaces'}</span>
+          <strong>{visibleSpaces.length}</strong>
+        </button>,
+        buttonMount
+      )}
 
-  return createPortal(
-    <section className={`v10SavedSpacesSection ${savedPulse ? 'savedPulse' : ''}`} aria-labelledby="v10-saved-spaces-title">
-      <div className="v10SavedSpacesInner">
-        <header className="v10SavedSpacesHeader">
-          <div>
-            <p className="eyebrow">Saved spaces</p>
-            <h2 id="v10-saved-spaces-title">Your next voyage, already prepared.</h2>
-          </div>
-          <p>Return to a frequency, duration, intention and listening level in one tap.</p>
-        </header>
+      {drawerOpen && typeof document !== 'undefined' && createPortal(
+        <div className="evSavedSpacesBackdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setDrawerOpen(false)}>
+          <aside className="evSavedSpacesDrawer" role="dialog" aria-modal="true" aria-labelledby="ev-saved-spaces-title">
+            <header>
+              <div>
+                <p className="eyebrow">Saved spaces</p>
+                <h2 id="ev-saved-spaces-title">Your next voyage, ready in one tap.</h2>
+              </div>
+              <button type="button" className="evSavedSpacesClose" onClick={() => setDrawerOpen(false)} aria-label="Close saved spaces">×</button>
+            </header>
 
-        <div className="v10SavedSpacesGrid">
-          {visibleSpaces.map((space) => {
-            const meta = stateMeta[space.stateId];
-            return (
-              <article className={`v10SavedSpaceCard ${space.stateId}`} key={space.id}>
-                <div className="v10SavedSpaceTopline">
-                  <span>{meta.frequency} · {meta.hz}</span>
-                  <button type="button" onClick={() => deleteSpace(space.id)} aria-label={`Delete ${space.name}`}>×</button>
-                </div>
+            {visibleSpaces.length === 0 ? (
+              <div className="evSavedSpacesEmpty">
+                <strong>No spaces saved yet.</strong>
+                <p>Choose a state, duration and intention, then use Save this space.</p>
+              </div>
+            ) : (
+              <div className="evSavedSpacesList">
+                {visibleSpaces.map((space) => {
+                  const meta = stateMeta[space.stateId];
+                  return (
+                    <article className={`evSavedSpaceCard ${space.stateId}`} key={space.id}>
+                      <div className="evSavedSpaceTopline">
+                        <span>{meta.frequency} · {meta.hz}</span>
+                        <button type="button" onClick={() => deleteSpace(space.id)} aria-label={`Delete ${space.name}`}>×</button>
+                      </div>
 
-                {editingId === space.id ? (
-                  <form className="v10SavedSpaceRename" onSubmit={(event) => saveRename(event, space.id)}>
-                    <input
-                      value={draftName}
-                      onChange={(event) => setDraftName(event.target.value)}
-                      maxLength={48}
-                      autoFocus
-                      aria-label="Saved space name"
-                    />
-                    <div>
-                      <button type="submit">Save name</button>
-                      <button type="button" onClick={() => setEditingId(null)}>Cancel</button>
-                    </div>
-                  </form>
-                ) : (
-                  <>
-                    <h3>{space.name}</h3>
-                    <p>{space.intention || 'No default intention — enter with an open focus.'}</p>
-                    <div className="v10SavedSpaceMeta">
-                      <span>{space.durationMinutes} min</span>
-                      <span>Volume {space.volumePercent}%</span>
-                    </div>
-                    <div className="v10SavedSpaceActions">
-                      <button type="button" className="v10SavedSpaceStart" onClick={() => applySpaceToBuilder(space, true)}>
-                        Start voyage <span aria-hidden="true">→</span>
-                      </button>
-                      <button type="button" onClick={() => applySpaceToBuilder(space, false)}>Load</button>
-                      <button type="button" onClick={() => beginRename(space)}>Rename</button>
-                    </div>
-                  </>
-                )}
-              </article>
-            );
-          })}
-        </div>
-      </div>
-    </section>,
-    mountNode
+                      {editingId === space.id ? (
+                        <form className="evSavedSpaceRename" onSubmit={(event) => saveRename(event, space.id)}>
+                          <input value={draftName} onChange={(event) => setDraftName(event.target.value)} maxLength={48} autoFocus aria-label="Saved space name" />
+                          <div><button type="submit">Save name</button><button type="button" onClick={() => setEditingId(null)}>Cancel</button></div>
+                        </form>
+                      ) : (
+                        <>
+                          <h3>{space.name}</h3>
+                          <p>{space.intention || 'Open focus — add an intention when you begin.'}</p>
+                          <div className="evSavedSpaceMeta"><span>{space.durationMinutes} min</span><span>Volume {space.volumePercent}%</span></div>
+                          <div className="evSavedSpaceActions">
+                            <button type="button" className="evSavedSpaceStart" onClick={() => applySpaceToBuilder(space, true)}>Start voyage <span aria-hidden="true">→</span></button>
+                            <button type="button" onClick={() => applySpaceToBuilder(space, false)}>Load</button>
+                            <button type="button" onClick={() => beginRename(space)}>Rename</button>
+                          </div>
+                        </>
+                      )}
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </aside>
+        </div>,
+        document.body
+      )}
+    </>
   );
 }
