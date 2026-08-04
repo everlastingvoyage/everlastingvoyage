@@ -4,12 +4,17 @@ import './v9-1.css';
 import './v10-engine.css';
 import './v10-polish.css';
 import './v10-saved-spaces.css';
+import './v10-product-flow.css';
 import HumanoidSwap from './HumanoidSwap';
 import SignalChamberPolish from './SignalChamberPolish';
 import SignalChamberBlend from './SignalChamberBlend';
 import V10VoyageEngine from './V10VoyageEngine';
 import V10SessionPolish from './V10SessionPolish';
 import V10SavedSpaces from './V10SavedSpaces';
+import EntranceGate from './EntranceGate';
+import V10ProductFlow from './V10ProductFlow';
+import FrequencyPowerDetails from './FrequencyPowerDetails';
+import V10SessionUtilities from './V10SessionUtilities';
 
 export const metadata: Metadata = {
   title: 'Everlasting Voyage — Pure Frequencies & Focus Sessions',
@@ -21,6 +26,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
   themeColor: '#020a17',
   colorScheme: 'dark'
 };
@@ -29,6 +36,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <body>
+        <EntranceGate />
         <HumanoidSwap />
         {children}
         <SignalChamberPolish />
@@ -36,6 +44,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <V10VoyageEngine />
         <V10SessionPolish />
         <V10SavedSpaces />
+        <V10ProductFlow />
+        <FrequencyPowerDetails />
+        <V10SessionUtilities />
       </body>
     </html>
   );
