@@ -1,9 +1,11 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import './v9-1.css';
+import './v10-engine.css';
 import HumanoidSwap from './HumanoidSwap';
 import SignalChamberPolish from './SignalChamberPolish';
 import SignalChamberBlend from './SignalChamberBlend';
+import V10VoyageEngine from './V10VoyageEngine';
 
 export const metadata: Metadata = {
   title: 'Everlasting Voyage — Pure Frequencies & Focus Sessions',
@@ -27,6 +29,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         {children}
         <SignalChamberPolish />
         <SignalChamberBlend />
+        <V10VoyageEngine />
       </body>
     </html>
   );
