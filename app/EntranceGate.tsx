@@ -9,16 +9,67 @@ export default function EntranceGate() {
 
   useEffect(() => {
     if (!visible) return;
-    const previousOverflow = document.body.style.overflow;
-    const previousOverscroll = document.body.style.overscrollBehavior;
-    document.body.classList.add('ev-entrance-open');
-    document.body.style.overflow = 'hidden';
-    document.body.style.overscrollBehavior = 'none';
+
+    const html = document.documentElement;
+    const body = document.body;
+    const scrollY = window.scrollY;
+    const viewport = window.visualViewport;
+
+    const previous = {
+      htmlOverflow: html.style.overflow,
+      htmlHeight: html.style.height,
+      bodyOverflow: body.style.overflow,
+      bodyOverscroll: body.style.overscrollBehavior,
+      bodyPosition: body.style.position,
+      bodyInset: body.style.inset,
+      bodyTop: body.style.top,
+      bodyWidth: body.style.width,
+      bodyHeight: body.style.height
+    };
+
+    const syncViewportHeight = () => {
+      const visibleHeight = viewport?.height ?? window.innerHeight;
+      html.style.setProperty('--ev-entrance-vh', `${Math.round(visibleHeight)}px`);
+    };
+
+    syncViewportHeight();
+    html.classList.add('ev-entrance-open');
+    body.classList.add('ev-entrance-open');
+
+    html.style.overflow = 'hidden';
+    html.style.height = '100%';
+    body.style.overflow = 'hidden';
+    body.style.overscrollBehavior = 'none';
+    body.style.position = 'fixed';
+    body.style.inset = '0';
+    body.style.top = `-${scrollY}px`;
+    body.style.width = '100%';
+    body.style.height = '100%';
+
+    viewport?.addEventListener('resize', syncViewportHeight);
+    viewport?.addEventListener('scroll', syncViewportHeight);
+    window.addEventListener('orientationchange', syncViewportHeight);
 
     return () => {
-      document.body.classList.remove('ev-entrance-open');
-      document.body.style.overflow = previousOverflow;
-      document.body.style.overscrollBehavior = previousOverscroll;
+      viewport?.removeEventListener('resize', syncViewportHeight);
+      viewport?.removeEventListener('scroll', syncViewportHeight);
+      window.removeEventListener('orientationchange', syncViewportHeight);
+
+      html.classList.remove('ev-entrance-open');
+      body.classList.remove('ev-entrance-open');
+      html.style.removeProperty('--ev-entrance-vh');
+
+      html.style.overflow = previous.htmlOverflow;
+      html.style.height = previous.htmlHeight;
+      body.style.overflow = previous.bodyOverflow;
+      body.style.overscrollBehavior = previous.bodyOverscroll;
+      body.style.position = previous.bodyPosition;
+      body.style.inset = previous.bodyInset;
+      body.style.top = previous.bodyTop;
+      body.style.width = previous.bodyWidth;
+      body.style.height = previous.bodyHeight;
+
+      window.scrollTo(0, scrollY);
     };
   }, [visible]);
 
