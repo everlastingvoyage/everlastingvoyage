@@ -1,0 +1,107 @@
+/* V10.2.1 — iPhone entrance and audio reliability polish */
+
+html.ev-entrance-open,
+html.ev-entrance-open body {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+  background: #020817;
+}
+
+body.ev-entrance-open {
+  position: fixed !important;
+  inset: 0 !important;
+  touch-action: none;
+}
+
+body.ev-entrance-open .pageShell,
+body.ev-entrance-open .v10ContinueVoyage,
+body.ev-entrance-open #v10-saved-spaces-root {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.evEntrance {
+  top: 0 !important;
+  right: 0 !important;
+  bottom: auto !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: var(--ev-entrance-vh, 100dvh) !important;
+  min-height: var(--ev-entrance-vh, 100svh) !important;
+  max-height: var(--ev-entrance-vh, 100dvh) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  box-sizing: border-box;
+  background-color: #020817;
+}
+
+.evEntrance > * {
+  box-sizing: border-box;
+}
+
+.evEntrance::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 72% 42%, rgba(79, 87, 255, 0.18), transparent 27%),
+    radial-gradient(circle at 23% 68%, rgba(45, 198, 255, 0.14), transparent 30%),
+    linear-gradient(135deg, #020817 0%, #030c1b 52%, #01040b 100%);
+}
+
+@media (max-width: 760px) {
+  .evEntrance {
+    display: flex !important;
+    flex-direction: column;
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
+  }
+
+  .evEntranceHeader {
+    flex: 0 0 auto;
+    padding-top: max(20px, env(safe-area-inset-top));
+  }
+
+  .evEntranceContent {
+    flex: 1 0 auto;
+    align-self: auto !important;
+    padding-top: clamp(32px, 7vh, 70px) !important;
+    padding-bottom: 34px !important;
+  }
+
+  .evEntranceContent h1 {
+    font-size: clamp(3rem, 13.2vw, 5.15rem) !important;
+    line-height: 0.9 !important;
+    letter-spacing: -0.068em !important;
+  }
+
+  .evEntranceTrust {
+    padding-bottom: 8px;
+  }
+}
+
+@media (max-width: 760px) and (max-height: 760px) {
+  .evEntranceContent {
+    padding-top: 22px !important;
+  }
+
+  .evEntranceContent h1 {
+    font-size: clamp(2.65rem, 11.8vw, 4.35rem) !important;
+    margin-bottom: 20px !important;
+  }
+
+  .evEntranceCopy {
+    line-height: 1.45 !important;
+  }
+
+  .evEntranceActions {
+    margin-top: 24px !important;
+  }
+}
