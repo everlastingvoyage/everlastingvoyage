@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import './v9-1.css';
 import HumanoidSwap from './HumanoidSwap';
+import SignalChamberPolish from './SignalChamberPolish';
 
 export const metadata: Metadata = {
   title: 'Everlasting Voyage — Pure Frequencies & Focus Sessions',
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         <HumanoidSwap />
         {children}
+        <SignalChamberPolish />
       </body>
     </html>
   );
