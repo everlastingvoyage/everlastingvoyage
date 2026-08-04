@@ -119,7 +119,7 @@ export default function FrequencyPowerDetails() {
     }, 280);
   }, [active, closing]);
 
-  const useState = useCallback(() => {
+  const applyState = useCallback(() => {
     if (!active) return;
     document.querySelector<HTMLButtonElement>('.signalPopupAction')?.click();
     setActiveId(null);
@@ -167,7 +167,7 @@ export default function FrequencyPowerDetails() {
           <span>{active.guidance}</span>
         </div>
 
-        <button type="button" className="evFrequencyPowerAction" onClick={useState}>
+        <button type="button" className="evFrequencyPowerAction" onClick={applyState}>
           Use this state <span aria-hidden="true">→</span>
         </button>
       </article>
