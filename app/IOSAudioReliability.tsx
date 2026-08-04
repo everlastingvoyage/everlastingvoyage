@@ -94,7 +94,8 @@ export default function IOSAudioReliability() {
         silentMedia = document.createElement('audio');
         silentMedia.src = SILENT_WAV;
         silentMedia.preload = 'auto';
-        silentMedia.playsInline = true;
+        silentMedia.setAttribute('playsinline', '');
+        silentMedia.setAttribute('webkit-playsinline', '');
         silentMedia.volume = 0.01;
         silentMedia.setAttribute('aria-hidden', 'true');
         silentMedia.style.position = 'fixed';
