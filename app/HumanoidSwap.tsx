@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect } from 'react';
-import { humanoidData } from './humanoidData';
 
 export default function HumanoidSwap() {
   useEffect(() => {
@@ -11,7 +10,7 @@ export default function HumanoidSwap() {
       if (!current || current.classList.contains('signalFigureAsset')) return;
 
       const image = document.createElement('img');
-      image.src = humanoidData;
+      image.src = '/humanoid%20png%20clean!.png';
       image.alt = '';
       image.setAttribute('aria-hidden', 'true');
       image.className = 'signalFigureGraphic signalFigureAsset';
