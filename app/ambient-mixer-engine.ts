@@ -326,7 +326,7 @@ export class AmbientMixerEngine {
     audio.crossOrigin = 'anonymous';
     audio.preload = 'auto';
     audio.loop = true;
-    audio.playsInline = true;
+    audio.setAttribute('playsinline', '');
 
     const source = this.context.createMediaElementSource(audio);
     source.connect(destination);
