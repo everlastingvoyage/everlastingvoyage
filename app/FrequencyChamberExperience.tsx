@@ -78,6 +78,9 @@ export default function FrequencyChamberExperience() {
     Array.from({ length: 18 }).forEach((_, index) => {
       const particle = document.createElement('span');
       particle.style.setProperty('--ev-particle-index', String(index));
+      particle.style.setProperty('--ev-particle-angle', `${index * 20}deg`);
+      particle.style.setProperty('--ev-particle-distance', `${170 + index * 7}px`);
+      particle.style.setProperty('--ev-particle-delay', `${index * -360}ms`);
       particles.appendChild(particle);
     });
 
@@ -89,7 +92,10 @@ export default function FrequencyChamberExperience() {
     trustRow.setAttribute('aria-label', 'Frequency transparency principles');
     ['Exact frequencies', 'No hidden layers', 'Clear listening guidance'].forEach((text, index) => {
       const item = document.createElement('span');
-      item.innerHTML = `<i aria-hidden="true">0${index + 1}</i>${text}`;
+      const number = document.createElement('i');
+      number.setAttribute('aria-hidden', 'true');
+      number.textContent = `0${index + 1}`;
+      item.append(number, document.createTextNode(text));
       trustRow.appendChild(item);
     });
     experience.insertAdjacentElement('afterend', trustRow);
