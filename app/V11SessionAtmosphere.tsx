@@ -7,6 +7,7 @@ import { ambientCatalog } from './ambient-catalog';
 import {
   ambientShortDescriptions,
   ambientSymbols,
+  playableAmbientCategories,
   playableAmbientIds,
   type PlayableAmbientId
 } from './ambient-playable';
@@ -18,7 +19,7 @@ import {
   type AmbientRuntimeSnapshot
 } from './ambient-mixer-store';
 import PrecisionVolumeControl from './PrecisionVolumeControl';
-import { formatGainDb, formatGainPercent } from './precision-audio';
+import { formatGainPercent } from './precision-audio';
 import type { AmbientLayerConfig } from './voyage-model';
 
 type SessionStatus = 'ready' | 'running' | 'paused' | 'completed' | 'closed';
@@ -151,6 +152,14 @@ export default function V11SessionAtmosphere() {
     [layers]
   );
 
+  const playingCount = useMemo(
+    () => playableAmbientIds.filter((id) => {
+      const layer = layers.find((item) => item.id === id);
+      return Boolean(layer?.enabled && layer.volume > 0);
+    }).length,
+    [layers]
+  );
+
   const selectedLayer = selectedId
     ? layers.find((layer) => layer.id === selectedId) ?? null
     : null;
@@ -180,59 +189,84 @@ export default function V11SessionAtmosphere() {
           <span>Atmosphere</span>
           <strong id="ev-session-atmosphere-title">Build the sound around your signal.</strong>
         </div>
-        <div className="evSessionAtmosphereCount">
-          <strong>{addedCount}</strong>
-          <span>added</span>
+        <div className="evSessionAtmosphereCount" aria-label={`${playingCount} atmosphere layers playing`}>
+          <strong>{playingCount}</strong>
+          <span>playing</span>
         </div>
       </header>
 
-      <div className="evSessionAtmosphereGrid">
-        {playableAmbientIds.map((id) => {
-          const definition = ambientCatalog[id];
-          const layer = layers.find((item) => item.id === id) ?? {
-            id,
-            enabled: false,
-            volume: definition.defaultVolume
-          };
-          const isSolo = runtime.soloId === id;
+      <div className="evSessionAtmosphereLibrary">
+        {playableAmbientCategories.map((category) => (
+          <section
+            className="evSessionAtmosphereCategory"
+            data-category={category.label.toLowerCase()}
+            aria-labelledby={`ev-session-category-${category.label.toLowerCase()}`}
+            key={category.label}
+          >
+            <div className="evSessionAtmosphereCategoryHeading">
+              <span id={`ev-session-category-${category.label.toLowerCase()}`}>{category.label}</span>
+            </div>
 
-          return (
-            <article className={`evSessionAtmosphereChip ${id} ${layer.enabled ? 'active' : ''} ${isSolo ? 'solo' : ''}`} key={id}>
-              <button
-                type="button"
-                className="evSessionAtmosphereToggle"
-                onClick={() => toggleLayer(id)}
-                onPointerDown={(event) => beginHold(event, id)}
-                onPointerMove={moveHold}
-                onPointerUp={cancelHold}
-                onPointerCancel={cancelHold}
-                onPointerLeave={cancelHold}
-                onContextMenu={(event) => event.preventDefault()}
-                aria-pressed={layer.enabled}
-                aria-label={`${layer.enabled ? 'Remove' : 'Add'} ${definition.name}. Hold for volume controls.`}
-              >
-                <span aria-hidden="true">{ambientSymbols[id]}</span>
-                <span>
-                  <strong>{definition.shortName}</strong>
-                  <small>{isSolo ? 'Solo' : layer.enabled ? layer.volume === 0 ? 'Muted' : formatGainDb(layer.volume) : ambientShortDescriptions[id]}</small>
-                </span>
-              </button>
-              <button
-                type="button"
-                className="evSessionAtmosphereLevels"
-                onClick={() => setSelectedId(id)}
-                aria-label={`Change ${definition.name} volume`}
-              >
-                <span>Volume</span>
-                <small>{formatGainPercent(layer.volume)}</small>
-              </button>
-            </article>
-          );
-        })}
+            <div className="evSessionAtmosphereGrid">
+              {category.ids.map((id) => {
+                const definition = ambientCatalog[id];
+                const layer = layers.find((item) => item.id === id) ?? {
+                  id,
+                  enabled: false,
+                  volume: definition.defaultVolume
+                };
+                const isSolo = runtime.soloId === id;
+                const isMuted = layer.enabled && layer.volume === 0;
+                const isPlaying = layer.enabled && layer.volume > 0;
+                const stateLabel = isSolo ? 'Solo' : isMuted ? 'Muted' : isPlaying ? 'Playing' : 'Off';
+
+                return (
+                  <article
+                    className={`evSessionAtmosphereChip ${id} ${isPlaying ? 'active' : 'inactive'} ${isMuted ? 'muted' : ''} ${isSolo ? 'solo' : ''}`}
+                    key={id}
+                  >
+                    <button
+                      type="button"
+                      className="evSessionAtmosphereToggle"
+                      onClick={() => toggleLayer(id)}
+                      onPointerDown={(event) => beginHold(event, id)}
+                      onPointerMove={moveHold}
+                      onPointerUp={cancelHold}
+                      onPointerCancel={cancelHold}
+                      onPointerLeave={cancelHold}
+                      onContextMenu={(event) => event.preventDefault()}
+                      aria-pressed={layer.enabled}
+                      aria-label={`${layer.enabled ? 'Remove' : 'Add'} ${definition.name}. Hold for volume controls.`}
+                    >
+                      <span className="evSessionAtmosphereIcon" aria-hidden="true">{ambientSymbols[id]}</span>
+                      <span className="evSessionAtmosphereCopy">
+                        <strong>{definition.shortName}</strong>
+                        <small>{ambientShortDescriptions[id]}</small>
+                        <em className={`evSessionAtmosphereState ${stateLabel.toLowerCase()}`}>
+                          {stateLabel !== 'Off' ? <i aria-hidden="true" /> : null}
+                          {stateLabel}
+                        </em>
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      className="evSessionAtmosphereLevels"
+                      onClick={() => setSelectedId(id)}
+                      aria-label={`Adjust ${definition.name} volume, currently ${formatGainPercent(layer.volume)}`}
+                    >
+                      <span>{layer.enabled ? 'Volume' : 'Adjust'}</span>
+                      <small>{formatGainPercent(layer.volume)}</small>
+                    </button>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        ))}
       </div>
 
       <footer className="evSessionAtmosphereFooter">
-        <span>{status === 'paused' ? 'Changes are saved and return on Resume.' : 'Tap a sound to blend it. Press Volume or hold the row for precise control.'}</span>
+        <span>{status === 'paused' ? 'Changes are saved and return on Resume.' : 'Combine as many sounds as you like.'}</span>
         <button
           type="button"
           onClick={() => dispatchAmbientCommand({ type: 'stop-all' })}
@@ -260,7 +294,7 @@ export default function V11SessionAtmosphere() {
           >
             <header>
               <div>
-                <span>{selectedLayer.enabled ? runtime.soloId === selectedId ? 'Solo layer' : 'Added layer' : 'Available layer'}</span>
+                <span>{selectedLayer.enabled ? runtime.soloId === selectedId ? 'Solo layer' : selectedLayer.volume === 0 ? 'Muted layer' : 'Playing layer' : 'Available layer'}</span>
                 <h3 id="ev-atmosphere-sheet-title">{ambientCatalog[selectedId].name}</h3>
               </div>
               <button type="button" onClick={() => setSelectedId(null)} aria-label="Close atmosphere controls">×</button>
