@@ -1,0 +1,345 @@
+/* V11.3 — Precision audio controls and generative atmosphere pack. */
+
+.evAmbientLibrary {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.evAmbientCategory {
+  display: grid;
+  gap: 10px;
+}
+
+.evAmbientCategoryHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 4px;
+}
+
+.evAmbientCategoryHeading span {
+  color: #8edfff;
+  font-size: 0.69rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.evAmbientCategoryHeading small {
+  color: rgba(207, 226, 243, 0.5);
+  font-size: 0.65rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.evAmbientCategory .evAmbientLayerGrid {
+  margin-top: 0;
+}
+
+.evAmbientLayer.rain,
+.evSessionAtmosphereChip.rain,
+.evAtmosphereSheet.rain {
+  --ambient-rgb: 87, 201, 255;
+}
+
+.evAmbientLayer.ocean,
+.evSessionAtmosphereChip.ocean,
+.evAtmosphereSheet.ocean {
+  --ambient-rgb: 76, 143, 255;
+}
+
+.evAmbientLayer.birds,
+.evSessionAtmosphereChip.birds,
+.evAtmosphereSheet.birds {
+  --ambient-rgb: 191, 224, 126;
+}
+
+.evAmbientLayer.nature,
+.evSessionAtmosphereChip.nature,
+.evAtmosphereSheet.nature {
+  --ambient-rgb: 96, 214, 166;
+}
+
+.evAmbientLayer.storm,
+.evSessionAtmosphereChip.storm,
+.evAtmosphereSheet.storm {
+  --ambient-rgb: 151, 157, 255;
+}
+
+.evPrecisionVolume {
+  --precision-rgb: var(--ambient-rgb, 92, 177, 255);
+  display: grid;
+  gap: 10px;
+}
+
+.evAmbientCardPrecision {
+  padding: 0 16px 16px;
+}
+
+.evPrecisionVolumeHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.evPrecisionVolumeHeader > span,
+.evPrecisionVolumeHeader > strong,
+.evPrecisionVolumeHeader > small {
+  font-size: 0.67rem;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.evPrecisionVolumeHeader > span {
+  color: rgba(212, 230, 244, 0.56);
+}
+
+.evPrecisionVolumeHeader > strong {
+  color: rgb(var(--precision-rgb));
+}
+
+.evPrecisionVolumeHeader > small {
+  color: rgba(210, 228, 242, 0.5);
+  font-variant-numeric: tabular-nums;
+  text-transform: none;
+}
+
+.evPrecisionVolumeRow,
+.v11SignalPrecisionRow {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) 46px;
+  align-items: center;
+  gap: 10px;
+}
+
+.evPrecisionVolumeRow input,
+.v11SignalPrecisionRow input {
+  width: 100%;
+  min-width: 0;
+  accent-color: rgb(var(--precision-rgb, var(--v10-accent-rgb)));
+}
+
+.evPrecisionStep,
+.v11SignalPrecisionStep {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 5px;
+  border: 1px solid rgba(var(--precision-rgb, var(--v10-accent-rgb)), 0.22);
+  border-radius: 13px;
+  background: rgba(var(--precision-rgb, var(--v10-accent-rgb)), 0.07);
+  color: rgb(var(--precision-rgb, var(--v10-accent-rgb)));
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.evPrecisionStep > span,
+.v11SignalPrecisionStep > span {
+  font-size: 1.22rem;
+  font-weight: 750;
+  line-height: 1;
+}
+
+.evPrecisionStep > small,
+.v11SignalPrecisionStep > small {
+  margin-top: 2px;
+  color: rgba(218, 234, 247, 0.55);
+  font-size: 0.48rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.evPrecisionStep:disabled,
+.v11SignalPrecisionStep:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+
+.evPrecisionStep:not(:disabled):active,
+.v11SignalPrecisionStep:not(:disabled):active {
+  background: rgba(var(--precision-rgb, var(--v10-accent-rgb)), 0.18);
+  transform: scale(0.97);
+}
+
+.evAmbientQualityNote {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 5px;
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 1px dashed rgba(126, 203, 255, 0.15);
+  border-radius: 18px;
+  background: rgba(4, 14, 27, 0.46);
+}
+
+.evAmbientQualityNote span {
+  color: #72d7ff;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.evAmbientQualityNote strong {
+  color: rgba(231, 242, 252, 0.72);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.evSessionAtmosphereChip {
+  grid-template-columns: minmax(0, 1fr) 78px !important;
+}
+
+.evSessionAtmosphereLevels {
+  min-width: 78px !important;
+  padding: 7px 5px;
+  align-content: center;
+  gap: 3px;
+  font-size: inherit !important;
+}
+
+.evSessionAtmosphereLevels > span,
+.evSessionAtmosphereLevels > small {
+  display: block;
+}
+
+.evSessionAtmosphereLevels > span {
+  color: rgba(218, 235, 249, 0.7);
+  font-size: 0.61rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.evSessionAtmosphereLevels > small {
+  color: rgb(var(--ambient-rgb));
+  font-size: 0.66rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.evAtmosphereSheetPrecision {
+  margin-top: 22px;
+  padding: 18px;
+  border: 1px solid rgba(var(--ambient-rgb), 0.15);
+  border-radius: 19px;
+  background: rgba(3, 13, 26, 0.66);
+}
+
+.evAtmosphereSheetActions.available {
+  grid-template-columns: 1fr;
+}
+
+.evAtmosphereSheetActions.available .primary {
+  grid-column: auto;
+}
+
+.v10AudioControls label > span {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.v10VolumePercent {
+  color: var(--v10-accent);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.v11SignalDbMetric {
+  color: rgba(205, 224, 240, 0.55);
+  font-size: 0.68rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.v11SignalPrecisionRow {
+  --precision-rgb: var(--v10-accent-rgb);
+}
+
+.v11SignalPrecisionStep {
+  border-color: rgba(var(--v10-accent-rgb), 0.22);
+  background: rgba(var(--v10-accent-rgb), 0.07);
+  color: var(--v10-accent);
+}
+
+.evPrecisionStep:focus-visible,
+.v11SignalPrecisionStep:focus-visible,
+.evPrecisionVolume input:focus-visible {
+  outline: 2px solid rgba(126, 220, 255, 0.9);
+  outline-offset: 3px;
+}
+
+@media (min-width: 961px) {
+  .evAmbientCategory .evAmbientLayerGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .evAmbientCategory:nth-child(2) .evAmbientLayerGrid,
+  .evAmbientCategory:nth-child(3) .evAmbientLayerGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .evAmbientCategory:nth-child(4) .evAmbientLayerGrid {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: calc((100% - 24px) / 3);
+  }
+}
+
+@media (max-width: 760px) {
+  .evAmbientLibrary {
+    gap: 17px;
+    margin-top: 20px;
+  }
+
+  .evAmbientCategory .evAmbientLayerGrid {
+    gap: 10px;
+  }
+
+  .evPrecisionVolumeRow,
+  .v11SignalPrecisionRow {
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
+    gap: 8px;
+  }
+
+  .evSessionAtmosphereChip {
+    grid-template-columns: minmax(0, 1fr) 72px !important;
+  }
+
+  .evSessionAtmosphereLevels {
+    min-width: 72px !important;
+  }
+
+  .evSessionAtmosphereGrid {
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 3px;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+
+  .evAmbientQualityNote strong {
+    font-size: 0.74rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .evPrecisionStep,
+  .v11SignalPrecisionStep {
+    transition: none;
+  }
+}
