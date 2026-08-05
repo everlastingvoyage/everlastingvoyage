@@ -1,0 +1,276 @@
+/* V10.10 — Mobile Frequency Chamber Polish
+   Smooth builder-to-chamber transition, clearer spacing and stronger state names. */
+
+@media (max-width: 760px) {
+  /* Remove the empty visual shelf below the builder and let the chamber shade
+     begin while the user is still leaving the session controls. */
+  body.ev-product-route .heroSection {
+    padding-bottom: 16px !important;
+    background:
+      linear-gradient(180deg,
+        transparent 0%,
+        transparent 78%,
+        rgba(2, 8, 23, .48) 91%,
+        #01040c 100%) !important;
+  }
+
+  /* Stable mobile full-bleed. The previous left:50% calculation could offset
+     the section and clip the headline on narrow Safari viewports. */
+  body.ev-product-route #library.evFrequencyChamber {
+    left: auto !important;
+    width: 100vw !important;
+    max-width: none !important;
+    margin-left: calc(50% - 50vw) !important;
+    margin-right: 0 !important;
+    margin-top: -18px !important;
+    padding-top: 62px !important;
+    padding-bottom: 38px !important;
+    overflow-x: clip !important;
+    background:
+      linear-gradient(180deg,
+        #01040c 0%,
+        #020817 9%,
+        #030d24 22%,
+        #05163a 48%,
+        #04112d 76%,
+        #020817 91%,
+        #01040c 100%) !important;
+    box-shadow:
+      0 -54px 86px rgba(1, 4, 12, .82),
+      inset 0 64px 90px rgba(0, 2, 9, .35) !important;
+  }
+
+  @supports (width: 100dvw) {
+    body.ev-product-route #library.evFrequencyChamber {
+      width: 100dvw !important;
+      margin-left: calc(50% - 50dvw) !important;
+    }
+  }
+
+  /* A darker upper veil prevents the chamber from beginning as a hard blue
+     rectangle. The strongest blue remains around the humanoid. */
+  body.ev-product-route #library.evFrequencyChamber::before {
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    transform: none !important;
+    background:
+      linear-gradient(180deg,
+        rgba(0, 2, 8, .92) 0%,
+        rgba(2, 8, 23, .7) 10%,
+        rgba(3, 13, 36, .22) 27%,
+        transparent 43%,
+        transparent 83%,
+        rgba(1, 4, 12, .48) 100%),
+      radial-gradient(ellipse 74% 34% at 50% 57%, rgba(6, 76, 255, .15), transparent 70%),
+      radial-gradient(ellipse 42% 23% at 50% 58%, rgba(38, 191, 255, .06), transparent 72%) !important;
+    filter: saturate(.94) !important;
+    opacity: 1 !important;
+    mask-image: none !important;
+    -webkit-mask-image: none !important;
+  }
+
+  body.ev-product-route #library.evFrequencyChamber::after {
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    transform: none !important;
+    background:
+      linear-gradient(180deg,
+        rgba(0, 1, 5, .42) 0%,
+        transparent 22%,
+        transparent 78%,
+        rgba(0, 2, 8, .62) 100%),
+      radial-gradient(ellipse 45% 27% at 50% 57%, rgba(38, 104, 226, .065), transparent 74%) !important;
+    opacity: 1 !important;
+  }
+
+  /* Keep every intro element inside the viewport after the full-bleed fix. */
+  body.ev-product-route #library.evFrequencyChamber .sectionIntro,
+  body.ev-product-route #library.evFrequencyChamber .signalExperience,
+  body.ev-product-route #library.evFrequencyChamber .evChamberTrustRow {
+    width: calc(100% - 32px) !important;
+    max-width: 620px !important;
+    margin-inline: auto !important;
+  }
+
+  body.ev-product-route #library.evFrequencyChamber .sectionIntro h2 {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-inline: 0 !important;
+    overflow-wrap: normal !important;
+    word-break: normal !important;
+  }
+
+  /* Slightly more vertical room inside the stage is used for separation, not
+     empty space around the whole section. */
+  body.ev-product-route #library.evFrequencyChamber .signalStage,
+  body.ev-product-route #library.evFrequencyChamber .signalStage.popupOpen {
+    min-height: 742px !important;
+  }
+
+  /* Push the paired cards outward and separate the lower pair from Abundance. */
+  body.ev-product-route #library.evFrequencyChamber .signalNode.alpha {
+    left: 2.5% !important;
+    top: 5.5% !important;
+  }
+
+  body.ev-product-route #library.evFrequencyChamber .signalNode.gamma {
+    right: 2.5% !important;
+    top: 5.5% !important;
+  }
+
+  body.ev-product-route #library.evFrequencyChamber .signalNode.delta {
+    left: 4% !important;
+    bottom: 20.5% !important;
+  }
+
+  body.ev-product-route #library.evFrequencyChamber .signalNode.theta {
+    right: 4% !important;
+    bottom: 20.5% !important;
+  }
+
+  body.ev-product-route #library.evFrequencyChamber .signalNode.abundance {
+    bottom: .75% !important;
+  }
+
+  body.ev-product-route #library.evFrequencyChamber .signalNode {
+    width: 124px !important;
+    min-width: 124px !important;
+    min-height: 112px !important;
+    padding: 14px 10px !important;
+    gap: 5px !important;
+    border-radius: 22px !important;
+  }
+
+  body.ev-product-route #library.evFrequencyChamber .signalNode.abundance {
+    width: 154px !important;
+    min-width: 154px !important;
+  }
+
+  /* State family is the primary information: larger, brighter and coloured. */
+  body.ev-product-route #library.evFrequencyChamber .signalNode > span {
+    order: 1;
+    margin: 0 !important;
+    font-size: 1.2rem !important;
+    font-weight: 950 !important;
+    line-height: .96 !important;
+    letter-spacing: .12em !important;
+    text-align: center !important;
+    text-shadow:
+      0 0 14px rgba(var(--node-rgb), .48),
+      0 0 28px rgba(var(--node-rgb), .2) !important;
+  }
+
+  body.ev-product-route #library.evFrequencyChamber .signalNode.alpha > span {
+    color: #79e6ff !important;
+  }
+
+  body.ev-product-route #library.evFrequencyChamber .signalNode.gamma > span {
+    color: #66efb2 !important;
+  }
+
+  body.ev-product-route #library.evFrequencyChamber .signalNode.theta > span {
+    color: #a396ff !important;
+  }
+
+  body.ev-product-route #library.evFrequencyChamber .signalNode.delta > span {
+    color: #d9f2ff !important;
+  }
+
+  body.ev-product-route #library.evFrequencyChamber .evSignalStateName {
+    order: 2;
+    margin: 5px 0 0 !important;
+    color: #f1f7ff !important;
+    font-size: .78rem !important;
+    font-weight: 790 !important;
+    line-height: 1.08 !important;
+  }
+
+  body.ev-product-route #library.evFrequencyChamber .signalNode > strong {
+    order: 3;
+    margin-top: 5px !important;
+    color: rgba(205, 222, 242, .74) !important;
+    font-size: .69rem !important;
+    font-weight: 760 !important;
+    letter-spacing: .09em !important;
+  }
+
+  /* For the pure-tone card, ABUNDANCE—not the technical category—is the hero. */
+  body.ev-product-route #library.evFrequencyChamber .signalNode.abundance .evSignalStateName {
+    order: 1;
+    margin: 0 !important;
+    color: #ffd36c !important;
+    font-size: 1.18rem !important;
+    font-weight: 950 !important;
+    line-height: .98 !important;
+    letter-spacing: .09em !important;
+    text-transform: uppercase;
+    text-shadow:
+      0 0 15px rgba(255, 200, 75, .5),
+      0 0 30px rgba(229, 185, 79, .22) !important;
+  }
+
+  body.ev-product-route #library.evFrequencyChamber .signalNode.abundance > span {
+    order: 2;
+    margin-top: 6px !important;
+    color: rgba(247, 218, 151, .76) !important;
+    font-size: .68rem !important;
+    font-weight: 830 !important;
+    letter-spacing: .15em !important;
+    white-space: nowrap;
+    text-shadow: none !important;
+  }
+
+  body.ev-product-route #library.evFrequencyChamber .signalNode.abundance > strong {
+    order: 3;
+    color: rgba(241, 222, 178, .76) !important;
+    font-size: .71rem !important;
+  }
+
+  /* Preserve readability while one card is active. */
+  body.ev-product-route #library.evFrequencyChamber[data-hover-state] .signalNode {
+    opacity: .8 !important;
+    filter: saturate(.88) brightness(.92) !important;
+  }
+
+  body.ev-product-route #library.evFrequencyChamber[data-hover-state='alpha'] .signalNode.alpha,
+  body.ev-product-route #library.evFrequencyChamber[data-hover-state='gamma'] .signalNode.gamma,
+  body.ev-product-route #library.evFrequencyChamber[data-hover-state='theta'] .signalNode.theta,
+  body.ev-product-route #library.evFrequencyChamber[data-hover-state='delta'] .signalNode.delta,
+  body.ev-product-route #library.evFrequencyChamber[data-hover-state='abundance'] .signalNode.abundance {
+    opacity: 1 !important;
+    filter: saturate(1.08) brightness(1.04) !important;
+  }
+
+  /* The human remains central; a small reduction prevents the wider spacing
+     from feeling cramped around the lower pair. */
+  body.ev-product-route #library.evFrequencyChamber .signalFigureAsset {
+    width: min(18.75rem, 62%) !important;
+  }
+
+  body.ev-product-route #library.evFrequencyChamber .evChamberTrustRow {
+    margin-top: 16px !important;
+  }
+}
+
+@media (max-width: 380px) {
+  body.ev-product-route #library.evFrequencyChamber .signalNode {
+    width: 116px !important;
+    min-width: 116px !important;
+    padding-inline: 8px !important;
+  }
+
+  body.ev-product-route #library.evFrequencyChamber .signalNode.abundance {
+    width: 146px !important;
+    min-width: 146px !important;
+  }
+
+  body.ev-product-route #library.evFrequencyChamber .signalNode > span {
+    font-size: 1.1rem !important;
+  }
+
+  body.ev-product-route #library.evFrequencyChamber .signalNode.abundance .evSignalStateName {
+    font-size: 1.08rem !important;
+  }
+}
