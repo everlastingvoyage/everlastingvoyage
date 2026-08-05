@@ -10,12 +10,12 @@
       "destination": "https://upload.wikimedia.org/wikipedia/commons/0/0e/Rain_%281%29.ogg"
     },
     {
-      "source": "/audio/field/ocean-v2.mp3",
-      "destination": "https://upload.wikimedia.org/wikipedia/commons/transcoded/1/1f/Waves.ogg/Waves.ogg.mp3"
+      "source": "/audio/field/ocean-beach-v3.mp3",
+      "destination": "https://upload.wikimedia.org/wikipedia/commons/transcoded/0/04/Beach_sounds_South_Carolina.ogg/Beach_sounds_South_Carolina.ogg.mp3"
     },
     {
-      "source": "/audio/field/ocean-v2.ogg",
-      "destination": "https://upload.wikimedia.org/wikipedia/commons/1/1f/Waves.ogg"
+      "source": "/audio/field/ocean-beach-v3.ogg",
+      "destination": "https://upload.wikimedia.org/wikipedia/commons/0/04/Beach_sounds_South_Carolina.ogg"
     },
     {
       "source": "/audio/field/birds-v2.mp3",

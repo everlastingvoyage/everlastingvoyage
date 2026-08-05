@@ -31,6 +31,7 @@ import './v12-0-desktop-session-console.css';
 import './v12-0-1-desktop-footer-spacing.css';
 import './v12-0-2-readable-sounds-session-brand.css';
 import './v12-1-audio-reliability.css';
+import './v12-1-1-readability-chamber-ocean.css';
 import HumanoidSwap from './HumanoidSwap';
 import SignalChamberPolish from './SignalChamberPolish';
 import SignalChamberBlend from './SignalChamberBlend';
