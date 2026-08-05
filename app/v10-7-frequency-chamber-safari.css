@@ -1,0 +1,4 @@
+body.ev-product-route #library.evFrequencyChamber .evChamberParticles span {
+  transform: rotate(var(--ev-particle-angle)) translateX(var(--ev-particle-distance)) !important;
+  animation-delay: var(--ev-particle-delay) !important;
+}
