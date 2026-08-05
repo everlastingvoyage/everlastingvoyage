@@ -1,0 +1,116 @@
+name: V12.1.2 Chamber Visual QA
+
+on:
+  push:
+    branches:
+      - v12-1-2-chamber-rectangle-removal
+  workflow_dispatch:
+
+jobs:
+  visual-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Install Playwright Chromium
+        run: npx --yes playwright@1.55.0 install --with-deps chromium
+
+      - name: Start application
+        run: |
+          npm run start -- --hostname 127.0.0.1 > /tmp/everlasting-voyage.log 2>&1 &
+          echo $! > /tmp/everlasting-voyage.pid
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:3000/voyage >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/everlasting-voyage.log
+          exit 1
+
+      - name: Capture Chamber screenshots and computed styles
+        run: |
+          mkdir -p visual-qa
+          cat > /tmp/capture-chamber.mjs <<'EOF'
+          import { chromium } from 'playwright';
+          import fs from 'node:fs';
+
+          const browser = await chromium.launch({ headless: true });
+          const viewports = [
+            { name: '1920x1080', width: 1920, height: 1080 },
+            { name: '1440x900', width: 1440, height: 900 }
+          ];
+
+          for (const viewport of viewports) {
+            const page = await browser.newPage({ viewport: { width: viewport.width, height: viewport.height } });
+            await page.goto('http://127.0.0.1:3000/voyage', { waitUntil: 'networkidle' });
+
+            const gateButtons = page.getByRole('button', { name: /enter|continue|begin/i });
+            if (await gateButtons.count()) {
+              try { await gateButtons.first().click({ timeout: 1500 }); } catch {}
+            }
+
+            await page.waitForSelector('#library', { state: 'attached', timeout: 10000 });
+            await page.evaluate(() => {
+              const chamber = document.querySelector('#library');
+              chamber?.scrollIntoView({ block: 'start', behavior: 'instant' });
+            });
+            await page.waitForTimeout(1800);
+
+            const styles = await page.evaluate(() => {
+              const selectors = [
+                '#library',
+                '#library .signalExperience',
+                '#library .signalStage',
+                '#library .evChamberOpenGlow',
+                '#library .evChamberVisualLayer'
+              ];
+              return Object.fromEntries(selectors.map((selector) => {
+                const element = document.querySelector(selector);
+                if (!element) return [selector, null];
+                const style = getComputedStyle(element);
+                const rect = element.getBoundingClientRect();
+                return [selector, {
+                  background: style.background,
+                  backgroundColor: style.backgroundColor,
+                  backgroundImage: style.backgroundImage,
+                  border: style.border,
+                  boxShadow: style.boxShadow,
+                  overflow: style.overflow,
+                  borderRadius: style.borderRadius,
+                  rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height }
+                }];
+              }));
+            });
+
+            fs.writeFileSync(`visual-qa/chamber-${viewport.name}-styles.json`, JSON.stringify(styles, null, 2));
+            await page.screenshot({ path: `visual-qa/chamber-${viewport.name}.png`, fullPage: false });
+            await page.close();
+          }
+
+          await browser.close();
+          EOF
+          node /tmp/capture-chamber.mjs
+
+      - name: Upload visual QA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: v12-1-2-chamber-visual-qa
+          path: visual-qa
+          if-no-files-found: error
+          retention-days: 7
