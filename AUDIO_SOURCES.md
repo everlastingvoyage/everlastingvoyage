@@ -19,33 +19,32 @@ The natural atmosphere layers below use real field recordings released into the 
 ## Calm Shoreline
 
 - Customer name: `Calm Shoreline`
-- Primary file: `Small waves and beach #1` (sound 1446)
-- Creator: Joseph SARDIN / BigSoundBank
-- Recording: Long stereo field recording of small waves and beach ambience
-- License: CC0 / public-domain equivalent
-- Source page: https://bigsoundbank.com/small-waves-and-beach-1-s1446.html
-- Primary web file: https://bigsoundbank.com/UPLOAD/mp3/1446.mp3
-- Fallback file: `Sea: Waves` (sound 266), DenisChardonnet / BigSoundBank
-- Fallback page: https://bigsoundbank.com/sea-waves-s0266.html
+- Internal compatibility ID: `ocean`
+- File: `Waves.ogg`
+- Creator: Dsw4
+- Recording: 4 minutes 47 seconds of real shoreline water recorded with a shotgun microphone on the shores of Lake Ontario
+- License: Public domain
+- Source page: https://commons.wikimedia.org/wiki/File:Waves.ogg
+- Original: https://upload.wikimedia.org/wikipedia/commons/1/1f/Waves.ogg
+- MP3 transcode: https://upload.wikimedia.org/wikipedia/commons/transcoded/1/1f/Waves.ogg/Waves.ogg.mp3
+- App routes: `/audio/field/ocean-v2.mp3` and `/audio/field/ocean-v2.ogg`
 - Date added: 2026-08-05
-- Processing: Streamed through same-origin routes; no thunder layer or synthetic storm processing added
+- Processing: Streamed through versioned same-origin routes to avoid stale Safari cache and unreliable third-party hotlinking
 
-## Coastal Seagulls
+## Morning Birds
 
-- Customer name: `Coastal Seagulls`
+- Customer name: `Morning Birds`
 - Internal compatibility ID: `birds`
-- Primary file: `Sea Waves with Tern Calls` (sound 267)
-- Creator: DenisChardonnet / BigSoundBank
-- Recording: Medium waves with distant Sandwich tern calls; source describes it as a clean recording with no voices or music
-- License: CC0 / public-domain equivalent
-- Source page: https://bigsoundbank.com/sea-waves-and-seagulls-s0267.html
-- Primary web file: https://bigsoundbank.com/UPLOAD/mp3/0267.mp3
-- Fallback file: `Gull 1.ogg`
-- Fallback creator: avphillips / PDSounds
-- Fallback license: Public domain
-- Fallback page: https://commons.wikimedia.org/wiki/File:Gull_1.ogg
+- File: `Birdsong mild sunny day.ogg`
+- Creator: Stephan / PDSounds
+- Recording: 37 seconds of natural woodland birdsong recorded on a mild April morning in Germany
+- License: Public domain
+- Source page: https://commons.wikimedia.org/wiki/File:Birdsong_mild_sunny_day.ogg
+- Original: https://upload.wikimedia.org/wikipedia/commons/7/75/Birdsong_mild_sunny_day.ogg
+- MP3 transcode: https://upload.wikimedia.org/wikipedia/commons/transcoded/7/75/Birdsong_mild_sunny_day.ogg/Birdsong_mild_sunny_day.ogg.mp3
+- App routes: `/audio/field/birds-v2.mp3` and `/audio/field/birds-v2.ogg`
 - Date added: 2026-08-05
-- Processing: Streamed through same-origin routes; no generated chirps or human speech layer
+- Processing: Replaces Coastal Seagulls while preserving the `birds` ID for Saved Spaces compatibility
 
 ## Open Nature
 
