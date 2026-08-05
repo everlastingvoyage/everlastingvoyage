@@ -1,43 +1,39 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 
-type DialogKind = 'space' | 'save' | 'copy' | null;
-
-type DialogContent = {
-  eyebrow: string;
-  title: string;
-  body: string;
-  primary: string;
+type CompletionMeta = {
+  state: string;
+  frequency: string;
+  hz: string;
 };
 
-const dialogContent: Record<Exclude<DialogKind, null>, DialogContent> = {
-  space: {
-    eyebrow: 'Return in one tap',
-    title: 'Save this voyage setup?',
-    body: 'Save the selected frequency, duration, intention, pure-signal level and every atmosphere layer with its individual volume.',
-    primary: 'Save setup'
-  },
-  save: {
-    eyebrow: 'Keep what surfaced',
-    title: 'Save this voyage to Notes?',
-    body: 'Your session state, duration, intention and captured thoughts will be stored in your Notes library so you can return to them later.',
-    primary: 'Save voyage notes'
-  },
-  copy: {
-    eyebrow: 'Take it with you',
-    title: 'Copy session notes?',
-    body: 'Copy this voyage summary and its captured thoughts to your device clipboard so you can paste them into Notes, Messages, email or another app.',
-    primary: 'Copy now'
+const completionMeta: Record<string, CompletionMeta> = {
+  alpha: { state: 'Calm Focus', frequency: 'Alpha', hz: '10 Hz' },
+  gamma: { state: 'Deep Focus', frequency: 'Gamma', hz: '40 Hz' },
+  theta: { state: 'Creative Flow', frequency: 'Theta', hz: '4 Hz' },
+  delta: { state: 'Deep Rest', frequency: 'Delta', hz: '2 Hz' },
+  abundance: { state: 'Abundance', frequency: 'Pure Tone', hz: '888 Hz' }
+};
+
+function setText(element: HTMLElement | null | undefined, value: string) {
+  if (element && element.textContent !== value) element.textContent = value;
+}
+
+function getCompletionMeta(overlay: HTMLElement | null): CompletionMeta {
+  const id = Object.keys(completionMeta).find((candidate) => overlay?.classList.contains(candidate));
+  return completionMeta[id ?? 'alpha'];
+}
+
+function ensureCompletionMessage(completion: HTMLElement, summary: HTMLElement | null) {
+  let message = completion.querySelector<HTMLElement>('.evCompletionMessage');
+  if (!message) {
+    message = document.createElement('p');
+    message.className = 'evCompletionMessage';
+    summary?.insertAdjacentElement('afterend', message);
   }
-};
-
-function stopEvent(event: MouseEvent) {
-  event.preventDefault();
-  event.stopPropagation();
-  event.stopImmediatePropagation();
+  setText(message, 'Your session is complete.');
 }
 
 function ensurePreserveCard(actions: HTMLElement) {
@@ -48,27 +44,60 @@ function ensurePreserveCard(actions: HTMLElement) {
     preserve.className = 'evCompletionPreserve';
     preserve.setAttribute('aria-label', 'Keep this voyage');
     preserve.innerHTML = `
-      <div class="evCompletionPreserveCopy">
+      <div class="evCompletionPreserveCopy" data-completion-copy="v11.7">
         <span class="evCompletionPreserveIcon" aria-hidden="true">✦</span>
         <div>
           <p>Keep this voyage</p>
-          <strong>Preserve the setup and what surfaced.</strong>
-          <small>Save the exact audio environment, store your captured thoughts, or copy the session to use anywhere else.</small>
+          <strong>Save the setup or preserve your thoughts.</strong>
         </div>
       </div>
       <div class="evCompletionPreserveActions" aria-label="Voyage preservation tools"></div>
     `;
     actions.appendChild(preserve);
+    return preserve;
+  }
+
+  const copy = preserve.querySelector<HTMLElement>('.evCompletionPreserveCopy');
+  if (copy && copy.dataset.completionCopy !== 'v11.7') {
+    copy.dataset.completionCopy = 'v11.7';
+    copy.innerHTML = `
+      <span class="evCompletionPreserveIcon" aria-hidden="true">✦</span>
+      <div>
+        <p>Keep this voyage</p>
+        <strong>Save the setup or preserve your thoughts.</strong>
+      </div>
+    `;
   }
 
   return preserve;
 }
 
+function configurePreserveButton(
+  button: HTMLButtonElement | null,
+  options: {
+    label: string;
+    successLabel: string;
+    description: string;
+    icon: string;
+    successPattern: RegExp;
+    successClass: string;
+  }
+) {
+  if (!button) return;
+
+  const originalText = button.textContent?.trim() ?? '';
+  const completed = button.classList.contains(options.successClass) || options.successPattern.test(originalText);
+  button.classList.toggle(options.successClass, completed);
+  button.dataset.completionIcon = options.icon;
+  button.dataset.completionDescription = options.description;
+  button.setAttribute('aria-label', `${completed ? options.successLabel : options.label}. ${options.description}`);
+  setText(button, completed ? options.successLabel : options.label);
+}
+
 export default function V10CompletionFlow() {
   const pathname = usePathname();
   const enabled = pathname === '/voyage';
-  const [dialog, setDialog] = useState<DialogKind>(null);
-  const bypassAction = useRef<Exclude<DialogKind, null> | null>(null);
+  const activeCompletionRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!enabled) return;
@@ -82,30 +111,56 @@ export default function V10CompletionFlow() {
         thoughtInput.placeholder = 'Capture it without leaving the voyage';
       }
 
-      if (!completion || !actions) return;
+      if (!completion || !actions) {
+        activeCompletionRef.current = null;
+        return;
+      }
 
-      completion.classList.add('evCompletionEnhanced');
+      completion.classList.add('evCompletionEnhanced', 'evCompletionClear');
+      const overlay = completion.closest<HTMLElement>('.v10SessionOverlay');
+      const meta = getCompletionMeta(overlay);
+      const eyebrow = completion.querySelector<HTMLElement>('.v10SessionEyebrow');
+      const title = completion.querySelector<HTMLElement>('h2');
+      const summary = completion.querySelector<HTMLElement>('.v10CompletionSummary');
+      const duration = summary?.textContent?.split('·')[0]?.trim() || '25 minutes';
+
+      setText(eyebrow, 'Voyage complete');
+      setText(title, meta.state);
+      setText(summary, `${duration} · ${meta.frequency} · ${meta.hz}`);
+      ensureCompletionMessage(completion, summary);
+
+      if (activeCompletionRef.current !== completion) {
+        activeCompletionRef.current = completion;
+        window.requestAnimationFrame(() => {
+          if (!overlay) return;
+          const previousBehavior = overlay.style.scrollBehavior;
+          overlay.style.scrollBehavior = 'auto';
+          overlay.scrollTop = 0;
+          window.requestAnimationFrame(() => {
+            overlay.scrollTop = 0;
+            overlay.style.scrollBehavior = previousBehavior;
+          });
+        });
+      }
 
       const repeat = actions.querySelector<HTMLButtonElement>('.v10PrimaryAction');
       const secondary = actions.querySelector<HTMLButtonElement>('.v10SecondaryAction:not(.evSaveNotesButton):not(.evCopyNotesButton):not(.evSaveSpaceCompletionButton)');
       const returnButton = actions.querySelector<HTMLButtonElement>('.v10TextAction');
 
       repeat?.classList.add('evCompletionRepeat');
-
       if (secondary) {
         secondary.classList.add('evCompletionChoose');
-        if (secondary.textContent?.trim() === 'Start another state') secondary.textContent = 'Choose another state';
+        setText(secondary, 'Choose another state');
       }
-
       if (returnButton) {
         returnButton.classList.add('evCompletionReturn');
-        if (returnButton.textContent?.trim() === 'Return home') returnButton.textContent = 'Return to the beginning';
+        setText(returnButton, 'Return home');
       }
 
       const thoughts = completion.querySelector<HTMLElement>('.v10CompletionThoughts');
       const thoughtsLabel = thoughts?.querySelector<HTMLElement>('span');
       const thoughtCount = thoughts?.querySelectorAll('p').length ?? 0;
-      if (thoughtsLabel && thoughtCount > 0) thoughtsLabel.textContent = `Captured thoughts · ${thoughtCount}`;
+      if (thoughtsLabel && thoughtCount > 0) setText(thoughtsLabel, `Captured thoughts · ${thoughtCount}`);
 
       const preserve = ensurePreserveCard(actions);
       const preserveActions = preserve.querySelector<HTMLElement>('.evCompletionPreserveActions');
@@ -118,27 +173,40 @@ export default function V10CompletionFlow() {
       if (saveRoot && saveRoot.parentElement !== preserveActions) preserveActions.appendChild(saveRoot);
       if (copyRoot && copyRoot.parentElement !== preserveActions) preserveActions.appendChild(copyRoot);
 
-      const spaceButton = preserveActions.querySelector<HTMLButtonElement>('.evSaveSpaceCompletionButton');
+      configurePreserveButton(
+        preserveActions.querySelector<HTMLButtonElement>('.evSaveSpaceCompletionButton'),
+        {
+          label: 'Save setup',
+          successLabel: 'Setup saved ✓',
+          description: 'Reuse this exact voyage',
+          icon: '∞',
+          successPattern: /setup saved|voyage setup saved/i,
+          successClass: 'is-saved'
+        }
+      );
+
       const saveButton = preserveActions.querySelector<HTMLButtonElement>('.evSaveNotesButton');
-      const copyButton = preserveActions.querySelector<HTMLButtonElement>('.evCopyNotesButton');
+      configurePreserveButton(saveButton, {
+        label: saveButton?.textContent?.toLowerCase().includes('add a thought') ? 'Add a thought first' : 'Save thoughts',
+        successLabel: 'Thoughts saved ✓',
+        description: 'Add captured thoughts to Notes',
+        icon: '▤',
+        successPattern: /saved to notes|thoughts saved/i,
+        successClass: 'is-saved'
+      });
+      if (saveButton) saveButton.disabled = false;
 
-      if (spaceButton) {
-        const saved = spaceButton.textContent?.toLowerCase().includes('setup saved') ?? false;
-        spaceButton.classList.toggle('is-saved', saved);
-        spaceButton.setAttribute('aria-label', saved ? 'Voyage setup saved' : 'Save this voyage setup to Saved Spaces');
-      }
-
-      if (saveButton) {
-        const saved = saveButton.textContent?.toLowerCase().includes('saved to notes') ?? false;
-        saveButton.classList.toggle('is-saved', saved);
-        saveButton.disabled = false;
-        saveButton.setAttribute('aria-label', saved ? 'Open saved notes' : 'Save this voyage to Notes');
-      }
-
-      if (copyButton) {
-        const copied = copyButton.textContent?.toLowerCase().includes('copied') ?? false;
-        copyButton.classList.toggle('is-copied', copied);
-      }
+      configurePreserveButton(
+        preserveActions.querySelector<HTMLButtonElement>('.evCopyNotesButton'),
+        {
+          label: 'Copy thoughts',
+          successLabel: 'Thoughts copied ✓',
+          description: 'Paste them anywhere',
+          icon: '⧉',
+          successPattern: /copied/i,
+          successClass: 'is-copied'
+        }
+      );
     };
 
     syncCompletion();
@@ -148,55 +216,16 @@ export default function V10CompletionFlow() {
       subtree: true,
       characterData: true,
       attributes: true,
-      attributeFilter: ['disabled']
+      attributeFilter: ['disabled', 'class']
     });
 
     const handleClick = (event: MouseEvent) => {
       const target = event.target as Element | null;
-      if (!target) return;
-
-      const spaceButton = target.closest<HTMLButtonElement>('.evSaveSpaceCompletionButton');
-      if (spaceButton) {
-        const alreadySaved = spaceButton.textContent?.toLowerCase().includes('setup saved') ?? false;
-        if (alreadySaved) return;
-        if (bypassAction.current === 'space') {
-          bypassAction.current = null;
-          return;
-        }
-        stopEvent(event);
-        setDialog('space');
-        return;
-      }
-
-      const saveButton = target.closest<HTMLButtonElement>('.evSaveNotesButton');
-      if (saveButton) {
-        const alreadySaved = saveButton.textContent?.toLowerCase().includes('saved to notes') ?? false;
-        if (alreadySaved) {
-          stopEvent(event);
-          document.querySelector<HTMLButtonElement>('.evNotesTrigger')?.click();
-          return;
-        }
-
-        if (bypassAction.current === 'save') {
-          bypassAction.current = null;
-          return;
-        }
-
-        stopEvent(event);
-        setDialog('save');
-        return;
-      }
-
-      const copyButton = target.closest<HTMLButtonElement>('.evCopyNotesButton');
-      if (copyButton) {
-        if (bypassAction.current === 'copy') {
-          bypassAction.current = null;
-          return;
-        }
-
-        stopEvent(event);
-        setDialog('copy');
-      }
+      const saveButton = target?.closest<HTMLButtonElement>('.evSaveNotesButton.is-saved');
+      if (!saveButton) return;
+      event.preventDefault();
+      event.stopPropagation();
+      document.querySelector<HTMLButtonElement>('.evNotesTrigger')?.click();
     };
 
     document.addEventListener('click', handleClick, true);
@@ -206,61 +235,5 @@ export default function V10CompletionFlow() {
     };
   }, [enabled]);
 
-  useEffect(() => {
-    if (!dialog) return;
-
-    document.body.classList.add('ev-completion-dialog-open');
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setDialog(null);
-    };
-    window.addEventListener('keydown', handleEscape);
-
-    return () => {
-      document.body.classList.remove('ev-completion-dialog-open');
-      window.removeEventListener('keydown', handleEscape);
-    };
-  }, [dialog]);
-
-  const confirmAction = () => {
-    if (!dialog) return;
-    const selectors: Record<Exclude<DialogKind, null>, string> = {
-      space: '.evSaveSpaceCompletionButton',
-      save: '.evSaveNotesButton',
-      copy: '.evCopyNotesButton'
-    };
-    const button = document.querySelector<HTMLButtonElement>(selectors[dialog]);
-    if (!button) {
-      setDialog(null);
-      return;
-    }
-
-    bypassAction.current = dialog;
-    setDialog(null);
-    window.requestAnimationFrame(() => button.click());
-  };
-
-  if (!enabled || !dialog || typeof document === 'undefined') return null;
-
-  const content = dialogContent[dialog];
-
-  return createPortal(
-    <div
-      className={`evCompletionDialogBackdrop ${dialog}`}
-      role="presentation"
-      onMouseDown={(event) => event.target === event.currentTarget && setDialog(null)}
-    >
-      <section className="evCompletionDialog" role="dialog" aria-modal="true" aria-labelledby="ev-completion-dialog-title">
-        <button type="button" className="evCompletionDialogClose" onClick={() => setDialog(null)} aria-label="Close">×</button>
-        <span className="evCompletionDialogSymbol" aria-hidden="true">{dialog === 'space' ? '∞' : dialog === 'save' ? '✦' : '⧉'}</span>
-        <p>{content.eyebrow}</p>
-        <h2 id="ev-completion-dialog-title">{content.title}</h2>
-        <strong>{content.body}</strong>
-        <div className="evCompletionDialogActions">
-          <button type="button" className="evCompletionDialogPrimary" onClick={confirmAction}>{content.primary}</button>
-          <button type="button" className="evCompletionDialogCancel" onClick={() => setDialog(null)}>Cancel</button>
-        </div>
-      </section>
-    </div>,
-    document.body
-  );
+  return null;
 }
