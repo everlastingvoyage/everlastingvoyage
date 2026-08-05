@@ -38,6 +38,8 @@ export default function FrequencyChamberExperience() {
 
     if (!library || !stage || !experience || !intro || !eyebrow || !title || !hint || !hintText) return;
 
+    const isMobile = window.matchMedia('(max-width: 760px)').matches;
+    const particleCount = isMobile ? 8 : 18;
     const original = {
       eyebrow: eyebrow.textContent,
       title: title.textContent,
@@ -47,6 +49,8 @@ export default function FrequencyChamberExperience() {
     };
 
     library.classList.add('evFrequencyChamber');
+    library.dataset.performanceMode = isMobile ? 'mobile' : 'desktop';
+    stage.dataset.performanceMode = isMobile ? 'mobile' : 'desktop';
     eyebrow.textContent = 'Frequency chamber';
     title.textContent = 'Explore the signal behind every state.';
     hintText.textContent = 'Tap a frequency to expand the signal';
@@ -75,11 +79,11 @@ export default function FrequencyChamberExperience() {
 
     const particles = document.createElement('div');
     particles.className = 'evChamberParticles';
-    Array.from({ length: 18 }).forEach((_, index) => {
+    Array.from({ length: particleCount }).forEach((_, index) => {
       const particle = document.createElement('span');
       particle.style.setProperty('--ev-particle-index', String(index));
-      particle.style.setProperty('--ev-particle-angle', `${index * 20}deg`);
-      particle.style.setProperty('--ev-particle-distance', `${170 + index * 7}px`);
+      particle.style.setProperty('--ev-particle-angle', `${index * (360 / particleCount)}deg`);
+      particle.style.setProperty('--ev-particle-distance', `${170 + index * (isMobile ? 11 : 7)}px`);
       particle.style.setProperty('--ev-particle-delay', `${index * -360}ms`);
       particles.appendChild(particle);
     });
@@ -158,30 +162,46 @@ export default function FrequencyChamberExperience() {
     });
 
     let resetTimer: number | undefined;
+    const hasManagedPopupState = () => Boolean(
+      library.dataset.popupPhase ||
+      stage.dataset.popupPhase ||
+      library.dataset.exitState ||
+      stage.dataset.exitState
+    );
+
     const resetAfterPopup = () => {
       window.clearTimeout(resetTimer);
       const popupOpen = Boolean(stage.querySelector('.signalPopupOverlay:not(.signalPopupExitGhost)'));
-      if (popupOpen) return;
+      if (popupOpen || hasManagedPopupState()) return;
 
       resetTimer = window.setTimeout(() => {
-        if (stage.querySelector('.signalPopupOverlay:not(.signalPopupExitGhost)')) return;
+        if (stage.querySelector('.signalPopupOverlay:not(.signalPopupExitGhost)') || hasManagedPopupState()) return;
         delete stage.dataset.restState;
         delete library.dataset.restState;
-      }, 1650);
+      }, 2400);
+    };
+
+    const handleManagedCleanup = () => {
+      window.clearTimeout(resetTimer);
+      setHoverState(null);
     };
 
     const observer = new MutationObserver(resetAfterPopup);
     observer.observe(stage, { childList: true, subtree: true });
+    window.addEventListener('ev:frequency-popup-cleanup', handleManagedCleanup);
 
     return () => {
       observer.disconnect();
+      window.removeEventListener('ev:frequency-popup-cleanup', handleManagedCleanup);
       window.clearTimeout(resetTimer);
       cleanupNodes.forEach((cleanup) => cleanup());
       visualLayer.remove();
       trustRow.remove();
       setHoverState(null);
       delete stage.dataset.restState;
+      delete stage.dataset.performanceMode;
       delete library.dataset.restState;
+      delete library.dataset.performanceMode;
       library.classList.remove('evFrequencyChamber');
       eyebrow.textContent = original.eyebrow;
       title.textContent = original.title;
