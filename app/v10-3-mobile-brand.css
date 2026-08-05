@@ -1,0 +1,69 @@
+/* V10.3 — focused mobile branding and selection-mark refinement */
+
+@media (max-width: 760px) {
+  .ev-product-route .topbar {
+    position: relative;
+    min-height: 148px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 18px 30px;
+  }
+
+  .ev-product-route .brandLockup {
+    width: min(100%, 330px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(14px, 4vw, 20px);
+    margin: 0 auto;
+  }
+
+  .ev-product-route .brandMark {
+    width: clamp(56px, 15vw, 68px);
+    height: auto;
+    flex: 0 0 auto;
+    filter: drop-shadow(0 0 13px rgba(64, 145, 255, 0.38));
+  }
+
+  .ev-product-route .brandWordmark {
+    width: clamp(190px, 53vw, 226px);
+    height: auto;
+    flex: 0 1 auto;
+    filter: drop-shadow(0 0 12px rgba(122, 155, 255, 0.12));
+  }
+
+  .ev-product-route .navLinks,
+  .ev-product-route .navCta {
+    display: none !important;
+  }
+
+  .ev-product-route .stateChoice.active .selectionMark,
+  .ev-product-route .stateChoice.abundance.active .selectionMark {
+    color: #ffffff !important;
+    text-shadow:
+      0 2px 4px rgba(0, 8, 20, 0.78),
+      0 0 8px rgba(255, 255, 255, 0.72),
+      0 0 16px rgba(255, 255, 255, 0.32);
+    -webkit-text-stroke: 0.25px rgba(255, 255, 255, 0.62);
+  }
+}
+
+@media (max-width: 370px) {
+  .ev-product-route .topbar {
+    min-height: 132px;
+    padding-inline: 12px;
+  }
+
+  .ev-product-route .brandLockup {
+    gap: 12px;
+  }
+
+  .ev-product-route .brandMark {
+    width: 52px;
+  }
+
+  .ev-product-route .brandWordmark {
+    width: min(184px, 58vw);
+  }
+}
