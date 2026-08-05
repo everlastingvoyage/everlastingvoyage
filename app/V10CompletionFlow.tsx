@@ -9,6 +9,16 @@ type CompletionMeta = {
   hz: string;
 };
 
+type PreserveOptions = {
+  label: string;
+  successLabel: string;
+  description: string;
+  icon: string;
+  successPattern: RegExp;
+  successClass: string;
+  rowClass: string;
+};
+
 const completionMeta: Record<string, CompletionMeta> = {
   alpha: { state: 'Calm Focus', frequency: 'Alpha', hz: '10 Hz' },
   gamma: { state: 'Deep Focus', frequency: 'Gamma', hz: '40 Hz' },
@@ -43,23 +53,18 @@ function ensurePreserveCard(actions: HTMLElement) {
     preserve = document.createElement('section');
     preserve.className = 'evCompletionPreserve';
     preserve.setAttribute('aria-label', 'Keep this voyage');
-    preserve.innerHTML = `
-      <div class="evCompletionPreserveCopy" data-completion-copy="v11.7">
-        <span class="evCompletionPreserveIcon" aria-hidden="true">✦</span>
-        <div>
-          <p>Keep this voyage</p>
-          <strong>Save the setup or preserve your thoughts.</strong>
-        </div>
-      </div>
-      <div class="evCompletionPreserveActions" aria-label="Voyage preservation tools"></div>
-    `;
     actions.appendChild(preserve);
-    return preserve;
   }
 
-  const copy = preserve.querySelector<HTMLElement>('.evCompletionPreserveCopy');
-  if (copy && copy.dataset.completionCopy !== 'v11.7') {
-    copy.dataset.completionCopy = 'v11.7';
+  let copy = preserve.querySelector<HTMLElement>('.evCompletionPreserveCopy');
+  if (!copy) {
+    copy = document.createElement('div');
+    copy.className = 'evCompletionPreserveCopy';
+    preserve.prepend(copy);
+  }
+
+  if (copy.dataset.completionCopy !== 'v11.8') {
+    copy.dataset.completionCopy = 'v11.8';
     copy.innerHTML = `
       <span class="evCompletionPreserveIcon" aria-hidden="true">✦</span>
       <div>
@@ -69,20 +74,55 @@ function ensurePreserveCard(actions: HTMLElement) {
     `;
   }
 
+  let preserveActions = preserve.querySelector<HTMLElement>('.evCompletionPreserveActions');
+  if (!preserveActions) {
+    preserveActions = document.createElement('div');
+    preserveActions.className = 'evCompletionPreserveActions';
+    preserveActions.setAttribute('aria-label', 'Voyage preservation tools');
+    preserve.appendChild(preserveActions);
+  }
+
   return preserve;
 }
 
-function configurePreserveButton(
-  button: HTMLButtonElement | null,
-  options: {
-    label: string;
-    successLabel: string;
-    description: string;
-    icon: string;
-    successPattern: RegExp;
-    successClass: string;
-  }
+function ensureActionPresentation(
+  button: HTMLButtonElement,
+  options: PreserveOptions,
+  completed: boolean
 ) {
+  const root = button.parentElement;
+  if (!root) return;
+
+  root.classList.add('evCompletionActionRoot', options.rowClass);
+  button.classList.add('evCompletionActionHitArea');
+
+  let presentation = root.querySelector<HTMLElement>('.evCompletionActionPresentation');
+  if (!presentation) {
+    presentation = document.createElement('div');
+    presentation.className = 'evCompletionActionPresentation';
+    presentation.setAttribute('aria-hidden', 'true');
+    presentation.innerHTML = `
+      <span class="evCompletionActionIcon"></span>
+      <span class="evCompletionActionCopy">
+        <strong></strong>
+        <small></small>
+      </span>
+      <span class="evCompletionActionChevron">›</span>
+    `;
+    root.appendChild(presentation);
+  }
+
+  root.classList.toggle('is-complete', completed);
+  setText(presentation.querySelector<HTMLElement>('.evCompletionActionIcon'), completed ? '✓' : options.icon);
+  setText(
+    presentation.querySelector<HTMLElement>('.evCompletionActionCopy strong'),
+    completed ? options.successLabel : options.label
+  );
+  setText(presentation.querySelector<HTMLElement>('.evCompletionActionCopy small'), options.description);
+  setText(presentation.querySelector<HTMLElement>('.evCompletionActionChevron'), completed ? '✓' : '›');
+}
+
+function configurePreserveButton(button: HTMLButtonElement | null, options: PreserveOptions) {
   if (!button) return;
 
   const originalText = button.textContent?.trim() ?? '';
@@ -92,15 +132,42 @@ function configurePreserveButton(
   button.dataset.completionDescription = options.description;
   button.setAttribute('aria-label', `${completed ? options.successLabel : options.label}. ${options.description}`);
   setText(button, completed ? options.successLabel : options.label);
+  ensureActionPresentation(button, options, completed);
 }
 
 export default function V10CompletionFlow() {
   const pathname = usePathname();
   const enabled = pathname === '/voyage';
   const activeCompletionRef = useRef<HTMLElement | null>(null);
+  const scrollTimersRef = useRef<number[]>([]);
 
   useEffect(() => {
     if (!enabled) return;
+
+    const clearScrollTimers = () => {
+      scrollTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+      scrollTimersRef.current = [];
+    };
+
+    const resetCompletionPosition = (overlay: HTMLElement, completion: HTMLElement) => {
+      clearScrollTimers();
+
+      const reset = () => {
+        const previousBehavior = overlay.style.scrollBehavior;
+        overlay.style.scrollBehavior = 'auto';
+        overlay.scrollTop = 0;
+        overlay.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        completion.scrollIntoView({ block: 'start', behavior: 'auto' });
+        overlay.scrollTop = 0;
+        overlay.style.scrollBehavior = previousBehavior;
+      };
+
+      reset();
+      window.requestAnimationFrame(reset);
+      [80, 220, 520].forEach((delay) => {
+        scrollTimersRef.current.push(window.setTimeout(reset, delay));
+      });
+    };
 
     const syncCompletion = () => {
       const completion = document.querySelector<HTMLElement>('.v10Completion');
@@ -116,7 +183,7 @@ export default function V10CompletionFlow() {
         return;
       }
 
-      completion.classList.add('evCompletionEnhanced', 'evCompletionClear');
+      completion.classList.add('evCompletionEnhanced', 'evCompletionClear', 'evCompletionPolished');
       const overlay = completion.closest<HTMLElement>('.v10SessionOverlay');
       const meta = getCompletionMeta(overlay);
       const eyebrow = completion.querySelector<HTMLElement>('.v10SessionEyebrow');
@@ -128,20 +195,6 @@ export default function V10CompletionFlow() {
       setText(title, meta.state);
       setText(summary, `${duration} · ${meta.frequency} · ${meta.hz}`);
       ensureCompletionMessage(completion, summary);
-
-      if (activeCompletionRef.current !== completion) {
-        activeCompletionRef.current = completion;
-        window.requestAnimationFrame(() => {
-          if (!overlay) return;
-          const previousBehavior = overlay.style.scrollBehavior;
-          overlay.style.scrollBehavior = 'auto';
-          overlay.scrollTop = 0;
-          window.requestAnimationFrame(() => {
-            overlay.scrollTop = 0;
-            overlay.style.scrollBehavior = previousBehavior;
-          });
-        });
-      }
 
       const repeat = actions.querySelector<HTMLButtonElement>('.v10PrimaryAction');
       const secondary = actions.querySelector<HTMLButtonElement>('.v10SecondaryAction:not(.evSaveNotesButton):not(.evCopyNotesButton):not(.evSaveSpaceCompletionButton)');
@@ -177,22 +230,24 @@ export default function V10CompletionFlow() {
         preserveActions.querySelector<HTMLButtonElement>('.evSaveSpaceCompletionButton'),
         {
           label: 'Save setup',
-          successLabel: 'Setup saved ✓',
+          successLabel: 'Setup saved',
           description: 'Reuse this exact voyage',
           icon: '∞',
           successPattern: /setup saved|voyage setup saved/i,
-          successClass: 'is-saved'
+          successClass: 'is-saved',
+          rowClass: 'is-setup'
         }
       );
 
       const saveButton = preserveActions.querySelector<HTMLButtonElement>('.evSaveNotesButton');
       configurePreserveButton(saveButton, {
         label: saveButton?.textContent?.toLowerCase().includes('add a thought') ? 'Add a thought first' : 'Save thoughts',
-        successLabel: 'Thoughts saved ✓',
+        successLabel: 'Thoughts saved',
         description: 'Add captured thoughts to Notes',
         icon: '▤',
         successPattern: /saved to notes|thoughts saved/i,
-        successClass: 'is-saved'
+        successClass: 'is-saved',
+        rowClass: 'is-thoughts'
       });
       if (saveButton) saveButton.disabled = false;
 
@@ -200,13 +255,19 @@ export default function V10CompletionFlow() {
         preserveActions.querySelector<HTMLButtonElement>('.evCopyNotesButton'),
         {
           label: 'Copy thoughts',
-          successLabel: 'Thoughts copied ✓',
+          successLabel: 'Thoughts copied',
           description: 'Paste them anywhere',
           icon: '⧉',
           successPattern: /copied/i,
-          successClass: 'is-copied'
+          successClass: 'is-copied',
+          rowClass: 'is-copy'
         }
       );
+
+      if (activeCompletionRef.current !== completion && overlay) {
+        activeCompletionRef.current = completion;
+        resetCompletionPosition(overlay, completion);
+      }
     };
 
     syncCompletion();
@@ -230,6 +291,7 @@ export default function V10CompletionFlow() {
 
     document.addEventListener('click', handleClick, true);
     return () => {
+      clearScrollTimers();
       observer.disconnect();
       document.removeEventListener('click', handleClick, true);
     };
