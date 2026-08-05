@@ -21,6 +21,7 @@ import './v10-12-mobile-stability.css';
 import './v10-13-foundation.css';
 import './v11-1-ambient-mixer.css';
 import './v11-2-live-session-atmosphere.css';
+import './v11-3-precision-audio.css';
 import HumanoidSwap from './HumanoidSwap';
 import SignalChamberPolish from './SignalChamberPolish';
 import SignalChamberBlend from './SignalChamberBlend';
