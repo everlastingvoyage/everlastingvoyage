@@ -4,6 +4,8 @@ import type { FormEvent } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { usePathname } from 'next/navigation';
+import { readAmbientMix, writeAmbientMix } from './ambient-mixer-store';
+import { sanitizeAmbientLayers, type AmbientLayerConfig } from './voyage-model';
 
 type StateId = 'alpha' | 'gamma' | 'theta' | 'delta' | 'abundance';
 
@@ -14,10 +16,12 @@ type SavedSpace = {
   durationMinutes: number;
   intention: string;
   volumePercent: number;
+  ambientLayers: AmbientLayerConfig[];
   createdAt: number;
   lastUsedAt: number;
 };
 
+type LegacySavedSpace = Omit<SavedSpace, 'ambientLayers'> & { ambientLayers?: unknown };
 type BuilderConfig = Pick<SavedSpace, 'stateId' | 'durationMinutes' | 'intention'>;
 
 const STORAGE_KEY = 'ev-v10-saved-spaces';
@@ -35,9 +39,15 @@ const stateMeta: Record<StateId, { frequency: string; hz: string; state: string 
 function readSpaces(): SavedSpace[] {
   if (typeof window === 'undefined') return [];
   try {
-    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') as SavedSpace[];
+    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') as LegacySavedSpace[];
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter((space) => space && stateMeta[space.stateId] && Number.isFinite(space.durationMinutes)).slice(0, MAX_SPACES);
+    return parsed
+      .filter((space) => space && stateMeta[space.stateId] && Number.isFinite(space.durationMinutes))
+      .map((space) => ({
+        ...space,
+        ambientLayers: sanitizeAmbientLayers(space.ambientLayers)
+      }))
+      .slice(0, MAX_SPACES);
   } catch {
     localStorage.removeItem(STORAGE_KEY);
     return [];
@@ -122,6 +132,7 @@ export default function V10SavedSpaces() {
 
   const saveCurrentSpace = useCallback(() => {
     const config = readBuilderConfig();
+    const ambientLayers = readAmbientMix().layers;
     const now = Date.now();
     const rawVolume = Number(localStorage.getItem(VOLUME_STORAGE_KEY));
     const volumePercent = Number.isFinite(rawVolume) && rawVolume >= 0 && rawVolume <= 100 ? rawVolume : 35;
@@ -129,8 +140,16 @@ export default function V10SavedSpaces() {
     const existingSpace = spaces.find((space) => `${space.stateId}|${space.durationMinutes}|${space.intention.trim().toLowerCase()}` === signature);
 
     const nextSpace: SavedSpace = existingSpace
-      ? { ...existingSpace, volumePercent, lastUsedAt: now }
-      : { id: makeId(), name: defaultName(config), ...config, volumePercent, createdAt: now, lastUsedAt: now };
+      ? { ...existingSpace, volumePercent, ambientLayers, lastUsedAt: now }
+      : {
+          id: makeId(),
+          name: defaultName(config),
+          ...config,
+          volumePercent,
+          ambientLayers,
+          createdAt: now,
+          lastUsedAt: now
+        };
 
     commitSpaces([nextSpace, ...spaces.filter((space) => space.id !== nextSpace.id)]);
     setSavedPulse(true);
@@ -156,6 +175,7 @@ export default function V10SavedSpaces() {
     const intentionInput = document.querySelector<HTMLInputElement>('.intentionField input');
     if (intentionInput) setReactInputValue(intentionInput, space.intention);
     localStorage.setItem(VOLUME_STORAGE_KEY, String(space.volumePercent));
+    writeAmbientMix(space.ambientLayers);
 
     const now = Date.now();
     commitSpaces(spaces.map((item) => item.id === space.id ? { ...item, lastUsedAt: now } : item));
@@ -212,12 +232,13 @@ export default function V10SavedSpaces() {
             {visibleSpaces.length === 0 ? (
               <div className="evSavedSpacesEmpty">
                 <strong>No spaces saved yet.</strong>
-                <p>Choose a state, duration and intention, then use Save this space.</p>
+                <p>Choose a state, duration, intention and atmosphere, then use Save this space.</p>
               </div>
             ) : (
               <div className="evSavedSpacesList">
                 {visibleSpaces.map((space) => {
                   const meta = stateMeta[space.stateId];
+                  const ambientCount = space.ambientLayers.filter((layer) => layer.enabled).length;
                   return (
                     <article className={`evSavedSpaceCard ${space.stateId}`} key={space.id}>
                       <div className="evSavedSpaceTopline">
@@ -234,7 +255,11 @@ export default function V10SavedSpaces() {
                         <>
                           <h3>{space.name}</h3>
                           <p>{space.intention || 'Open focus — add an intention when you begin.'}</p>
-                          <div className="evSavedSpaceMeta"><span>{space.durationMinutes} min</span><span>Volume {space.volumePercent}%</span></div>
+                          <div className="evSavedSpaceMeta">
+                            <span>{space.durationMinutes} min</span>
+                            <span>Signal {space.volumePercent}%</span>
+                            <span>{ambientCount} atmosphere {ambientCount === 1 ? 'layer' : 'layers'}</span>
+                          </div>
                           <div className="evSavedSpaceActions">
                             <button type="button" className="evSavedSpaceStart" onClick={() => applySpaceToBuilder(space, true)}>Start voyage <span aria-hidden="true">→</span></button>
                             <button type="button" onClick={() => applySpaceToBuilder(space, false)}>Load</button>
