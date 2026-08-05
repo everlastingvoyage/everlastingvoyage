@@ -29,6 +29,7 @@ import './v11-7-completion-clarity.css';
 import './v11-8-completion-polish.css';
 import './v12-0-desktop-session-console.css';
 import './v12-0-1-desktop-footer-spacing.css';
+import './v12-0-2-readable-sounds-session-brand.css';
 import HumanoidSwap from './HumanoidSwap';
 import SignalChamberPolish from './SignalChamberPolish';
 import SignalChamberBlend from './SignalChamberBlend';
@@ -48,6 +49,7 @@ import V11SessionAtmosphere from './V11SessionAtmosphere';
 import V11ContinueVoyageBehavior from './V11ContinueVoyageBehavior';
 import V11SessionExitGuard from './V11SessionExitGuard';
 import V11CompletionSaveSpace from './V11CompletionSaveSpace';
+import V12SessionBrandFooter from './V12SessionBrandFooter';
 
 export const metadata: Metadata = {
   title: 'Everlasting Voyage — Pure Frequencies & Focus Sessions',
@@ -83,6 +85,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <V10ProductFlow />
         <V11AmbientMixer />
         <V11SessionAtmosphere />
+        <V12SessionBrandFooter />
         <V11SessionExitGuard />
         <V11ContinueVoyageBehavior />
         <FrequencyPowerDetails />
