@@ -40,8 +40,8 @@ export const ambientShortDescriptions: Record<PlayableAmbientId, string> = {
   'brown-noise': 'Deep, soft masking.',
   'pink-noise': 'Balanced, natural texture.',
   rain: 'Real steady rainfall recording.',
-  ocean: 'Real shoreline water movement.',
-  birds: 'Real outdoor birdsong recording.',
+  ocean: 'Clean waves arriving and retreating.',
+  birds: 'Distant coastal birds over open air.',
   nature: 'Real stereo woodland ambience.',
   storm: 'Real rain and thunder recording.'
 };
