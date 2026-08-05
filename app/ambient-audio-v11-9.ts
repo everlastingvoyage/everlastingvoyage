@@ -1,17 +1,17 @@
 import { ambientCatalog } from './ambient-catalog';
 
-// V11.9 keeps the public IDs stable for Saved Spaces while replacing
-// unreliable third-party streams and the Coastal Seagulls presentation.
+// Keep stable public IDs for Saved Spaces while replacing customer-facing
+// recordings and labels with verified, versioned production sources.
 Object.assign(ambientCatalog.ocean, {
-  name: 'Calm Shoreline',
+  name: 'Calm Ocean',
   shortName: 'Ocean',
-  description: 'Natural shoreline waves and water movement.',
-  assetPath: '/audio/field/ocean-v2.mp3',
-  fallbackAssetPath: '/audio/field/ocean-v2.ogg',
-  sourcePage: 'https://commons.wikimedia.org/wiki/File:Waves.ogg',
-  sourceCredit: 'Dsw4 / Wikimedia Commons',
+  description: 'Gentle beach waves arriving and retreating along the shore.',
+  assetPath: '/audio/field/ocean-beach-v3.mp3',
+  fallbackAssetPath: '/audio/field/ocean-beach-v3.ogg',
+  sourcePage: 'https://commons.wikimedia.org/wiki/File:Beach_sounds_South_Carolina.ogg',
+  sourceCredit: 'Anthropic42 / Wikimedia Commons',
   license: 'public-domain' as const,
-  tags: ['rest', 'meditation', 'water'] as const
+  tags: ['beach', 'rest', 'meditation', 'water'] as const
 });
 
 Object.assign(ambientCatalog.birds, {
