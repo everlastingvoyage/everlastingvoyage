@@ -1,3 +1,4 @@
+import './ambient-audio-v11-9';
 import type { AmbientId } from './ambient-catalog';
 
 export const playableAmbientIds = [
