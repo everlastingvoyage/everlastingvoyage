@@ -16,20 +16,22 @@ The natural atmosphere layers below use real field recordings released into the 
 - Date added: 2026-08-05
 - Processing: Streamed through a same-origin route; no destructive noise reduction
 
-## Calm Shoreline
+## Calm Ocean
 
-- Customer name: `Calm Shoreline`
+- Customer name: `Calm Ocean`
 - Internal compatibility ID: `ocean`
-- File: `Waves.ogg`
-- Creator: Dsw4
-- Recording: 4 minutes 47 seconds of real shoreline water recorded with a shotgun microphone on the shores of Lake Ontario
+- File: `Beach sounds South Carolina.ogg`
+- Creator: Anthropic42
+- Recording: 1 minute 2 seconds of real beach ambience recorded at Litchfield Beach, South Carolina with a Sony MiniDisc and AudioTechnica stereo microphone
 - License: Public domain
-- Source page: https://commons.wikimedia.org/wiki/File:Waves.ogg
-- Original: https://upload.wikimedia.org/wikipedia/commons/1/1f/Waves.ogg
-- MP3 transcode: https://upload.wikimedia.org/wikipedia/commons/transcoded/1/1f/Waves.ogg/Waves.ogg.mp3
-- App routes: `/audio/field/ocean-v2.mp3` and `/audio/field/ocean-v2.ogg`
+- Source page: https://commons.wikimedia.org/wiki/File:Beach_sounds_South_Carolina.ogg
+- Original: https://upload.wikimedia.org/wikipedia/commons/0/04/Beach_sounds_South_Carolina.ogg
+- MP3 transcode: https://upload.wikimedia.org/wikipedia/commons/transcoded/0/04/Beach_sounds_South_Carolina.ogg/Beach_sounds_South_Carolina.ogg.mp3
+- App routes: `/audio/field/ocean-beach-v3.mp3` and `/audio/field/ocean-beach-v3.ogg`
 - Date added: 2026-08-05
-- Processing: Streamed through versioned same-origin routes to avoid stale Safari cache and unreliable third-party hotlinking
+- Processing: Streamed through new versioned same-origin routes; the previous `Waves.ogg` source is no longer active or used as fallback
+- Source verification: Wikimedia identifies the recording as stereo beach sound and confirms its public-domain release
+- Listening note: final subjective approval of tone and loop quality must be completed on the physical iPhone and headphones used for product sign-off
 
 ## Morning Birds
 
