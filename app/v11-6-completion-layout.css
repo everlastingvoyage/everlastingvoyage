@@ -1,0 +1,210 @@
+/* V11.6 — Completion restoration, thought priority and collision-proof atmosphere cards. */
+
+/* Keep capture available immediately after the timer instead of below the full sound library. */
+.v10SessionTools > .v10ThoughtCapture {
+  order: 1;
+}
+
+.v10SessionTools > .v10ThoughtList {
+  order: 2;
+}
+
+.v10SessionTools > .v10AudioControls {
+  order: 3;
+}
+
+.v10SessionTools > #ev-session-atmosphere-root {
+  order: 4;
+}
+
+.v10ThoughtCapture {
+  border-color: rgba(var(--v10-accent-rgb), 0.25) !important;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(var(--v10-accent-rgb), 0.09), transparent 44%),
+    linear-gradient(150deg, rgba(10, 25, 45, 0.84), rgba(3, 10, 20, 0.82)) !important;
+}
+
+/* The left interaction is a real grid: icon and copy can never occupy the same space. */
+.evSessionAtmosphereChip {
+  grid-template-columns: minmax(0, 1fr) 108px !important;
+  min-height: 108px !important;
+}
+
+.evSessionAtmosphereToggle {
+  display: grid !important;
+  grid-template-columns: 56px minmax(0, 1fr) !important;
+  grid-template-rows: auto !important;
+  align-items: center !important;
+  column-gap: 16px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 108px !important;
+  padding: 16px 14px 16px 18px !important;
+  overflow: hidden !important;
+}
+
+.evSessionAtmosphereIcon {
+  position: static !important;
+  inset: auto !important;
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  align-self: center !important;
+  justify-self: start !important;
+  width: 54px !important;
+  height: 54px !important;
+  min-width: 54px !important;
+  margin: 0 !important;
+  transform: none !important;
+}
+
+.evSessionAtmosphereCopy {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  align-self: center !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.evSessionAtmosphereCopy > strong,
+.evSessionAtmosphereCopy > small,
+.evSessionAtmosphereState {
+  position: static !important;
+  inset: auto !important;
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  transform: none !important;
+}
+
+.evSessionAtmosphereCopy > strong {
+  display: block !important;
+  white-space: normal !important;
+}
+
+.evSessionAtmosphereCopy > small {
+  display: -webkit-box !important;
+  overflow: hidden !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.evSessionAtmosphereState {
+  display: inline-flex !important;
+  margin-top: 6px !important;
+}
+
+.evSessionAtmosphereLevels {
+  min-width: 108px !important;
+  min-height: 108px !important;
+  padding-inline: 10px !important;
+}
+
+.evSessionAtmosphereLevels > span {
+  font-size: 0.86rem !important;
+}
+
+.evSessionAtmosphereLevels > small {
+  font-size: 1.14rem !important;
+}
+
+/* Completion now preserves setup, notes and clipboard separately. */
+.evCompletionPreserveActions {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px !important;
+}
+
+.evCompletionPreserveActions > div,
+.evCompletionPreserveActions button {
+  width: 100%;
+}
+
+.evSaveSpaceCompletionButton {
+  border-color: rgba(var(--v10-accent-rgb), 0.45) !important;
+  background: rgba(var(--v10-accent-rgb), 0.1) !important;
+  color: #eefaff !important;
+}
+
+.evSaveSpaceCompletionButton.is-saved,
+.evSaveSpaceCompletionButton:disabled {
+  border-color: rgba(97, 218, 165, 0.45) !important;
+  background: rgba(97, 218, 165, 0.1) !important;
+  color: #8aefbe !important;
+  opacity: 1 !important;
+}
+
+@media (max-width: 760px) {
+  .v10SessionTools {
+    gap: 20px !important;
+  }
+
+  .v10ThoughtCapture {
+    padding: 20px !important;
+  }
+
+  .evSessionAtmosphereChip {
+    grid-template-columns: minmax(0, 1fr) 98px !important;
+    min-height: 108px !important;
+  }
+
+  .evSessionAtmosphereToggle {
+    grid-template-columns: 52px minmax(0, 1fr) !important;
+    column-gap: 15px !important;
+    min-height: 108px !important;
+    padding: 15px 12px 15px 14px !important;
+  }
+
+  .evSessionAtmosphereIcon {
+    width: 50px !important;
+    height: 50px !important;
+    min-width: 50px !important;
+  }
+
+  .evSessionAtmosphereLevels {
+    min-width: 98px !important;
+    min-height: 108px !important;
+  }
+
+  .evCompletionPreserveActions {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .evSessionAtmosphere {
+    padding-inline: 14px !important;
+  }
+
+  .evSessionAtmosphereChip {
+    grid-template-columns: minmax(0, 1fr) 88px !important;
+  }
+
+  .evSessionAtmosphereToggle {
+    grid-template-columns: 46px minmax(0, 1fr) !important;
+    column-gap: 12px !important;
+    padding-inline: 11px !important;
+  }
+
+  .evSessionAtmosphereIcon {
+    width: 46px !important;
+    height: 46px !important;
+    min-width: 46px !important;
+  }
+
+  .evSessionAtmosphereLevels {
+    min-width: 88px !important;
+    padding-inline: 6px !important;
+  }
+
+  .evSessionAtmosphereLevels > span {
+    font-size: 0.76rem !important;
+  }
+
+  .evSessionAtmosphereLevels > small {
+    font-size: 1.02rem !important;
+  }
+}

@@ -4,6 +4,11 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { usePathname } from 'next/navigation';
 
+function findEndSessionButton(): HTMLButtonElement | null {
+  return Array.from(document.querySelectorAll<HTMLButtonElement>('.v10SessionOverlay .v10TimerControls button'))
+    .find((button) => button.textContent?.trim().toLowerCase() === 'end session') ?? null;
+}
+
 function isEndSessionButton(element: Element | null): element is HTMLButtonElement {
   const button = element?.closest<HTMLButtonElement>('.v10SessionOverlay .v10TimerControls button');
   return Boolean(button && button.textContent?.trim().toLowerCase() === 'end session');
@@ -50,7 +55,7 @@ export default function V11SessionExitGuard() {
     if (!open) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    continueButtonRef.current?.focus();
+    window.requestAnimationFrame(() => continueButtonRef.current?.focus());
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setOpen(false);
@@ -63,20 +68,16 @@ export default function V11SessionExitGuard() {
     };
   }, [open]);
 
-  const confirmExit = () => {
+  const confirmEnd = () => {
+    const endButton = findEndSessionButton();
     setOpen(false);
-    const legacyClose = document.querySelector<HTMLButtonElement>('.v10SessionOverlay .v10CloseSession');
-    if (legacyClose) {
-      legacyClose.click();
-      return;
-    }
-
-    const endButton = Array.from(document.querySelectorAll<HTMLButtonElement>('.v10SessionOverlay .v10TimerControls button'))
-      .find((button) => button.textContent?.trim().toLowerCase() === 'end session');
     if (!endButton) return;
+
     bypassRef.current = true;
-    endButton.click();
-    bypassRef.current = false;
+    window.requestAnimationFrame(() => {
+      endButton.click();
+      bypassRef.current = false;
+    });
   };
 
   if (!enabled || !open || typeof document === 'undefined') return null;
@@ -96,13 +97,15 @@ export default function V11SessionExitGuard() {
       >
         <span className="v11ExitConfirmEyebrow">Active voyage</span>
         <h2 id="v11-exit-title">End this voyage?</h2>
-        <p id="v11-exit-description">Your timer, pure signal and active atmosphere will stop.</p>
+        <p id="v11-exit-description">
+          Your timer, pure signal and active atmosphere will stop. You can review, save or copy the voyage next.
+        </p>
         <div className="v11ExitConfirmActions">
           <button ref={continueButtonRef} type="button" className="primary" onClick={() => setOpen(false)}>
             Continue voyage
           </button>
-          <button type="button" className="secondary" onClick={confirmExit}>
-            End and return home
+          <button type="button" className="secondary" onClick={confirmEnd}>
+            End voyage
           </button>
         </div>
       </section>
