@@ -1,0 +1,705 @@
+/* V10.7 — Frequency Chamber: Explore the signal behind every state. */
+
+body.ev-product-route #library.evFrequencyChamber {
+  --chamber-active-rgb: 96, 166, 255;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding-top: clamp(92px, 10vw, 150px) !important;
+  padding-bottom: clamp(100px, 11vw, 160px) !important;
+}
+
+body.ev-product-route #library.evFrequencyChamber[data-hover-state='alpha'],
+body.ev-product-route #library.evFrequencyChamber[data-signal-state='alpha'],
+body.ev-product-route #library.evFrequencyChamber[data-enter-state='alpha'] { --chamber-active-rgb: var(--ev-alpha-rgb); }
+body.ev-product-route #library.evFrequencyChamber[data-hover-state='gamma'],
+body.ev-product-route #library.evFrequencyChamber[data-signal-state='gamma'],
+body.ev-product-route #library.evFrequencyChamber[data-enter-state='gamma'] { --chamber-active-rgb: var(--ev-gamma-rgb); }
+body.ev-product-route #library.evFrequencyChamber[data-hover-state='theta'],
+body.ev-product-route #library.evFrequencyChamber[data-signal-state='theta'],
+body.ev-product-route #library.evFrequencyChamber[data-enter-state='theta'] { --chamber-active-rgb: var(--ev-theta-rgb); }
+body.ev-product-route #library.evFrequencyChamber[data-hover-state='delta'],
+body.ev-product-route #library.evFrequencyChamber[data-signal-state='delta'],
+body.ev-product-route #library.evFrequencyChamber[data-enter-state='delta'] { --chamber-active-rgb: var(--ev-delta-rgb); }
+body.ev-product-route #library.evFrequencyChamber[data-hover-state='abundance'],
+body.ev-product-route #library.evFrequencyChamber[data-signal-state='abundance'],
+body.ev-product-route #library.evFrequencyChamber[data-enter-state='abundance'] { --chamber-active-rgb: var(--ev-abundance-rgb); }
+
+body.ev-product-route #library.evFrequencyChamber::before {
+  content: '' !important;
+  position: absolute !important;
+  z-index: 0 !important;
+  inset: 0 50% !important;
+  width: 100vw !important;
+  transform: translateX(-50%) !important;
+  pointer-events: none !important;
+  background:
+    radial-gradient(circle at 14% 31%, rgba(var(--ev-alpha-rgb), .16), transparent 30%),
+    radial-gradient(circle at 86% 29%, rgba(var(--ev-gamma-rgb), .14), transparent 30%),
+    radial-gradient(circle at 83% 74%, rgba(var(--ev-theta-rgb), .14), transparent 34%),
+    radial-gradient(circle at 17% 75%, rgba(var(--ev-delta-rgb), .12), transparent 32%),
+    radial-gradient(circle at 50% 91%, rgba(var(--ev-abundance-rgb), .13), transparent 29%),
+    radial-gradient(ellipse 75% 58% at 50% 55%, rgba(var(--chamber-active-rgb), .14), transparent 72%),
+    linear-gradient(180deg, #020814 0%, #06101f 45%, #020812 100%) !important;
+  filter: saturate(1.08) !important;
+  opacity: 1 !important;
+  mask-image: none !important;
+  -webkit-mask-image: none !important;
+  transition: background 900ms cubic-bezier(.2,.72,.2,1), filter 900ms ease !important;
+}
+
+body.ev-product-route #library.evFrequencyChamber::after {
+  content: '' !important;
+  position: absolute !important;
+  z-index: 0 !important;
+  inset: 8% 50% 6% !important;
+  width: 100vw !important;
+  height: auto !important;
+  transform: translateX(-50%) !important;
+  pointer-events: none !important;
+  background:
+    linear-gradient(110deg, transparent 8%, rgba(var(--ev-alpha-rgb), .055) 22%, transparent 38%),
+    linear-gradient(250deg, transparent 10%, rgba(var(--ev-gamma-rgb), .05) 25%, transparent 43%),
+    radial-gradient(ellipse 52% 38% at 50% 57%, rgba(var(--chamber-active-rgb), .15), transparent 78%) !important;
+  filter: blur(54px) !important;
+  opacity: .95 !important;
+}
+
+body.ev-product-route #library.evFrequencyChamber .sectionIntro {
+  position: relative;
+  z-index: 3;
+  display: block !important;
+  max-width: 1080px;
+  margin: 0 auto clamp(24px, 3vw, 44px) !important;
+  text-align: center;
+}
+
+body.ev-product-route #library.evFrequencyChamber .sectionIntro .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 18px !important;
+  color: #78ddff !important;
+  font-size: clamp(.78rem, 1vw, .95rem) !important;
+  letter-spacing: .28em !important;
+  text-shadow: 0 0 24px rgba(91, 209, 255, .28);
+}
+
+body.ev-product-route #library.evFrequencyChamber .sectionIntro .eyebrow::before,
+body.ev-product-route #library.evFrequencyChamber .sectionIntro .eyebrow::after {
+  content: '';
+  width: 34px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #78ddff);
+  box-shadow: 0 0 14px rgba(91, 209, 255, .32);
+}
+body.ev-product-route #library.evFrequencyChamber .sectionIntro .eyebrow::after { transform: rotate(180deg); }
+
+body.ev-product-route #library.evFrequencyChamber .sectionIntro h2 {
+  max-width: 920px !important;
+  margin: 0 auto !important;
+  color: transparent !important;
+  background: linear-gradient(112deg, #ffffff 8%, #dff6ff 39%, #b8c7ff 68%, #ffffff 96%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  font-size: clamp(3.4rem, 7.2vw, 7.4rem) !important;
+  line-height: .91 !important;
+  letter-spacing: -.072em !important;
+  text-wrap: balance;
+  filter: drop-shadow(0 14px 38px rgba(38, 93, 165, .17));
+}
+
+body.ev-product-route #library.evFrequencyChamber .evFrequencyLegacyCopy { display: none !important; }
+
+body.ev-product-route #library.evFrequencyChamber .signalExperience,
+body.ev-product-route #library.evFrequencyChamber .signalExperience.glassCard {
+  position: relative !important;
+  z-index: 2 !important;
+  max-width: 1440px;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body.ev-product-route #library.evFrequencyChamber .signalExperience::before {
+  content: '' !important;
+  position: absolute !important;
+  z-index: 0 !important;
+  inset: -12% -7% -10% !important;
+  border-radius: 50% !important;
+  background:
+    radial-gradient(ellipse 60% 48% at 50% 54%, rgba(var(--chamber-active-rgb), .16), transparent 76%),
+    conic-gradient(from 25deg, rgba(var(--ev-alpha-rgb), .06), rgba(var(--ev-gamma-rgb), .055), rgba(var(--ev-theta-rgb), .055), rgba(var(--ev-abundance-rgb), .055), rgba(var(--ev-delta-rgb), .05), rgba(var(--ev-alpha-rgb), .06)) !important;
+  filter: blur(70px) !important;
+  opacity: .94 !important;
+  pointer-events: none !important;
+  animation: evChamberColorBreath 10s ease-in-out infinite !important;
+}
+
+body.ev-product-route #library.evFrequencyChamber .signalExperienceTop {
+  position: relative !important;
+  z-index: 6 !important;
+  display: flex !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  margin: 0 0 clamp(24px, 3vw, 42px) !important;
+}
+
+body.ev-product-route #library.evFrequencyChamber .compactHint {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 16px !important;
+  min-height: 64px !important;
+  margin: 0 !important;
+  padding: 0 28px !important;
+  overflow: hidden;
+  border: 1px solid rgba(130, 207, 255, .34) !important;
+  border-radius: 999px !important;
+  color: #ecf8ff !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.06), transparent 46%),
+    linear-gradient(110deg, rgba(var(--ev-alpha-rgb), .14), rgba(var(--ev-theta-rgb), .13), rgba(var(--ev-gamma-rgb), .12)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.1),
+    0 20px 50px rgba(0, 0, 0, .23),
+    0 0 36px rgba(var(--chamber-active-rgb), .12) !important;
+  font-size: clamp(1rem, 1.55vw, 1.35rem) !important;
+  font-weight: 820 !important;
+  letter-spacing: -.015em !important;
+  text-transform: none !important;
+  transition: border-color .5s ease, box-shadow .5s ease, transform .25s ease !important;
+}
+
+body.ev-product-route #library.evFrequencyChamber .compactHint::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255,255,255,.075), transparent 36%);
+}
+
+body.ev-product-route #library.evFrequencyChamber .compactHint .hintArrow {
+  color: rgb(var(--chamber-active-rgb)) !important;
+  font-size: 1.35em !important;
+  text-shadow: 0 0 20px rgba(var(--chamber-active-rgb), .45) !important;
+  animation: evChamberArrow 2.2s ease-in-out infinite;
+}
+
+body.ev-product-route #library.evFrequencyChamber .signalStage {
+  --stage-active-rgb: var(--chamber-active-rgb);
+  position: relative !important;
+  z-index: 2 !important;
+  min-height: clamp(690px, 59vw, 880px) !important;
+  overflow: visible !important;
+  isolation: isolate !important;
+  border: 1px solid rgba(113, 184, 242, .12) !important;
+  border-radius: clamp(36px, 5vw, 72px) !important;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(var(--stage-active-rgb), .2) 0%, rgba(var(--stage-active-rgb), .07) 25%, transparent 49%),
+    radial-gradient(circle at 15% 26%, rgba(var(--ev-alpha-rgb), .09), transparent 26%),
+    radial-gradient(circle at 85% 26%, rgba(var(--ev-gamma-rgb), .08), transparent 26%),
+    radial-gradient(circle at 84% 76%, rgba(var(--ev-theta-rgb), .075), transparent 28%),
+    radial-gradient(circle at 16% 76%, rgba(var(--ev-delta-rgb), .07), transparent 28%),
+    radial-gradient(circle at 50% 92%, rgba(var(--ev-abundance-rgb), .075), transparent 24%),
+    linear-gradient(160deg, rgba(6, 18, 36, .72), rgba(1, 7, 17, .56)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.025),
+    inset 0 0 110px rgba(var(--stage-active-rgb), .065),
+    0 40px 100px rgba(0,0,0,.32) !important;
+  backdrop-filter: blur(5px);
+  transition: background 850ms cubic-bezier(.2,.72,.2,1), border-color 850ms ease, box-shadow 850ms ease !important;
+}
+
+body.ev-product-route #library.evFrequencyChamber .signalStage::before {
+  content: '' !important;
+  position: absolute !important;
+  z-index: 0 !important;
+  inset: 4% 8% !important;
+  border-radius: 50% !important;
+  background:
+    repeating-radial-gradient(circle at center, rgba(var(--stage-active-rgb), .115) 0 1px, transparent 1px 72px),
+    conic-gradient(from 0deg, transparent, rgba(var(--stage-active-rgb), .06), transparent 18%, transparent 82%, rgba(var(--stage-active-rgb), .06), transparent) !important;
+  mask-image: radial-gradient(circle, #000 0 63%, transparent 86%);
+  -webkit-mask-image: radial-gradient(circle, #000 0 63%, transparent 86%);
+  opacity: .78 !important;
+  animation: evChamberOrbit 34s linear infinite !important;
+}
+
+body.ev-product-route #library.evFrequencyChamber .signalStage::after {
+  content: '' !important;
+  position: absolute !important;
+  z-index: 0 !important;
+  inset: 0 !important;
+  border-radius: inherit !important;
+  background:
+    linear-gradient(90deg, transparent 49.92%, rgba(var(--stage-active-rgb), .08) 50%, transparent 50.08%),
+    linear-gradient(0deg, transparent 49.92%, rgba(var(--stage-active-rgb), .055) 50%, transparent 50.08%) !important;
+  opacity: .6 !important;
+  pointer-events: none !important;
+}
+
+body.ev-product-route #library.evFrequencyChamber .evChamberVisualLayer,
+body.ev-product-route #library.evFrequencyChamber .evChamberAuras,
+body.ev-product-route #library.evFrequencyChamber .evChamberEnergyLinks,
+body.ev-product-route #library.evFrequencyChamber .evChamberParticles {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+body.ev-product-route #library.evFrequencyChamber .evChamberAura {
+  position: absolute;
+  width: clamp(220px, 32vw, 480px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  filter: blur(65px);
+  opacity: .19;
+  mix-blend-mode: screen;
+  animation: evChamberAuraBreath 8s ease-in-out infinite;
+  transition: opacity .7s ease, transform .7s ease;
+}
+body.ev-product-route #library.evFrequencyChamber .evChamberAura.alpha { left: -5%; top: 6%; background: rgb(var(--ev-alpha-rgb)); }
+body.ev-product-route #library.evFrequencyChamber .evChamberAura.gamma { right: -5%; top: 5%; background: rgb(var(--ev-gamma-rgb)); animation-delay: -2s; }
+body.ev-product-route #library.evFrequencyChamber .evChamberAura.theta { right: 0; bottom: 2%; background: rgb(var(--ev-theta-rgb)); animation-delay: -4s; }
+body.ev-product-route #library.evFrequencyChamber .evChamberAura.delta { left: 0; bottom: 2%; background: rgb(var(--ev-delta-rgb)); animation-delay: -6s; }
+body.ev-product-route #library.evFrequencyChamber .evChamberAura.abundance { left: 36%; bottom: -21%; background: rgb(var(--ev-abundance-rgb)); animation-delay: -3s; }
+
+body.ev-product-route #library.evFrequencyChamber[data-hover-state] .evChamberAura { opacity: .075; }
+body.ev-product-route #library.evFrequencyChamber[data-hover-state='alpha'] .evChamberAura.alpha,
+body.ev-product-route #library.evFrequencyChamber[data-hover-state='gamma'] .evChamberAura.gamma,
+body.ev-product-route #library.evFrequencyChamber[data-hover-state='theta'] .evChamberAura.theta,
+body.ev-product-route #library.evFrequencyChamber[data-hover-state='delta'] .evChamberAura.delta,
+body.ev-product-route #library.evFrequencyChamber[data-hover-state='abundance'] .evChamberAura.abundance {
+  opacity: .36;
+  transform: scale(1.16);
+}
+
+body.ev-product-route #library.evFrequencyChamber .evChamberEnergyLink {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 31%;
+  height: 2px;
+  transform-origin: left center;
+  opacity: 0;
+  background: linear-gradient(90deg, rgba(var(--stage-active-rgb), .9), transparent 92%);
+  box-shadow: 0 0 18px rgba(var(--stage-active-rgb), .68);
+  transition: opacity .32s ease;
+}
+body.ev-product-route #library.evFrequencyChamber .evChamberEnergyLink.alpha { transform: rotate(225deg); }
+body.ev-product-route #library.evFrequencyChamber .evChamberEnergyLink.gamma { transform: rotate(-45deg); }
+body.ev-product-route #library.evFrequencyChamber .evChamberEnergyLink.theta { transform: rotate(42deg); }
+body.ev-product-route #library.evFrequencyChamber .evChamberEnergyLink.delta { transform: rotate(138deg); }
+body.ev-product-route #library.evFrequencyChamber .evChamberEnergyLink.abundance { width: 25%; transform: rotate(90deg); }
+body.ev-product-route #library.evFrequencyChamber[data-hover-state='alpha'] .evChamberEnergyLink.alpha,
+body.ev-product-route #library.evFrequencyChamber[data-hover-state='gamma'] .evChamberEnergyLink.gamma,
+body.ev-product-route #library.evFrequencyChamber[data-hover-state='theta'] .evChamberEnergyLink.theta,
+body.ev-product-route #library.evFrequencyChamber[data-hover-state='delta'] .evChamberEnergyLink.delta,
+body.ev-product-route #library.evFrequencyChamber[data-hover-state='abundance'] .evChamberEnergyLink.abundance { opacity: .62; }
+
+body.ev-product-route #library.evFrequencyChamber .evChamberParticles span {
+  --particle-angle: calc(var(--ev-particle-index) * 20deg);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(211, 241, 255, .78);
+  box-shadow: 0 0 12px rgba(var(--stage-active-rgb), .75);
+  transform: rotate(var(--particle-angle)) translateX(calc(170px + var(--ev-particle-index) * 7px));
+  animation: evChamberParticle 7s calc(var(--ev-particle-index) * -360ms) ease-in-out infinite;
+}
+
+body.ev-product-route #library.evFrequencyChamber .signalFigure {
+  z-index: 2 !important;
+  transition: filter .75s ease, transform .75s cubic-bezier(.2,.8,.2,1) !important;
+  filter:
+    drop-shadow(0 0 20px rgba(var(--stage-active-rgb), .25))
+    drop-shadow(0 0 48px rgba(var(--stage-active-rgb), .13)) !important;
+}
+body.ev-product-route #library.evFrequencyChamber[data-hover-state] .signalFigure {
+  transform: translate(-50%, -50%) scale(1.025) !important;
+  filter:
+    drop-shadow(0 0 28px rgba(var(--stage-active-rgb), .4))
+    drop-shadow(0 0 70px rgba(var(--stage-active-rgb), .22)) !important;
+}
+
+body.ev-product-route #library.evFrequencyChamber .signalNode {
+  --node-rgb: 106, 222, 255;
+  z-index: 5 !important;
+  width: clamp(132px, 13vw, 176px) !important;
+  min-height: clamp(112px, 10vw, 138px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  padding: 18px 20px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(var(--node-rgb), .72) !important;
+  border-radius: 24px !important;
+  color: #f7fbff !important;
+  background:
+    radial-gradient(circle at 82% 6%, rgba(var(--node-rgb), .31), transparent 36%),
+    linear-gradient(155deg, rgba(var(--node-rgb), .17), rgba(5, 15, 31, .94) 60%, rgba(2, 8, 18, .98)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.15),
+    inset 0 -22px 44px rgba(0,0,0,.18),
+    0 18px 40px rgba(0,0,0,.27),
+    0 0 30px rgba(var(--node-rgb), .13) !important;
+  text-align: left !important;
+  transform-origin: center;
+  transition: transform .28s cubic-bezier(.2,.82,.2,1), opacity .35s ease, filter .35s ease, border-color .35s ease, box-shadow .35s ease !important;
+}
+body.ev-product-route #library.evFrequencyChamber .signalNode.alpha { --node-rgb: var(--ev-alpha-rgb); }
+body.ev-product-route #library.evFrequencyChamber .signalNode.gamma { --node-rgb: var(--ev-gamma-rgb); }
+body.ev-product-route #library.evFrequencyChamber .signalNode.theta { --node-rgb: var(--ev-theta-rgb); }
+body.ev-product-route #library.evFrequencyChamber .signalNode.delta { --node-rgb: var(--ev-delta-rgb); }
+body.ev-product-route #library.evFrequencyChamber .signalNode.abundance { --node-rgb: var(--ev-abundance-rgb); }
+
+body.ev-product-route #library.evFrequencyChamber .signalNode::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(120deg, transparent 12%, rgba(255,255,255,.12) 38%, transparent 62%);
+  transform: translateX(-115%);
+  transition: transform .55s ease;
+}
+body.ev-product-route #library.evFrequencyChamber .signalNode:hover::before,
+body.ev-product-route #library.evFrequencyChamber .signalNode:focus-visible::before { transform: translateX(115%); }
+
+body.ev-product-route #library.evFrequencyChamber .signalNode > span {
+  color: rgb(var(--node-rgb)) !important;
+  font-size: .74rem !important;
+  font-weight: 860 !important;
+  letter-spacing: .16em !important;
+  text-transform: uppercase !important;
+}
+body.ev-product-route #library.evFrequencyChamber .signalNode > strong {
+  color: #fff !important;
+  font-size: clamp(1.7rem, 2.35vw, 2.35rem) !important;
+  line-height: 1 !important;
+  letter-spacing: -.055em !important;
+}
+body.ev-product-route #library.evFrequencyChamber .evSignalStateName {
+  display: block;
+  margin-top: 8px;
+  color: rgba(225, 237, 249, .73);
+  font-size: clamp(.72rem, .85vw, .86rem);
+  font-weight: 720;
+  letter-spacing: -.012em;
+  line-height: 1.15;
+}
+
+body.ev-product-route #library.evFrequencyChamber .signalNode:hover,
+body.ev-product-route #library.evFrequencyChamber .signalNode:focus-visible,
+body.ev-product-route #library.evFrequencyChamber .signalNode.active {
+  transform: translateY(-7px) scale(1.045) !important;
+  border-color: rgba(var(--node-rgb), 1) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.24),
+    0 22px 48px rgba(0,0,0,.32),
+    0 0 42px rgba(var(--node-rgb), .32) !important;
+  outline: none !important;
+}
+body.ev-product-route #library.evFrequencyChamber .signalNode:focus-visible {
+  outline: 3px solid rgba(var(--node-rgb), .88) !important;
+  outline-offset: 6px !important;
+}
+
+body.ev-product-route #library.evFrequencyChamber[data-hover-state] .signalNode { opacity: .42; filter: saturate(.6) brightness(.74); }
+body.ev-product-route #library.evFrequencyChamber[data-hover-state='alpha'] .signalNode.alpha,
+body.ev-product-route #library.evFrequencyChamber[data-hover-state='gamma'] .signalNode.gamma,
+body.ev-product-route #library.evFrequencyChamber[data-hover-state='theta'] .signalNode.theta,
+body.ev-product-route #library.evFrequencyChamber[data-hover-state='delta'] .signalNode.delta,
+body.ev-product-route #library.evFrequencyChamber[data-hover-state='abundance'] .signalNode.abundance {
+  opacity: 1;
+  filter: none;
+}
+
+body.ev-product-route #library.evFrequencyChamber .evChamberTrustRow {
+  position: relative;
+  z-index: 3;
+  max-width: 1080px;
+  margin: clamp(26px, 4vw, 54px) auto 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+body.ev-product-route #library.evFrequencyChamber .evChamberTrustRow span {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 18px;
+  border: 1px solid rgba(129, 188, 232, .16);
+  border-radius: 999px;
+  color: #aebed0;
+  background: rgba(4, 13, 28, .62);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+  backdrop-filter: blur(12px);
+  font-size: .88rem;
+  font-weight: 700;
+}
+body.ev-product-route #library.evFrequencyChamber .evChamberTrustRow i {
+  color: #75d9ff;
+  font-size: .7rem;
+  font-style: normal;
+  letter-spacing: .1em;
+}
+
+/* Enhanced frequency detail popup */
+body.ev-product-route .evFrequencyPowerBackdrop {
+  background:
+    radial-gradient(circle at 50% 12%, rgba(var(--power-rgb, 111, 207, 255), .15), transparent 34%),
+    rgba(0, 5, 15, .77) !important;
+  backdrop-filter: blur(24px) saturate(1.08) !important;
+}
+body.ev-product-route .evFrequencyPowerCard {
+  --power-rgb: var(--ev-alpha-rgb);
+  width: min(980px, calc(100vw - 36px)) !important;
+  max-height: min(92dvh, 900px) !important;
+  padding: clamp(28px, 4vw, 52px) !important;
+  overflow-y: auto !important;
+  border: 1px solid rgba(var(--power-rgb), .42) !important;
+  border-radius: 34px !important;
+  background:
+    radial-gradient(circle at 82% 4%, rgba(var(--power-rgb), .22), transparent 31%),
+    radial-gradient(circle at 12% 22%, rgba(var(--power-rgb), .08), transparent 34%),
+    linear-gradient(152deg, #0b1930 0%, #050d1c 48%, #020815 100%) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 44px 120px rgba(0,0,0,.55),
+    0 0 72px rgba(var(--power-rgb), .12) !important;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--power-rgb), .65) rgba(5, 14, 28, .72);
+}
+body.ev-product-route .evFrequencyPowerCard.gamma { --power-rgb: var(--ev-gamma-rgb); }
+body.ev-product-route .evFrequencyPowerCard.theta { --power-rgb: var(--ev-theta-rgb); }
+body.ev-product-route .evFrequencyPowerCard.delta { --power-rgb: var(--ev-delta-rgb); }
+body.ev-product-route .evFrequencyPowerCard.abundance { --power-rgb: var(--ev-abundance-rgb); }
+body.ev-product-route .evFrequencyPowerCard::-webkit-scrollbar { width: 8px; }
+body.ev-product-route .evFrequencyPowerCard::-webkit-scrollbar-track { background: rgba(4, 12, 25, .72); border-radius: 999px; }
+body.ev-product-route .evFrequencyPowerCard::-webkit-scrollbar-thumb { background: rgba(var(--power-rgb), .6); border-radius: 999px; border: 2px solid rgba(4, 12, 25, .72); }
+
+body.ev-product-route .evFrequencyPowerTop > span,
+body.ev-product-route .evFrequencyPowerHero > p { color: rgb(var(--power-rgb)) !important; text-shadow: 0 0 20px rgba(var(--power-rgb), .25); }
+body.ev-product-route .evFrequencyPowerTop button {
+  border-color: rgba(var(--power-rgb), .3) !important;
+  background: rgba(2, 9, 21, .82) !important;
+}
+body.ev-product-route .evFrequencyPowerHero h2 {
+  max-width: 12ch;
+  color: #f9fbff !important;
+  font-size: clamp(4rem, 7vw, 7rem) !important;
+  line-height: .88 !important;
+  letter-spacing: -.075em !important;
+}
+body.ev-product-route .evFrequencyPowerHero > strong {
+  max-width: 760px;
+  display: block;
+  color: #b8c8da !important;
+  font-size: clamp(1rem, 1.45vw, 1.22rem) !important;
+  line-height: 1.6 !important;
+}
+
+body.ev-product-route .evFrequencyInfoStrip {
+  display: grid;
+  grid-template-columns: .78fr 1.22fr;
+  gap: 12px;
+  margin: 28px 0 14px;
+}
+body.ev-product-route .evFrequencyInfoStrip article {
+  min-height: 96px;
+  display: grid;
+  align-content: center;
+  gap: 9px;
+  padding: 18px 20px;
+  border: 1px solid rgba(var(--power-rgb), .2);
+  border-radius: 20px;
+  background: linear-gradient(145deg, rgba(var(--power-rgb), .09), rgba(2, 9, 20, .58));
+}
+body.ev-product-route .evFrequencyInfoStrip span {
+  color: rgb(var(--power-rgb));
+  font-size: .68rem;
+  font-weight: 850;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+body.ev-product-route .evFrequencyInfoStrip strong { color: #dce8f6; font-size: .94rem; line-height: 1.4; }
+
+body.ev-product-route .evFrequencyPowerGrid { gap: 14px !important; margin-top: 14px !important; }
+body.ev-product-route .evFrequencyPowerGrid > section {
+  border-color: rgba(var(--power-rgb), .18) !important;
+  background: rgba(2, 9, 20, .56) !important;
+}
+body.ev-product-route .evFrequencyPowerGrid h3 { color: #f3f7ff !important; }
+body.ev-product-route .evFrequencyPowerGrid li::marker { color: rgb(var(--power-rgb)); }
+body.ev-product-route .evFrequencyUseChips span {
+  border-color: rgba(var(--power-rgb), .27) !important;
+  background: rgba(var(--power-rgb), .07) !important;
+}
+body.ev-product-route .evFrequencyTechnical {
+  display: grid !important;
+  gap: 6px !important;
+  margin-top: 20px !important;
+  color: #8093aa !important;
+}
+
+body.ev-product-route .evFrequencyPowerActions {
+  display: grid;
+  grid-template-columns: minmax(230px, .7fr) minmax(320px, 1.3fr);
+  gap: 12px;
+  margin-top: 26px;
+}
+body.ev-product-route .evFrequencyPreviewAction,
+body.ev-product-route .evFrequencyPowerAction {
+  position: relative;
+  min-height: 58px !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  overflow: hidden;
+  border-radius: 999px !important;
+  font: inherit;
+  font-weight: 850;
+  cursor: pointer;
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease, filter .2s ease;
+}
+body.ev-product-route .evFrequencyPreviewAction {
+  border: 1px solid rgba(var(--power-rgb), .4);
+  color: #e9f5ff;
+  background:
+    linear-gradient(90deg, rgba(var(--power-rgb), .18) 0 var(--ev-preview-progress), transparent var(--ev-preview-progress)),
+    rgba(3, 12, 26, .9);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+}
+body.ev-product-route .evFrequencyPreviewAction > span { color: rgb(var(--power-rgb)); font-size: .76rem; }
+body.ev-product-route .evFrequencyPreviewAction.playing { border-color: rgba(var(--power-rgb), .85); box-shadow: 0 0 28px rgba(var(--power-rgb), .18); }
+body.ev-product-route .evFrequencyPowerAction {
+  width: 100% !important;
+  margin: 0 !important;
+  border: 1px solid rgba(255,255,255,.44) !important;
+  color: #06101c !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.24), transparent 42%),
+    linear-gradient(120deg, color-mix(in srgb, rgb(var(--power-rgb)) 76%, white), rgb(var(--power-rgb))) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.4),
+    0 16px 36px rgba(var(--power-rgb), .22),
+    0 0 30px rgba(var(--power-rgb), .14) !important;
+}
+body.ev-product-route .evFrequencyPowerCard.theta .evFrequencyPowerAction { color: #fff !important; }
+body.ev-product-route .evFrequencyPreviewAction:hover,
+body.ev-product-route .evFrequencyPowerAction:hover { transform: translateY(-2px); filter: brightness(1.04); }
+body.ev-product-route .evFrequencyPreviewAction:focus-visible,
+body.ev-product-route .evFrequencyPowerAction:focus-visible { outline: 3px solid rgba(var(--power-rgb), .85); outline-offset: 4px; }
+
+@keyframes evChamberColorBreath { 0%,100% { transform: scale(.97) rotate(-2deg); opacity: .78; } 50% { transform: scale(1.04) rotate(2deg); opacity: 1; } }
+@keyframes evChamberArrow { 0%,100% { transform: translateX(0); } 50% { transform: translateX(7px); } }
+@keyframes evChamberOrbit { to { transform: rotate(360deg); } }
+@keyframes evChamberAuraBreath { 0%,100% { transform: scale(.92); } 50% { transform: scale(1.08); } }
+@keyframes evChamberParticle { 0%,100% { opacity: .2; } 50% { opacity: .95; } }
+
+@media (max-width: 900px) {
+  body.ev-product-route #library.evFrequencyChamber .sectionIntro h2 { font-size: clamp(3.25rem, 10vw, 5.8rem) !important; }
+  body.ev-product-route #library.evFrequencyChamber .signalStage { min-height: 720px !important; }
+  body.ev-product-route #library.evFrequencyChamber .evChamberTrustRow { grid-template-columns: 1fr; max-width: 520px; }
+  body.ev-product-route .evFrequencyPowerActions { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 760px) {
+  body.ev-product-route #library.evFrequencyChamber {
+    padding-top: 76px !important;
+    padding-bottom: 100px !important;
+    overflow: hidden;
+  }
+  body.ev-product-route #library.evFrequencyChamber .sectionIntro {
+    width: calc(100% - 28px);
+    margin-bottom: 24px !important;
+    text-align: left;
+  }
+  body.ev-product-route #library.evFrequencyChamber .sectionIntro .eyebrow { margin-left: 0 !important; }
+  body.ev-product-route #library.evFrequencyChamber .sectionIntro .eyebrow::before { display: none; }
+  body.ev-product-route #library.evFrequencyChamber .sectionIntro h2 {
+    margin-left: 0 !important;
+    font-size: clamp(3rem, 14.5vw, 5rem) !important;
+    line-height: .92 !important;
+    text-align: left;
+  }
+  body.ev-product-route #library.evFrequencyChamber .signalExperienceTop { margin-bottom: 18px !important; }
+  body.ev-product-route #library.evFrequencyChamber .compactHint {
+    width: calc(100% - 28px) !important;
+    min-height: 58px !important;
+    justify-content: space-between !important;
+    padding: 0 20px !important;
+    font-size: .95rem !important;
+  }
+  body.ev-product-route #library.evFrequencyChamber .signalStage {
+    width: calc(100% - 20px) !important;
+    min-height: 760px !important;
+    margin-inline: auto !important;
+    overflow: hidden !important;
+    border-radius: 34px !important;
+  }
+  body.ev-product-route #library.evFrequencyChamber .signalNode {
+    width: 126px !important;
+    min-height: 102px !important;
+    padding: 14px 15px !important;
+    border-radius: 20px !important;
+  }
+  body.ev-product-route #library.evFrequencyChamber .signalNode > strong { font-size: 1.65rem !important; }
+  body.ev-product-route #library.evFrequencyChamber .evSignalStateName { font-size: .69rem; }
+  body.ev-product-route #library.evFrequencyChamber .evChamberTrustRow { width: calc(100% - 28px); }
+  body.ev-product-route #library.evFrequencyChamber .evChamberTrustRow span { justify-content: flex-start; border-radius: 18px; }
+
+  body.ev-product-route .evFrequencyPowerBackdrop { align-items: flex-end !important; padding: 0 !important; }
+  body.ev-product-route .evFrequencyPowerCard {
+    width: 100% !important;
+    max-height: 91dvh !important;
+    padding: 28px 20px calc(30px + env(safe-area-inset-bottom)) !important;
+    border-right: 0 !important;
+    border-bottom: 0 !important;
+    border-left: 0 !important;
+    border-radius: 30px 30px 0 0 !important;
+  }
+  body.ev-product-route .evFrequencyPowerTop {
+    position: sticky;
+    z-index: 8;
+    top: -28px;
+    margin: -28px -20px 18px;
+    padding: 22px 20px 12px;
+    background: linear-gradient(180deg, rgba(6,16,32,.99) 72%, transparent);
+  }
+  body.ev-product-route .evFrequencyPowerHero h2 { font-size: clamp(3.7rem, 17vw, 5.3rem) !important; }
+  body.ev-product-route .evFrequencyInfoStrip { grid-template-columns: 1fr; }
+  body.ev-product-route .evFrequencyPowerGrid { grid-template-columns: 1fr !important; }
+  body.ev-product-route .evFrequencyPowerActions { position: relative; grid-template-columns: 1fr; }
+  body.ev-product-route .evFrequencyPreviewAction,
+  body.ev-product-route .evFrequencyPowerAction { min-height: 58px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.ev-product-route #library.evFrequencyChamber *,
+  body.ev-product-route #library.evFrequencyChamber *::before,
+  body.ev-product-route #library.evFrequencyChamber *::after,
+  body.ev-product-route .evFrequencyPowerCard,
+  body.ev-product-route .evFrequencyPowerBackdrop {
+    animation: none !important;
+    transition-duration: .01ms !important;
+  }
+}
