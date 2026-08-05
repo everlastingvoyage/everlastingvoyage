@@ -3,7 +3,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { usePathname } from 'next/navigation';
-import { ambientCatalog, type AmbientId } from './ambient-catalog';
+import { ambientCatalog } from './ambient-catalog';
+import {
+  ambientShortDescriptions,
+  ambientSymbols,
+  playableAmbientIds,
+  type PlayableAmbientId
+} from './ambient-playable';
 import {
   dispatchAmbientCommand,
   readAmbientMix,
@@ -11,23 +17,11 @@ import {
   subscribeToAmbientRuntime,
   type AmbientRuntimeSnapshot
 } from './ambient-mixer-store';
+import PrecisionVolumeControl from './PrecisionVolumeControl';
+import { formatGainDb, formatGainPercent } from './precision-audio';
 import type { AmbientLayerConfig } from './voyage-model';
 
-const playableIds = ['white-noise', 'brown-noise', 'pink-noise'] as const satisfies readonly AmbientId[];
-type PlayableId = (typeof playableIds)[number];
 type SessionStatus = 'ready' | 'running' | 'paused' | 'completed' | 'closed';
-
-const layerSymbols: Record<PlayableId, string> = {
-  'white-noise': '◌',
-  'brown-noise': '≈',
-  'pink-noise': '∿'
-};
-
-const shortDescriptions: Record<PlayableId, string> = {
-  'white-noise': 'Bright, even masking.',
-  'brown-noise': 'Deep, soft masking.',
-  'pink-noise': 'Balanced, natural texture.'
-};
 
 function getSessionStatus(): SessionStatus {
   const session = document.querySelector<HTMLElement>('.v10SessionOverlay');
@@ -43,14 +37,14 @@ export default function V11SessionAtmosphere() {
   const enabled = pathname === '/voyage';
   const [mount, setMount] = useState<HTMLElement | null>(null);
   const [layers, setLayers] = useState<AmbientLayerConfig[]>(() => readAmbientMix().layers);
-  const [selectedId, setSelectedId] = useState<PlayableId | null>(null);
+  const [selectedId, setSelectedId] = useState<PlayableAmbientId | null>(null);
   const [status, setStatus] = useState<SessionStatus>('closed');
   const [runtime, setRuntime] = useState<AmbientRuntimeSnapshot>({ soloId: null, audible: true, updatedAt: 0 });
   const holdTimerRef = useRef<number | undefined>(undefined);
-  const holdIdRef = useRef<PlayableId | null>(null);
-  const holdTriggeredRef = useRef<PlayableId | null>(null);
+  const holdIdRef = useRef<PlayableAmbientId | null>(null);
+  const holdTriggeredRef = useRef<PlayableAmbientId | null>(null);
   const pointerOriginRef = useRef({ x: 0, y: 0 });
-  const previousVolumesRef = useRef<Partial<Record<PlayableId, number>>>({});
+  const previousVolumesRef = useRef<Partial<Record<PlayableAmbientId, number>>>({});
 
   useEffect(() => {
     if (!enabled) return;
@@ -123,7 +117,7 @@ export default function V11SessionAtmosphere() {
     holdIdRef.current = null;
   };
 
-  const beginHold = (event: React.PointerEvent<HTMLButtonElement>, id: PlayableId) => {
+  const beginHold = (event: React.PointerEvent<HTMLButtonElement>, id: PlayableAmbientId) => {
     if (event.pointerType === 'mouse' && event.button !== 0) return;
     cancelHold();
     holdIdRef.current = id;
@@ -144,7 +138,7 @@ export default function V11SessionAtmosphere() {
     if (distance > 10) cancelHold();
   };
 
-  const toggleLayer = (id: PlayableId) => {
+  const toggleLayer = (id: PlayableAmbientId) => {
     if (holdTriggeredRef.current === id) {
       holdTriggeredRef.current = null;
       return;
@@ -153,7 +147,7 @@ export default function V11SessionAtmosphere() {
   };
 
   const addedCount = useMemo(
-    () => playableIds.filter((id) => layers.find((layer) => layer.id === id)?.enabled).length,
+    () => playableAmbientIds.filter((id) => layers.find((layer) => layer.id === id)?.enabled).length,
     [layers]
   );
 
@@ -168,7 +162,7 @@ export default function V11SessionAtmosphere() {
   };
 
   const toggleMute = () => {
-    if (!selectedId || !selectedLayer) return;
+    if (!selectedId || !selectedLayer || !selectedLayer.enabled) return;
     if (selectedLayer.volume > 0) {
       previousVolumesRef.current[selectedId] = selectedLayer.volume;
       setSelectedVolume(0);
@@ -188,19 +182,18 @@ export default function V11SessionAtmosphere() {
         </div>
         <div className="evSessionAtmosphereCount">
           <strong>{addedCount}</strong>
-          <span>{addedCount === 1 ? 'added' : 'added'}</span>
+          <span>added</span>
         </div>
       </header>
 
       <div className="evSessionAtmosphereGrid">
-        {playableIds.map((id) => {
+        {playableAmbientIds.map((id) => {
           const definition = ambientCatalog[id];
           const layer = layers.find((item) => item.id === id) ?? {
             id,
             enabled: false,
             volume: definition.defaultVolume
           };
-          const percentage = Math.round(layer.volume * 100);
           const isSolo = runtime.soloId === id;
 
           return (
@@ -216,21 +209,22 @@ export default function V11SessionAtmosphere() {
                 onPointerLeave={cancelHold}
                 onContextMenu={(event) => event.preventDefault()}
                 aria-pressed={layer.enabled}
-                aria-label={`${layer.enabled ? 'Remove' : 'Add'} ${definition.name}. Hold for level controls.`}
+                aria-label={`${layer.enabled ? 'Remove' : 'Add'} ${definition.name}. Hold for volume controls.`}
               >
-                <span aria-hidden="true">{layerSymbols[id]}</span>
+                <span aria-hidden="true">{ambientSymbols[id]}</span>
                 <span>
                   <strong>{definition.shortName}</strong>
-                  <small>{isSolo ? 'Solo' : layer.enabled ? percentage === 0 ? 'Muted' : `${percentage}%` : shortDescriptions[id]}</small>
+                  <small>{isSolo ? 'Solo' : layer.enabled ? layer.volume === 0 ? 'Muted' : formatGainDb(layer.volume) : ambientShortDescriptions[id]}</small>
                 </span>
               </button>
               <button
                 type="button"
                 className="evSessionAtmosphereLevels"
                 onClick={() => setSelectedId(id)}
-                aria-label={`Open ${definition.name} level controls`}
+                aria-label={`Change ${definition.name} volume`}
               >
-                <span aria-hidden="true">≡</span>
+                <span>Volume</span>
+                <small>{formatGainPercent(layer.volume)}</small>
               </button>
             </article>
           );
@@ -238,7 +232,7 @@ export default function V11SessionAtmosphere() {
       </div>
 
       <footer className="evSessionAtmosphereFooter">
-        <span>{status === 'paused' ? 'Changes are saved and return on Resume.' : 'Tap to blend. Hold a sound or tap levels to shape it.'}</span>
+        <span>{status === 'paused' ? 'Changes are saved and return on Resume.' : 'Tap a sound to blend it. Press Volume or hold the row for precise control.'}</span>
         <button
           type="button"
           onClick={() => dispatchAmbientCommand({ type: 'stop-all' })}
@@ -272,40 +266,45 @@ export default function V11SessionAtmosphere() {
               <button type="button" onClick={() => setSelectedId(null)} aria-label="Close atmosphere controls">×</button>
             </header>
 
-            <p>{shortDescriptions[selectedId]} Changes apply instantly without restarting the timer.</p>
+            <p>{ambientShortDescriptions[selectedId]} Changes apply instantly without restarting the timer.</p>
 
-            <label className="evAtmosphereSheetVolume">
-              <span>Layer volume</span>
-              <strong>{selectedLayer.volume === 0 ? 'Muted' : `${Math.round(selectedLayer.volume * 100)}%`}</strong>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                value={selectedLayer.volume}
-                onChange={(event) => setSelectedVolume(Number(event.target.value))}
-                aria-label={`${ambientCatalog[selectedId].name} volume`}
-              />
-            </label>
+            <PrecisionVolumeControl
+              className="evAtmosphereSheetPrecision"
+              value={selectedLayer.volume}
+              onChange={setSelectedVolume}
+              ariaLabel={`${ambientCatalog[selectedId].name} volume`}
+            />
 
-            <div className="evAtmosphereSheetActions">
-              <button type="button" onClick={toggleMute}>
-                {selectedLayer.volume === 0 ? 'Restore volume' : 'Mute'}
-              </button>
-              <button
-                type="button"
-                className={runtime.soloId === selectedId ? 'active' : ''}
-                onClick={() => dispatchAmbientCommand({ type: 'solo', id: selectedId })}
-              >
-                {runtime.soloId === selectedId ? 'End solo' : 'Solo'}
-              </button>
-              <button
-                type="button"
-                className="primary"
-                onClick={() => dispatchAmbientCommand({ type: 'toggle', id: selectedId })}
-              >
-                {selectedLayer.enabled ? 'Remove layer' : 'Add layer'}
-              </button>
+            <div className={`evAtmosphereSheetActions ${selectedLayer.enabled ? '' : 'available'}`}>
+              {selectedLayer.enabled ? (
+                <>
+                  <button type="button" onClick={toggleMute}>
+                    {selectedLayer.volume === 0 ? 'Restore volume' : 'Mute'}
+                  </button>
+                  <button
+                    type="button"
+                    className={runtime.soloId === selectedId ? 'active' : ''}
+                    onClick={() => dispatchAmbientCommand({ type: 'solo', id: selectedId })}
+                  >
+                    {runtime.soloId === selectedId ? 'End solo' : 'Solo'}
+                  </button>
+                  <button
+                    type="button"
+                    className="primary"
+                    onClick={() => dispatchAmbientCommand({ type: 'toggle', id: selectedId })}
+                  >
+                    Remove layer
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  className="primary"
+                  onClick={() => dispatchAmbientCommand({ type: 'toggle', id: selectedId })}
+                >
+                  Add layer
+                </button>
+              )}
             </div>
           </section>
         </div>,
