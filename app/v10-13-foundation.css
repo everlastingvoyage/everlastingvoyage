@@ -1,0 +1,180 @@
+/* V10.13 — Scalable product foundation and authoritative Chamber performance layer. */
+
+/* The Chamber owns one atmospheric surface. Earlier visual layers remain as
+   fallbacks, while this final layer removes hard edges and expensive effects. */
+#library.evFrequencyChamber {
+  position: relative;
+  isolation: isolate;
+  background: transparent !important;
+  --ev-chamber-base: 4, 17, 35;
+}
+
+#library.evFrequencyChamber::before {
+  top: -4% !important;
+  bottom: -6% !important;
+  width: 100vw !important;
+  opacity: 1 !important;
+  background:
+    radial-gradient(ellipse 68% 50% at 50% 48%, rgba(var(--library-rgb), .13), transparent 70%),
+    radial-gradient(ellipse 46% 34% at 50% 58%, rgba(39, 112, 207, .08), transparent 76%),
+    linear-gradient(
+      180deg,
+      rgba(var(--ev-chamber-base), 0) 0%,
+      rgba(var(--ev-chamber-base), .72) 12%,
+      rgba(3, 13, 29, .94) 48%,
+      rgba(var(--ev-chamber-base), .72) 88%,
+      rgba(var(--ev-chamber-base), 0) 100%
+    ) !important;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 9%, #000 91%, transparent) !important;
+  mask-image: linear-gradient(to bottom, transparent, #000 9%, #000 91%, transparent) !important;
+  filter: none !important;
+  transition: opacity 480ms ease, filter 480ms ease !important;
+}
+
+#library.evFrequencyChamber::after {
+  width: min(100vw, 1320px) !important;
+  height: 70% !important;
+  top: 17% !important;
+  opacity: .58 !important;
+  filter: blur(42px) !important;
+  background: radial-gradient(ellipse 66% 54% at center, rgba(var(--library-rgb), .105), transparent 76%) !important;
+  transition: opacity 480ms ease !important;
+}
+
+#library.evFrequencyChamber .signalExperience,
+#library.evFrequencyChamber .signalExperience.glassCard,
+#library.evFrequencyChamber .signalStage,
+#library.evFrequencyChamber .signalStage.popupOpen {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+#library.evFrequencyChamber .signalStage {
+  isolation: isolate;
+  contain: layout style;
+}
+
+#library.evFrequencyChamber .signalStage::before,
+#library.evFrequencyChamber .signalStage::after {
+  opacity: .42 !important;
+  border-color: rgba(var(--library-rgb), .12) !important;
+  box-shadow: none !important;
+}
+
+#library.evFrequencyChamber .evChamberVisualLayer,
+#library.evFrequencyChamber .evChamberAuras,
+#library.evFrequencyChamber .evChamberEnergyLinks,
+#library.evFrequencyChamber .evChamberParticles {
+  pointer-events: none;
+}
+
+#library.evFrequencyChamber .evChamberVisualLayer {
+  transform: translateZ(0);
+  transition: opacity 420ms ease, transform 420ms ease !important;
+}
+
+#library.evFrequencyChamber .evChamberAura,
+#library.evFrequencyChamber .evChamberEnergyLink,
+#library.evFrequencyChamber .evChamberParticles > span {
+  will-change: auto !important;
+  transition-property: opacity, transform !important;
+}
+
+#library.evFrequencyChamber[data-popup-phase='open']::before,
+#library.evFrequencyChamber[data-signal-state]::before,
+#library.evFrequencyChamber[data-enter-state]::before {
+  filter: saturate(1.04) brightness(1.02) !important;
+}
+
+#library.evFrequencyChamber[data-popup-phase='closing']::before,
+#library.evFrequencyChamber[data-exit-state]::before {
+  filter: saturate(.96) brightness(.98) !important;
+}
+
+#library.evFrequencyChamber .signalNode:focus-visible {
+  outline: 2px solid rgba(var(--library-rgb), .92) !important;
+  outline-offset: 5px;
+}
+
+.evFrequencyPowerCard button:focus-visible {
+  outline: 2px solid rgba(139, 230, 255, .94);
+  outline-offset: 3px;
+}
+
+.evFrequencyPowerCard.abundance button:focus-visible {
+  outline-color: rgba(242, 217, 162, .96);
+}
+
+@supports (content-visibility: auto) {
+  body.ev-product-route #library.evFrequencyChamber {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 940px;
+  }
+}
+
+@media (max-width: 760px) {
+  #library.evFrequencyChamber::before {
+    background:
+      radial-gradient(ellipse 82% 42% at 50% 44%, rgba(var(--library-rgb), .115), transparent 72%),
+      linear-gradient(
+        180deg,
+        rgba(var(--ev-chamber-base), 0) 0%,
+        rgba(var(--ev-chamber-base), .8) 10%,
+        rgba(3, 13, 29, .96) 50%,
+        rgba(var(--ev-chamber-base), .8) 90%,
+        rgba(var(--ev-chamber-base), 0) 100%
+      ) !important;
+  }
+
+  #library.evFrequencyChamber::after {
+    opacity: .42 !important;
+    filter: blur(24px) !important;
+  }
+
+  #library.evFrequencyChamber .signalStage {
+    contain: layout style !important;
+    transform: none !important;
+    backface-visibility: visible !important;
+    -webkit-backface-visibility: visible !important;
+  }
+
+  #library.evFrequencyChamber .signalNode {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    background: linear-gradient(180deg, rgba(5, 19, 35, .94), rgba(2, 10, 21, .98)) !important;
+  }
+
+  #library.evFrequencyChamber .signalExperience::before,
+  #library.evFrequencyChamber .evChamberAura {
+    filter: blur(22px) !important;
+  }
+
+  #library.evFrequencyChamber .evChamberParticles > span:nth-child(n + 7) {
+    display: none !important;
+  }
+
+  #library.evFrequencyChamber .signalTransitionWave {
+    filter: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #library.evFrequencyChamber *,
+  #library.evFrequencyChamber::before,
+  #library.evFrequencyChamber::after,
+  .evFrequencyPowerBackdrop,
+  .evFrequencyPowerCard {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+
+  #library.evFrequencyChamber .signalFigureGraphic,
+  #library.evFrequencyChamber .signalFigureHalo,
+  #library.evFrequencyChamber .sparkle,
+  #library.evFrequencyChamber .evChamberParticles > span {
+    animation: none !important;
+  }
+}
