@@ -10,6 +10,7 @@ import './v10-3-polish.css';
 import './v10-3-mobile-brand.css';
 import './v10-4-desktop-brand.css';
 import './v10-5-builder-cta.css';
+import './v10-6-completion-flow.css';
 import HumanoidSwap from './HumanoidSwap';
 import SignalChamberPolish from './SignalChamberPolish';
 import SignalChamberBlend from './SignalChamberBlend';
@@ -22,6 +23,7 @@ import EntranceGate from './EntranceGate';
 import V10ProductFlow from './V10ProductFlow';
 import FrequencyPowerDetails from './FrequencyPowerDetails';
 import V10SessionUtilities from './V10SessionUtilities';
+import V10CompletionFlow from './V10CompletionFlow';
 
 export const metadata: Metadata = {
   title: 'Everlasting Voyage — Pure Frequencies & Focus Sessions',
@@ -56,6 +58,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <V10ProductFlow />
         <FrequencyPowerDetails />
         <V10SessionUtilities />
+        <V10CompletionFlow />
       </body>
     </html>
   );
