@@ -1,0 +1,428 @@
+/* V11.2 — Live in-session atmosphere controls and true zero volume. */
+
+.evAmbientLayer.solo,
+.evSessionAtmosphereChip.solo {
+  box-shadow:
+    inset 0 0 0 1px rgba(var(--ambient-rgb), 0.22),
+    0 0 28px rgba(var(--ambient-rgb), 0.14) !important;
+}
+
+.evAmbientLayer.solo .evAmbientLayerState::after {
+  content: ' · Solo';
+}
+
+.evAmbientVolume input,
+.evAtmosphereSheetVolume input {
+  min-height: 28px;
+}
+
+#ev-session-atmosphere-root {
+  min-width: 0;
+  width: 100%;
+}
+
+.evSessionAtmosphere {
+  --ambient-rgb: 92, 177, 255;
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid rgba(126, 174, 216, 0.18);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(74, 170, 255, 0.1), transparent 38%),
+    linear-gradient(150deg, rgba(10, 25, 45, 0.82), rgba(3, 10, 20, 0.82));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+  backdrop-filter: blur(14px);
+}
+
+.evSessionAtmosphereHeader,
+.evSessionAtmosphereFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.evSessionAtmosphereHeader > div:first-child > span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--v10-accent);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+}
+
+.evSessionAtmosphereHeader > div:first-child > strong {
+  display: block;
+  color: #eff7ff;
+  font-size: 0.94rem;
+  line-height: 1.35;
+}
+
+.evSessionAtmosphereCount {
+  flex: 0 0 auto;
+  display: grid;
+  justify-items: center;
+  min-width: 54px;
+  padding: 8px 10px;
+  border: 1px solid rgba(var(--v10-accent-rgb), 0.18);
+  border-radius: 16px;
+  background: rgba(var(--v10-accent-rgb), 0.07);
+}
+
+.evSessionAtmosphereCount strong {
+  color: var(--v10-accent);
+  font-size: 1.08rem;
+  line-height: 1;
+}
+
+.evSessionAtmosphereCount span {
+  margin-top: 4px;
+  color: rgba(210, 228, 242, 0.56);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.evSessionAtmosphereGrid {
+  display: grid;
+  gap: 9px;
+}
+
+.evSessionAtmosphereChip {
+  --ambient-rgb: 92, 177, 255;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 42px;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(var(--ambient-rgb), 0.14);
+  border-radius: 17px;
+  background: rgba(4, 15, 29, 0.62);
+  transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+}
+
+.evSessionAtmosphereChip.brown-noise,
+.evAtmosphereSheet.brown-noise {
+  --ambient-rgb: 140, 184, 255;
+}
+
+.evSessionAtmosphereChip.pink-noise,
+.evAtmosphereSheet.pink-noise {
+  --ambient-rgb: 185, 151, 255;
+}
+
+.evSessionAtmosphereChip.active {
+  border-color: rgba(var(--ambient-rgb), 0.52);
+  background:
+    radial-gradient(circle at 8% 50%, rgba(var(--ambient-rgb), 0.13), transparent 36%),
+    rgba(4, 18, 34, 0.88);
+}
+
+.evSessionAtmosphereToggle,
+.evSessionAtmosphereLevels,
+.evSessionAtmosphereFooter button,
+.evAtmosphereSheet button {
+  border: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.evSessionAtmosphereToggle {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 11px;
+  align-items: center;
+  min-width: 0;
+  min-height: 58px;
+  padding: 9px 12px;
+  background: transparent;
+  text-align: left;
+  touch-action: pan-y;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+.evSessionAtmosphereToggle > span:first-child {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(var(--ambient-rgb), 0.2);
+  border-radius: 13px;
+  background: rgba(var(--ambient-rgb), 0.08);
+  color: rgb(var(--ambient-rgb));
+  font-size: 1.2rem;
+}
+
+.evSessionAtmosphereToggle > span:last-child {
+  min-width: 0;
+}
+
+.evSessionAtmosphereToggle strong,
+.evSessionAtmosphereToggle small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.evSessionAtmosphereToggle strong {
+  color: #edf7ff;
+  font-size: 0.84rem;
+}
+
+.evSessionAtmosphereToggle small {
+  margin-top: 3px;
+  color: rgba(206, 225, 241, 0.54);
+  font-size: 0.68rem;
+}
+
+.evSessionAtmosphereChip.active .evSessionAtmosphereToggle small {
+  color: rgb(var(--ambient-rgb));
+}
+
+.evSessionAtmosphereLevels {
+  display: grid;
+  place-items: center;
+  min-width: 42px;
+  border-left: 1px solid rgba(var(--ambient-rgb), 0.12);
+  background: rgba(var(--ambient-rgb), 0.035);
+  color: rgba(218, 235, 249, 0.62);
+  font-size: 1.15rem;
+}
+
+.evSessionAtmosphereLevels:hover,
+.evSessionAtmosphereLevels:focus-visible {
+  background: rgba(var(--ambient-rgb), 0.13);
+  color: rgb(var(--ambient-rgb));
+}
+
+.evSessionAtmosphereFooter {
+  align-items: flex-start;
+}
+
+.evSessionAtmosphereFooter > span {
+  color: rgba(205, 223, 239, 0.54);
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+.evSessionAtmosphereFooter button {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgba(130, 192, 235, 0.16);
+  border-radius: 999px;
+  background: rgba(25, 77, 113, 0.16);
+  color: #bdeaff;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.evSessionAtmosphereFooter button:disabled {
+  opacity: 0.34;
+  cursor: default;
+}
+
+.evAtmosphereSheetBackdrop {
+  position: fixed;
+  z-index: 1400;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 5, 13, 0.72);
+  backdrop-filter: blur(12px);
+  animation: evAtmosphereBackdropIn 180ms ease both;
+}
+
+.evAtmosphereSheet {
+  --ambient-rgb: 92, 177, 255;
+  width: min(470px, 100%);
+  padding: 24px;
+  border: 1px solid rgba(var(--ambient-rgb), 0.36);
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(var(--ambient-rgb), 0.14), transparent 36%),
+    linear-gradient(160deg, rgba(9, 25, 44, 0.99), rgba(2, 9, 19, 0.995));
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.52), 0 0 44px rgba(var(--ambient-rgb), 0.09);
+  animation: evAtmosphereSheetIn 240ms cubic-bezier(0.16, 0.84, 0.24, 1) both;
+}
+
+.evAtmosphereSheet > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.evAtmosphereSheet > header span {
+  color: rgb(var(--ambient-rgb));
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.evAtmosphereSheet > header h3 {
+  margin: 6px 0 0;
+  color: #f3f8ff;
+  font-size: 1.75rem;
+  letter-spacing: -0.04em;
+}
+
+.evAtmosphereSheet > header button {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(var(--ambient-rgb), 0.18);
+  border-radius: 50%;
+  background: rgba(5, 17, 31, 0.72);
+  color: #f3f8ff;
+  font-size: 1.4rem;
+}
+
+.evAtmosphereSheet > p {
+  margin: 18px 0 0;
+  color: rgba(211, 228, 243, 0.66);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.evAtmosphereSheetVolume {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  margin-top: 22px;
+  padding: 18px;
+  border: 1px solid rgba(var(--ambient-rgb), 0.15);
+  border-radius: 19px;
+  background: rgba(3, 13, 26, 0.66);
+}
+
+.evAtmosphereSheetVolume span,
+.evAtmosphereSheetVolume strong {
+  color: rgba(212, 230, 244, 0.62);
+  font-size: 0.75rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.evAtmosphereSheetVolume strong {
+  color: rgb(var(--ambient-rgb));
+}
+
+.evAtmosphereSheetVolume input {
+  grid-column: 1 / -1;
+  width: 100%;
+  accent-color: rgb(var(--ambient-rgb));
+}
+
+.evAtmosphereSheetActions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+  margin-top: 18px;
+}
+
+.evAtmosphereSheetActions button {
+  min-height: 46px;
+  padding: 0 12px;
+  border: 1px solid rgba(var(--ambient-rgb), 0.17);
+  border-radius: 14px;
+  background: rgba(var(--ambient-rgb), 0.06);
+  color: #ddebfa;
+  font-size: 0.77rem;
+  font-weight: 850;
+}
+
+.evAtmosphereSheetActions button.active,
+.evAtmosphereSheetActions button.primary {
+  background: rgba(var(--ambient-rgb), 0.18);
+  color: rgb(var(--ambient-rgb));
+}
+
+.v10ContinueVoyage {
+  transition: transform 260ms cubic-bezier(0.2, 0.75, 0.2, 1), opacity 220ms ease !important;
+}
+
+body.ev-continue-hidden .v10ContinueVoyage {
+  transform: translateY(calc(100% + 48px)) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.evSessionAtmosphereToggle:focus-visible,
+.evSessionAtmosphereLevels:focus-visible,
+.evSessionAtmosphereFooter button:focus-visible,
+.evAtmosphereSheet button:focus-visible,
+.evAtmosphereSheet input:focus-visible {
+  outline: 2px solid rgba(126, 220, 255, 0.9);
+  outline-offset: 3px;
+}
+
+@keyframes evAtmosphereBackdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes evAtmosphereSheetIn {
+  from { opacity: 0; transform: translateY(18px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 960px) {
+  .evAmbientLayerCopy small {
+    -webkit-line-clamp: 2 !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .evSessionAtmosphere {
+    padding: 17px;
+    border-radius: 21px;
+  }
+
+  .evSessionAtmosphereHeader > div:first-child > strong {
+    font-size: 0.9rem;
+  }
+
+  .evAtmosphereSheetBackdrop {
+    place-items: end center;
+    padding: 12px 12px max(12px, env(safe-area-inset-bottom));
+  }
+
+  .evAtmosphereSheet {
+    width: 100%;
+    padding: 21px;
+    border-radius: 25px;
+  }
+
+  .evAtmosphereSheetActions {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .evAtmosphereSheetActions .primary {
+    grid-column: 1 / -1;
+  }
+
+  .v10ContinueVoyage {
+    bottom: max(14px, env(safe-area-inset-bottom)) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .evAtmosphereSheetBackdrop,
+  .evAtmosphereSheet {
+    animation: none;
+  }
+
+  .v10ContinueVoyage {
+    transition: opacity 120ms ease !important;
+  }
+}

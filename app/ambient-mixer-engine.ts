@@ -67,6 +67,7 @@ function createNoiseBuffer(context: AudioContext, color: NoiseColor): AudioBuffe
 export class AmbientMixerEngine {
   private readonly context: AudioContext;
   private readonly output: GainNode;
+  private readonly compressor: DynamicsCompressorNode;
   private readonly layers = new Map<AmbientId, LayerRuntime>();
   private readonly bufferCache = new Map<AmbientId, Promise<AudioBuffer>>();
   private disposed = false;
@@ -74,8 +75,17 @@ export class AmbientMixerEngine {
   constructor(context: AudioContext, destination: AudioNode = context.destination) {
     this.context = context;
     this.output = context.createGain();
-    this.output.gain.value = 0.82;
-    this.output.connect(destination);
+    this.compressor = context.createDynamicsCompressor();
+
+    this.output.gain.value = 0.62;
+    this.compressor.threshold.value = -18;
+    this.compressor.knee.value = 18;
+    this.compressor.ratio.value = 5;
+    this.compressor.attack.value = 0.004;
+    this.compressor.release.value = 0.24;
+
+    this.output.connect(this.compressor);
+    this.compressor.connect(destination);
   }
 
   get audioContext(): AudioContext {
@@ -90,10 +100,7 @@ export class AmbientMixerEngine {
 
   setMasterVolume(volume: number, fadeSeconds = 0.12): void {
     if (this.disposed) return;
-    const now = this.context.currentTime;
-    const target = clampUnitVolume(volume, 0.82);
-    this.output.gain.cancelScheduledValues(now);
-    this.output.gain.setTargetAtTime(target, now, Math.max(0.01, fadeSeconds));
+    this.rampGain(this.output, clampUnitVolume(volume, 0.62), fadeSeconds);
   }
 
   async applyVoyageMix(config: VoyageConfig): Promise<void> {
@@ -150,8 +157,8 @@ export class AmbientMixerEngine {
 
     const now = this.context.currentTime;
     runtime.gain.gain.cancelScheduledValues(now);
-    runtime.gain.gain.setValueAtTime(0.0001, now);
-    runtime.gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, runtime.volume), now + DEFAULT_FADE_SECONDS);
+    runtime.gain.gain.setValueAtTime(0, now);
+    this.rampGain(runtime.gain, runtime.volume, DEFAULT_FADE_SECONDS);
 
     source.onended = () => {
       if (runtime.source === source) runtime.source = null;
@@ -169,7 +176,7 @@ export class AmbientMixerEngine {
     if (this.disposed) return;
     const runtime = this.getOrCreateRuntime(id, volume);
     runtime.volume = clampUnitVolume(volume, ambientCatalog[id].defaultVolume);
-    this.rampGain(runtime.gain, runtime.source ? runtime.volume : 0.0001, 0.08);
+    this.rampGain(runtime.gain, runtime.source ? runtime.volume : 0, 0.08);
   }
 
   async stopLayer(id: AmbientId, fadeSeconds = DEFAULT_FADE_SECONDS): Promise<void> {
@@ -181,10 +188,7 @@ export class AmbientMixerEngine {
     runtime.source = null;
     if (!source) return;
 
-    const now = this.context.currentTime;
-    runtime.gain.gain.cancelScheduledValues(now);
-    runtime.gain.gain.setValueAtTime(Math.max(0.0001, runtime.gain.gain.value), now);
-    runtime.gain.gain.exponentialRampToValueAtTime(0.0001, now + fadeSeconds);
+    this.rampGain(runtime.gain, 0, fadeSeconds);
 
     await new Promise<void>((resolve) => {
       window.setTimeout(() => {
@@ -220,8 +224,9 @@ export class AmbientMixerEngine {
 
     try {
       this.output.disconnect();
+      this.compressor.disconnect();
     } catch {
-      // Output may already be disconnected.
+      // Output nodes may already be disconnected.
     }
   }
 
@@ -230,7 +235,7 @@ export class AmbientMixerEngine {
     if (existing) return existing;
 
     const gain = this.context.createGain();
-    gain.gain.value = 0.0001;
+    gain.gain.value = 0;
     gain.connect(this.output);
 
     const runtime: LayerRuntime = {
@@ -243,10 +248,25 @@ export class AmbientMixerEngine {
     return runtime;
   }
 
-  private rampGain(gain: GainNode, volume: number, timeConstant: number): void {
+  private rampGain(gain: GainNode, volume: number, duration: number): void {
     const now = this.context.currentTime;
+    const target = clampUnitVolume(volume, 0);
+    const current = Math.max(0, gain.gain.value);
+
     gain.gain.cancelScheduledValues(now);
-    gain.gain.setTargetAtTime(Math.max(0.0001, volume), now, Math.max(0.01, timeConstant));
+    gain.gain.setValueAtTime(current, now);
+
+    if (duration <= 0.01) {
+      gain.gain.setValueAtTime(target, now);
+      return;
+    }
+
+    if (target === 0 || current === 0) {
+      gain.gain.linearRampToValueAtTime(target, now + duration);
+      return;
+    }
+
+    gain.gain.exponentialRampToValueAtTime(target, now + duration);
   }
 
   private getBuffer(id: AmbientId): Promise<AudioBuffer> {
