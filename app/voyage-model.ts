@@ -45,6 +45,7 @@ type LegacyVoyageLike = {
   frequencyId?: unknown;
   durationMinutes?: unknown;
   intention?: unknown;
+  signalVolume?: unknown;
   volume?: unknown;
   volumePercent?: unknown;
   muted?: unknown;
