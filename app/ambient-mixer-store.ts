@@ -1,4 +1,5 @@
 import { ambientCatalog, type AmbientId } from './ambient-catalog';
+import type { AmbientLayerRuntimeMap } from './ambient-runtime';
 import {
   createDefaultAmbientLayers,
   sanitizeAmbientLayers,
@@ -10,6 +11,7 @@ export const AMBIENT_MIX_VERSION_KEY = 'ev-ambient-mix-version';
 export const AMBIENT_MIX_EVENT = 'ev:ambient-mix-change';
 export const AMBIENT_COMMAND_EVENT = 'ev:ambient-command';
 export const AMBIENT_RUNTIME_EVENT = 'ev:ambient-runtime-change';
+export const AMBIENT_RESTORE_EVENT = 'ev:audio-restore-required';
 
 const CURRENT_AMBIENT_MIX_VERSION = 2;
 const LEGACY_DEFAULTS: Partial<Record<AmbientId, number>> = {
@@ -33,6 +35,7 @@ export type AmbientMixSnapshot = {
 export type AmbientCommand =
   | { type: 'toggle'; id: AmbientId }
   | { type: 'set-volume'; id: AmbientId; volume: number }
+  | { type: 'retry'; id: AmbientId }
   | { type: 'stop-all' }
   | { type: 'solo'; id: AmbientId }
   | { type: 'clear-solo' }
@@ -41,7 +44,17 @@ export type AmbientCommand =
 export type AmbientRuntimeSnapshot = {
   soloId: AmbientId | null;
   audible: boolean;
+  restoreRequired: boolean;
+  layers: AmbientLayerRuntimeMap;
   updatedAt: number;
+};
+
+let lastAmbientRuntime: AmbientRuntimeSnapshot = {
+  soloId: null,
+  audible: false,
+  restoreRequired: false,
+  layers: {},
+  updatedAt: 0
 };
 
 function makeSnapshot(layers: AmbientLayerConfig[]): AmbientMixSnapshot {
@@ -169,10 +182,18 @@ export function subscribeToAmbientCommands(listener: (command: AmbientCommand) =
   return () => window.removeEventListener(AMBIENT_COMMAND_EVENT, handleCommand);
 }
 
+export function readAmbientRuntime(): AmbientRuntimeSnapshot {
+  return {
+    ...lastAmbientRuntime,
+    layers: { ...lastAmbientRuntime.layers }
+  };
+}
+
 export function publishAmbientRuntime(snapshot: Omit<AmbientRuntimeSnapshot, 'updatedAt'>): void {
+  lastAmbientRuntime = { ...snapshot, layers: { ...snapshot.layers }, updatedAt: Date.now() };
   if (typeof window === 'undefined') return;
   window.dispatchEvent(new CustomEvent<AmbientRuntimeSnapshot>(AMBIENT_RUNTIME_EVENT, {
-    detail: { ...snapshot, updatedAt: Date.now() }
+    detail: lastAmbientRuntime
   }));
 }
 
@@ -181,6 +202,17 @@ export function subscribeToAmbientRuntime(listener: (snapshot: AmbientRuntimeSna
   const handleRuntime = (event: Event) => listener((event as CustomEvent<AmbientRuntimeSnapshot>).detail);
   window.addEventListener(AMBIENT_RUNTIME_EVENT, handleRuntime);
   return () => window.removeEventListener(AMBIENT_RUNTIME_EVENT, handleRuntime);
+}
+
+export function requestAmbientRestore(): void {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent(AMBIENT_RESTORE_EVENT));
+}
+
+export function subscribeToAmbientRestoreRequests(listener: () => void): () => void {
+  if (typeof window === 'undefined') return () => undefined;
+  window.addEventListener(AMBIENT_RESTORE_EVENT, listener);
+  return () => window.removeEventListener(AMBIENT_RESTORE_EVENT, listener);
 }
 
 export function getAmbientLayerLabel(id: AmbientId): string {

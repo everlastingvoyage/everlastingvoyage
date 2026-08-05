@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
+import { requestAmbientRestore } from './ambient-mixer-store';
 
 type AudioWindow = typeof window & {
   webkitAudioContext?: typeof AudioContext;
@@ -67,7 +68,13 @@ export default function IOSAudioReliability() {
         contexts.add(context);
         primeContext(context);
         context.addEventListener('statechange', () => {
-          if (context.state === 'closed') contexts.delete(context);
+          if (context.state === 'closed') {
+            contexts.delete(context);
+            return;
+          }
+          if (context.state === 'suspended' && document.querySelector('.v10SessionOverlay.running')) {
+            requestAmbientRestore();
+          }
         });
         return context;
       } as unknown as typeof AudioContext;
@@ -131,27 +138,34 @@ export default function IOSAudioReliability() {
       const target = event.target as Element | null;
       if (!target) return;
       const relevantControl = target.closest(
-        '.v10PrimaryAction, .builderActions .primaryButton, .v10AudioControls button, .signalNode, .signalPopupAction'
+        '.v10PrimaryAction, .builderActions .primaryButton, .v10AudioControls button, .signalNode, .signalPopupAction, .evSessionAtmosphereToggle, .evSessionAtmosphereLevels, .evAtmosphereSheetActions button, .evAtmosphereRestoreNotice button'
       );
       if (relevantControl) primeEverything();
     };
 
+    const markRestoreIfNeeded = () => {
+      if (!document.querySelector('.v10SessionOverlay.running')) return;
+      if (Array.from(contexts).some((context) => context.state !== 'running')) requestAmbientRestore();
+    };
+
     const handleVisibility = () => {
-      if (document.visibilityState === 'visible') contexts.forEach(primeContext);
+      if (document.visibilityState === 'visible') markRestoreIfNeeded();
     };
 
     document.addEventListener('pointerdown', handleActivation, true);
     document.addEventListener('touchend', handleActivation, true);
     document.addEventListener('click', handleActivation, true);
     document.addEventListener('visibilitychange', handleVisibility);
-    window.addEventListener('pageshow', primeEverything);
+    window.addEventListener('pageshow', markRestoreIfNeeded);
+    window.addEventListener('focus', markRestoreIfNeeded);
 
     return () => {
       document.removeEventListener('pointerdown', handleActivation, true);
       document.removeEventListener('touchend', handleActivation, true);
       document.removeEventListener('click', handleActivation, true);
       document.removeEventListener('visibilitychange', handleVisibility);
-      window.removeEventListener('pageshow', primeEverything);
+      window.removeEventListener('pageshow', markRestoreIfNeeded);
+      window.removeEventListener('focus', markRestoreIfNeeded);
       silentMedia?.remove();
     };
   }, [pathname]);

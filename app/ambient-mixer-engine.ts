@@ -3,6 +3,14 @@ import {
   type AmbientId,
   type NoiseColor
 } from './ambient-catalog';
+import { getAmbientGainCompensation } from './ambient-gain';
+import {
+  ambientDiagnostics,
+  type AmbientEngineEvent,
+  type AmbientLayerRuntimeMap,
+  type AmbientSourceKind
+} from './ambient-runtime';
+import { isPlayableAmbientId, type PlayableAmbientId } from './ambient-playable';
 import {
   clampUnitVolume,
   getEnabledAmbientLayers,
@@ -13,6 +21,10 @@ import {
 type LayerVoice = {
   stop: () => void;
   disconnect: () => void;
+  pause: () => void;
+  resume: () => Promise<void>;
+  isPaused: () => boolean;
+  source: AmbientSourceKind;
 };
 
 type LayerRuntime = {
@@ -20,11 +32,17 @@ type LayerRuntime = {
   voice: LayerVoice | null;
   generation: number;
   volume: number;
+  retryCount: number;
+  source?: AmbientSourceKind;
 };
 
-const DEFAULT_FADE_SECONDS = 0.36;
+const DEFAULT_FADE_SECONDS = 0.5;
+const PAUSE_FADE_SECONDS = 0.18;
 const NOISE_BUFFER_SECONDS = 12;
 const MEDIA_READY_TIMEOUT_MS = 16000;
+const MAX_EFFECTIVE_LAYER_GAIN = 0.82;
+const preloadedMediaElements = new Map<AmbientId, HTMLAudioElement>();
+const activeMediaElements = new Map<AmbientId, HTMLAudioElement>();
 
 function createNoiseBuffer(context: AudioContext, color: NoiseColor): AudioBuffer {
   const frameCount = Math.max(1, Math.floor(context.sampleRate * NOISE_BUFFER_SECONDS));
@@ -86,6 +104,17 @@ function safelyDisconnect(node: AudioNode): void {
   }
 }
 
+function releaseMediaElement(audio: HTMLAudioElement): void {
+  try {
+    audio.pause();
+    audio.currentTime = 0;
+  } catch {
+    // Safari can throw while a failed media element is being reset.
+  }
+  audio.removeAttribute('src');
+  audio.load();
+}
+
 function waitForMedia(audio: HTMLAudioElement): Promise<void> {
   if (audio.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) return Promise.resolve();
 
@@ -108,13 +137,38 @@ function waitForMedia(audio: HTMLAudioElement): Promise<void> {
     const cleanup = () => {
       window.clearTimeout(timeout);
       audio.removeEventListener('canplay', handleReady);
+      audio.removeEventListener('loadeddata', handleReady);
       audio.removeEventListener('error', handleError);
     };
 
     audio.addEventListener('canplay', handleReady, { once: true });
+    audio.addEventListener('loadeddata', handleReady, { once: true });
     audio.addEventListener('error', handleError, { once: true });
     audio.load();
   });
+}
+
+export function preloadAmbientMetadata(ids: readonly PlayableAmbientId[]): void {
+  if (typeof window === 'undefined') return;
+
+  ids.forEach((id) => {
+    if (preloadedMediaElements.has(id)) return;
+    const definition = ambientCatalog[id];
+    if (definition.sourceType !== 'sample' || !definition.assetPath) return;
+
+    const audio = new Audio();
+    audio.crossOrigin = 'anonymous';
+    audio.preload = 'metadata';
+    audio.setAttribute('playsinline', '');
+    audio.src = definition.assetPath;
+    audio.load();
+    preloadedMediaElements.set(id, audio);
+  });
+}
+
+export function releaseAmbientMetadata(): void {
+  preloadedMediaElements.forEach(releaseMediaElement);
+  preloadedMediaElements.clear();
 }
 
 export class AmbientMixerEngine {
@@ -123,19 +177,25 @@ export class AmbientMixerEngine {
   private readonly compressor: DynamicsCompressorNode;
   private readonly layers = new Map<AmbientId, LayerRuntime>();
   private readonly noiseBufferCache = new Map<NoiseColor, Promise<AudioBuffer>>();
+  private readonly onEvent?: (event: AmbientEngineEvent) => void;
   private disposed = false;
 
-  constructor(context: AudioContext, destination: AudioNode = context.destination) {
+  constructor(
+    context: AudioContext,
+    destination: AudioNode = context.destination,
+    onEvent?: (event: AmbientEngineEvent) => void
+  ) {
     this.context = context;
+    this.onEvent = onEvent;
     this.output = context.createGain();
     this.compressor = context.createDynamicsCompressor();
 
-    this.output.gain.value = 0.62;
-    this.compressor.threshold.value = -18;
-    this.compressor.knee.value = 18;
+    this.output.gain.value = 0.58;
+    this.compressor.threshold.value = -20;
+    this.compressor.knee.value = 20;
     this.compressor.ratio.value = 5;
     this.compressor.attack.value = 0.004;
-    this.compressor.release.value = 0.24;
+    this.compressor.release.value = 0.26;
 
     this.output.connect(this.compressor);
     this.compressor.connect(destination);
@@ -151,9 +211,23 @@ export class AmbientMixerEngine {
       .map(([id]) => id);
   }
 
+  get runtimeStates(): AmbientLayerRuntimeMap {
+    const result: AmbientLayerRuntimeMap = {};
+    this.layers.forEach((runtime, id) => {
+      result[id] = {
+        playbackState: runtime.voice
+          ? runtime.voice.isPaused() ? 'paused' : 'playing'
+          : 'idle',
+        retryCount: runtime.retryCount,
+        source: runtime.source
+      };
+    });
+    return result;
+  }
+
   setMasterVolume(volume: number, fadeSeconds = 0.12): void {
     if (this.disposed) return;
-    this.rampGain(this.output, clampUnitVolume(volume, 0.62), fadeSeconds);
+    this.rampGain(this.output, clampUnitVolume(volume, 0.58), fadeSeconds);
   }
 
   async applyVoyageMix(config: VoyageConfig): Promise<void> {
@@ -190,29 +264,81 @@ export class AmbientMixerEngine {
     runtime.generation = generation;
 
     if (runtime.voice) {
-      this.rampGain(runtime.gain, runtime.volume, 0.1);
+      if (runtime.voice.isPaused()) {
+        this.emit(id, 'loading', runtime);
+        try {
+          await runtime.voice.resume();
+          this.emit(id, 'playing', runtime);
+        } catch (error) {
+          runtime.retryCount += 1;
+          this.emit(id, 'error', runtime, error instanceof Error ? error.message : 'Unable to resume this sound.');
+          throw error;
+        }
+      }
+      this.rampGain(runtime.gain, this.getEffectiveVolume(id, runtime.volume), 0.55);
       return;
     }
 
-    const voice = await this.createLayerVoice(id, runtime.gain);
-    if (this.disposed || runtime.generation !== generation || runtime.voice) {
+    this.emit(id, 'loading', runtime);
+
+    try {
+      const voice = await this.createLayerVoice(id, runtime.gain, generation);
+      if (this.disposed || runtime.generation !== generation || runtime.voice) {
+        voice.stop();
+        voice.disconnect();
+        return;
+      }
+
+      runtime.voice = voice;
+      runtime.source = voice.source;
+      const now = this.context.currentTime;
+      runtime.gain.gain.cancelScheduledValues(now);
+      runtime.gain.gain.setValueAtTime(0.0001, now);
+      this.rampGain(runtime.gain, this.getEffectiveVolume(id, runtime.volume), DEFAULT_FADE_SECONDS);
+      this.emit(id, 'playing', runtime);
+    } catch (error) {
+      runtime.retryCount += 1;
+      this.emit(id, 'error', runtime, error instanceof Error ? error.message : 'Unable to load this sound.');
+      throw error;
+    }
+  }
+
+  async retryLayer(id: AmbientId, volume = ambientCatalog[id].defaultVolume): Promise<void> {
+    const runtime = this.getOrCreateRuntime(id, volume);
+    runtime.generation += 1;
+    const voice = runtime.voice;
+    runtime.voice = null;
+    if (voice) {
       voice.stop();
       voice.disconnect();
-      return;
     }
-
-    runtime.voice = voice;
-    const now = this.context.currentTime;
-    runtime.gain.gain.cancelScheduledValues(now);
-    runtime.gain.gain.setValueAtTime(0, now);
-    this.rampGain(runtime.gain, runtime.volume, DEFAULT_FADE_SECONDS);
+    this.emit(id, 'loading', runtime);
+    await this.startLayer(id, volume);
   }
 
   setLayerVolume(id: AmbientId, volume: number): void {
     if (this.disposed) return;
     const runtime = this.getOrCreateRuntime(id, volume);
     runtime.volume = clampUnitVolume(volume, ambientCatalog[id].defaultVolume);
-    this.rampGain(runtime.gain, runtime.voice ? runtime.volume : 0, 0.08);
+    this.rampGain(
+      runtime.gain,
+      runtime.voice && !runtime.voice.isPaused() ? this.getEffectiveVolume(id, runtime.volume) : 0,
+      0.1
+    );
+  }
+
+  async pauseLayer(id: AmbientId, fadeSeconds = PAUSE_FADE_SECONDS): Promise<void> {
+    const runtime = this.layers.get(id);
+    if (!runtime?.voice || runtime.voice.isPaused()) return;
+
+    this.rampGain(runtime.gain, 0, fadeSeconds);
+    await new Promise<void>((resolve) => window.setTimeout(resolve, Math.ceil(fadeSeconds * 1000) + 30));
+    runtime.voice.pause();
+    this.emit(id, 'paused', runtime);
+  }
+
+  async pauseAll(fadeSeconds = PAUSE_FADE_SECONDS): Promise<void> {
+    await Promise.all(this.activeLayerIds.map((id) => this.pauseLayer(id, fadeSeconds)));
   }
 
   async stopLayer(id: AmbientId, fadeSeconds = DEFAULT_FADE_SECONDS): Promise<void> {
@@ -222,7 +348,10 @@ export class AmbientMixerEngine {
     runtime.generation += 1;
     const voice = runtime.voice;
     runtime.voice = null;
-    if (!voice) return;
+    if (!voice) {
+      this.emit(id, 'idle', runtime);
+      return;
+    }
 
     this.rampGain(runtime.gain, 0, fadeSeconds);
     await new Promise<void>((resolve) => {
@@ -232,6 +361,9 @@ export class AmbientMixerEngine {
         resolve();
       }, Math.ceil(fadeSeconds * 1000) + 40);
     });
+    runtime.retryCount = 0;
+    runtime.source = undefined;
+    this.emit(id, 'idle', runtime);
   }
 
   async stopAll(fadeSeconds = DEFAULT_FADE_SECONDS): Promise<void> {
@@ -262,16 +394,22 @@ export class AmbientMixerEngine {
       gain,
       voice: null,
       generation: 0,
-      volume: clampUnitVolume(volume, ambientCatalog[id].defaultVolume)
+      volume: clampUnitVolume(volume, ambientCatalog[id].defaultVolume),
+      retryCount: 0
     };
     this.layers.set(id, runtime);
     return runtime;
   }
 
+  private getEffectiveVolume(id: AmbientId, volume: number): number {
+    const compensation = isPlayableAmbientId(id) ? getAmbientGainCompensation(id) : 1;
+    return Math.min(MAX_EFFECTIVE_LAYER_GAIN, Math.max(0, volume * compensation));
+  }
+
   private rampGain(gain: GainNode, volume: number, duration: number): void {
     const now = this.context.currentTime;
-    const target = clampUnitVolume(volume, 0);
-    const current = Math.max(0, gain.gain.value);
+    const target = Math.min(MAX_EFFECTIVE_LAYER_GAIN, Math.max(0, volume));
+    const current = Math.max(0.0001, gain.gain.value);
 
     gain.gain.cancelScheduledValues(now);
     gain.gain.setValueAtTime(current, now);
@@ -281,87 +419,220 @@ export class AmbientMixerEngine {
       return;
     }
 
-    if (target === 0 || current === 0) {
-      gain.gain.linearRampToValueAtTime(target, now + duration);
+    if (target <= 0.0001) {
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
       return;
     }
 
-    gain.gain.exponentialRampToValueAtTime(target, now + duration);
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, target), now + duration);
   }
 
-  private async createLayerVoice(id: AmbientId, destination: AudioNode): Promise<LayerVoice> {
+  private emit(
+    id: AmbientId,
+    playbackState: AmbientEngineEvent['playbackState'],
+    runtime: LayerRuntime,
+    errorMessage?: string
+  ): void {
+    const event: AmbientEngineEvent = {
+      id,
+      playbackState,
+      retryCount: runtime.retryCount,
+      source: runtime.source,
+      errorMessage
+    };
+    ambientDiagnostics.log({
+      layerId: id,
+      event: playbackState,
+      source: runtime.source,
+      audioContextState: this.context.state
+    });
+    this.onEvent?.(event);
+  }
+
+  private async createLayerVoice(id: AmbientId, destination: AudioNode, generation: number): Promise<LayerVoice> {
     const definition = ambientCatalog[id];
 
     if (definition.sourceType === 'procedural-noise') {
       const buffer = await this.getNoiseBuffer(definition.noiseColor ?? 'white');
-      const source = this.context.createBufferSource();
-      source.buffer = buffer;
-      source.loop = true;
-      source.loopStart = 0;
-      source.loopEnd = buffer.duration;
-      source.connect(destination);
-      source.start(this.context.currentTime, Math.random() * Math.max(0.01, buffer.duration - 0.01));
+      let source: AudioBufferSourceNode | null = null;
+
+      const startSource = () => {
+        const next = this.context.createBufferSource();
+        next.buffer = buffer;
+        next.loop = true;
+        next.loopStart = 0;
+        next.loopEnd = buffer.duration;
+        next.connect(destination);
+        next.start(this.context.currentTime, Math.random() * Math.max(0.01, buffer.duration - 0.01));
+        source = next;
+      };
+
+      startSource();
+      const runtime = this.layers.get(id);
+      if (runtime) runtime.source = 'procedural';
 
       return {
-        stop: () => safelyStop(source),
-        disconnect: () => safelyDisconnect(source)
+        source: 'procedural',
+        pause: () => {
+          if (!source) return;
+          safelyStop(source);
+          safelyDisconnect(source);
+          source = null;
+        },
+        resume: async () => {
+          if (!source) startSource();
+        },
+        isPaused: () => !source,
+        stop: () => {
+          if (!source) return;
+          safelyStop(source);
+          safelyDisconnect(source);
+          source = null;
+        },
+        disconnect: () => {
+          if (source) safelyDisconnect(source);
+        }
       };
     }
 
     return this.createStreamingSampleVoice(
+      id,
       definition.assetPath,
       definition.fallbackAssetPath,
-      destination
+      destination,
+      generation
     );
   }
 
   private async createStreamingSampleVoice(
+    id: AmbientId,
     assetPath: string | undefined,
     fallbackAssetPath: string | undefined,
-    destination: AudioNode
+    destination: AudioNode,
+    generation: number
   ): Promise<LayerVoice> {
     if (!assetPath) throw new Error('Ambient recording is missing an asset URL.');
 
+    const existing = activeMediaElements.get(id);
+    if (existing) {
+      releaseMediaElement(existing);
+      activeMediaElements.delete(id);
+    }
+
     const audio = new Audio();
     audio.crossOrigin = 'anonymous';
-    audio.preload = 'auto';
+    audio.preload = 'metadata';
     audio.loop = true;
     audio.setAttribute('playsinline', '');
+    audio.setAttribute('webkit-playsinline', '');
 
     const source = this.context.createMediaElementSource(audio);
     source.connect(destination);
+    activeMediaElements.set(id, audio);
 
-    const trySource = async (url: string) => {
+    let sourceKind: AmbientSourceKind = 'primary';
+    let stopping = false;
+
+    const runtimeIsCurrent = () => {
+      const runtime = this.layers.get(id);
+      return Boolean(runtime && runtime.generation === generation && !this.disposed);
+    };
+
+    const updateState = (state: AmbientEngineEvent['playbackState'], message?: string) => {
+      if (!runtimeIsCurrent()) return;
+      const runtime = this.layers.get(id);
+      if (!runtime) return;
+      runtime.source = sourceKind;
+      this.emit(id, state, runtime, message);
+    };
+
+    const handleWaiting = () => updateState('buffering');
+    const handleStalled = () => updateState('buffering');
+    const handlePlaying = () => updateState('playing');
+    const handlePause = () => {
+      if (!stopping) updateState('paused');
+    };
+    const handleError = () => {
+      if (!stopping) updateState('error', 'This recording could not be loaded.');
+    };
+
+    audio.addEventListener('waiting', handleWaiting);
+    audio.addEventListener('stalled', handleStalled);
+    audio.addEventListener('playing', handlePlaying);
+    audio.addEventListener('pause', handlePause);
+    audio.addEventListener('error', handleError);
+
+    const cleanupListeners = () => {
+      audio.removeEventListener('waiting', handleWaiting);
+      audio.removeEventListener('stalled', handleStalled);
+      audio.removeEventListener('playing', handlePlaying);
+      audio.removeEventListener('pause', handlePause);
+      audio.removeEventListener('error', handleError);
+    };
+
+    const trySource = async (url: string, kind: AmbientSourceKind) => {
+      sourceKind = kind;
+      const runtime = this.layers.get(id);
+      if (runtime) runtime.source = kind;
       audio.src = url;
+      audio.preload = 'auto';
       await waitForMedia(audio);
       audio.currentTime = 0;
       await audio.play();
     };
 
     try {
-      await trySource(assetPath);
+      await trySource(assetPath, 'primary');
     } catch (primaryError) {
+      ambientDiagnostics.log({
+        layerId: id,
+        event: 'primary failed',
+        source: 'primary',
+        audioContextState: this.context.state
+      });
+
       if (!fallbackAssetPath) {
+        stopping = true;
+        cleanupListeners();
+        activeMediaElements.delete(id);
+        releaseMediaElement(audio);
         safelyDisconnect(source);
         throw primaryError;
       }
 
       try {
-        audio.removeAttribute('src');
-        audio.load();
-        await trySource(fallbackAssetPath);
+        releaseMediaElement(audio);
+        ambientDiagnostics.log({
+          layerId: id,
+          event: 'fallback started',
+          source: 'fallback',
+          audioContextState: this.context.state
+        });
+        await trySource(fallbackAssetPath, 'fallback');
       } catch (fallbackError) {
+        stopping = true;
+        cleanupListeners();
+        activeMediaElements.delete(id);
+        releaseMediaElement(audio);
         safelyDisconnect(source);
         throw fallbackError;
       }
     }
 
     return {
-      stop: () => {
+      source: sourceKind,
+      pause: () => {
         audio.pause();
-        audio.currentTime = 0;
-        audio.removeAttribute('src');
-        audio.load();
+      },
+      resume: async () => {
+        await audio.play();
+      },
+      isPaused: () => audio.paused,
+      stop: () => {
+        stopping = true;
+        cleanupListeners();
+        if (activeMediaElements.get(id) === audio) activeMediaElements.delete(id);
+        releaseMediaElement(audio);
       },
       disconnect: () => safelyDisconnect(source)
     };

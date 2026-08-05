@@ -14,6 +14,7 @@ import {
 import {
   dispatchAmbientCommand,
   readAmbientMix,
+  readAmbientRuntime,
   subscribeToAmbientMix,
   subscribeToAmbientRuntime,
   type AmbientRuntimeSnapshot
@@ -33,6 +34,10 @@ function getSessionStatus(): SessionStatus {
   return 'ready';
 }
 
+function stateClassName(label: string): string {
+  return label.toLowerCase().replace(/[^a-z]+/g, '-').replace(/^-|-$/g, '');
+}
+
 export default function V11SessionAtmosphere() {
   const pathname = usePathname();
   const enabled = pathname === '/voyage';
@@ -40,7 +45,7 @@ export default function V11SessionAtmosphere() {
   const [layers, setLayers] = useState<AmbientLayerConfig[]>(() => readAmbientMix().layers);
   const [selectedId, setSelectedId] = useState<PlayableAmbientId | null>(null);
   const [status, setStatus] = useState<SessionStatus>('closed');
-  const [runtime, setRuntime] = useState<AmbientRuntimeSnapshot>({ soloId: null, audible: true, updatedAt: 0 });
+  const [runtime, setRuntime] = useState<AmbientRuntimeSnapshot>(() => readAmbientRuntime());
   const holdTimerRef = useRef<number | undefined>(undefined);
   const holdIdRef = useRef<PlayableAmbientId | null>(null);
   const holdTriggeredRef = useRef<PlayableAmbientId | null>(null);
@@ -95,6 +100,7 @@ export default function V11SessionAtmosphere() {
   useEffect(() => {
     if (!enabled) return;
     setLayers(readAmbientMix().layers);
+    setRuntime(readAmbientRuntime());
     const unsubscribeMix = subscribeToAmbientMix((snapshot) => setLayers(snapshot.layers));
     const unsubscribeRuntime = subscribeToAmbientRuntime(setRuntime);
     return () => {
@@ -144,6 +150,8 @@ export default function V11SessionAtmosphere() {
       holdTriggeredRef.current = null;
       return;
     }
+    const playbackState = runtime.layers[id]?.playbackState;
+    if (playbackState === 'loading' || playbackState === 'buffering') return;
     dispatchAmbientCommand({ type: 'toggle', id });
   };
 
@@ -155,14 +163,16 @@ export default function V11SessionAtmosphere() {
   const playingCount = useMemo(
     () => playableAmbientIds.filter((id) => {
       const layer = layers.find((item) => item.id === id);
-      return Boolean(layer?.enabled && layer.volume > 0);
+      const playbackState = runtime.layers[id]?.playbackState;
+      return Boolean(layer?.enabled && layer.volume > 0 && playbackState === 'playing');
     }).length,
-    [layers]
+    [layers, runtime.layers]
   );
 
   const selectedLayer = selectedId
     ? layers.find((layer) => layer.id === selectedId) ?? null
     : null;
+  const selectedRuntime = selectedId ? runtime.layers[selectedId] : undefined;
 
   const setSelectedVolume = (volume: number) => {
     if (!selectedId) return;
@@ -195,6 +205,15 @@ export default function V11SessionAtmosphere() {
         </div>
       </header>
 
+      {runtime.restoreRequired ? (
+        <div className="evAtmosphereRestoreNotice" role="status">
+          <span>Audio was paused by your browser or output device.</span>
+          <button type="button" onClick={() => dispatchAmbientCommand({ type: 'sync' })}>
+            Restore audio
+          </button>
+        </div>
+      ) : null}
+
       <div className="evSessionAtmosphereLibrary">
         {playableAmbientCategories.map((category) => (
           <section
@@ -215,14 +234,33 @@ export default function V11SessionAtmosphere() {
                   enabled: false,
                   volume: definition.defaultVolume
                 };
+                const layerRuntime = runtime.layers[id];
+                const playbackState = layerRuntime?.playbackState ?? 'idle';
                 const isSolo = runtime.soloId === id;
                 const isMuted = layer.enabled && layer.volume === 0;
-                const isPlaying = layer.enabled && layer.volume > 0;
-                const stateLabel = isSolo ? 'Solo' : isMuted ? 'Muted' : isPlaying ? 'Playing' : 'Off';
+                const isBusy = playbackState === 'loading' || playbackState === 'buffering';
+                const hasError = playbackState === 'error';
+                const isPlaying = layer.enabled && playbackState === 'playing' && layer.volume > 0;
+                const stateLabel = hasError
+                  ? "Couldn't load"
+                  : playbackState === 'loading'
+                    ? 'Loading…'
+                    : playbackState === 'buffering'
+                      ? 'Buffering…'
+                      : status !== 'running' && layer.enabled
+                        ? 'Paused'
+                        : isSolo
+                          ? 'Solo'
+                          : isMuted
+                            ? 'Muted'
+                            : isPlaying
+                              ? 'Playing'
+                              : 'Off';
+                const stateClass = stateClassName(stateLabel);
 
                 return (
                   <article
-                    className={`evSessionAtmosphereChip ${id} ${isPlaying ? 'active' : 'inactive'} ${isMuted ? 'muted' : ''} ${isSolo ? 'solo' : ''}`}
+                    className={`evSessionAtmosphereChip ${id} ${isPlaying ? 'active' : 'inactive'} ${isMuted ? 'muted' : ''} ${isSolo ? 'solo' : ''} ${isBusy ? 'busy' : ''} ${hasError ? 'error' : ''}`}
                     key={id}
                   >
                     <button
@@ -236,14 +274,16 @@ export default function V11SessionAtmosphere() {
                       onPointerLeave={cancelHold}
                       onContextMenu={(event) => event.preventDefault()}
                       aria-pressed={layer.enabled}
+                      aria-busy={isBusy}
+                      disabled={isBusy}
                       aria-label={`${layer.enabled ? 'Remove' : 'Add'} ${definition.name}. Hold for volume controls.`}
                     >
                       <span className="evSessionAtmosphereIcon" aria-hidden="true">{ambientSymbols[id]}</span>
                       <span className="evSessionAtmosphereCopy">
                         <strong>{definition.shortName}</strong>
                         <small>{ambientShortDescriptions[id]}</small>
-                        <em className={`evSessionAtmosphereState ${stateLabel.toLowerCase()}`}>
-                          {stateLabel !== 'Off' ? <i aria-hidden="true" /> : null}
+                        <em className={`evSessionAtmosphereState ${stateClass}`}>
+                          {stateLabel !== 'Off' && stateLabel !== 'Paused' ? <i aria-hidden="true" /> : null}
                           {stateLabel}
                         </em>
                       </span>
@@ -251,11 +291,17 @@ export default function V11SessionAtmosphere() {
                     <button
                       type="button"
                       className="evSessionAtmosphereLevels"
-                      onClick={() => setSelectedId(id)}
-                      aria-label={`Adjust ${definition.name} volume, currently ${formatGainPercent(layer.volume)}`}
+                      onClick={() => {
+                        if (hasError) dispatchAmbientCommand({ type: 'retry', id });
+                        else if (!isBusy) setSelectedId(id);
+                      }}
+                      disabled={isBusy}
+                      aria-label={hasError
+                        ? `Retry ${definition.name}`
+                        : `Adjust ${definition.name} volume, currently ${formatGainPercent(layer.volume)}`}
                     >
-                      <span>{layer.enabled ? 'Volume' : 'Adjust'}</span>
-                      <small>{formatGainPercent(layer.volume)}</small>
+                      <span>{hasError ? 'Retry' : isBusy ? 'Wait' : layer.enabled ? 'Volume' : 'Adjust'}</span>
+                      <small>{hasError ? '↻' : formatGainPercent(layer.volume)}</small>
                     </button>
                   </article>
                 );
@@ -266,7 +312,11 @@ export default function V11SessionAtmosphere() {
       </div>
 
       <footer className="evSessionAtmosphereFooter">
-        <span>{status === 'paused' ? 'Changes are saved and return on Resume.' : 'Combine as many sounds as you like.'}</span>
+        <span>{runtime.restoreRequired
+          ? 'Use Restore audio after returning from background or changing devices.'
+          : status === 'paused'
+            ? 'Changes are saved and return on Resume.'
+            : 'Combine as many sounds as you like.'}</span>
         <button
           type="button"
           onClick={() => dispatchAmbientCommand({ type: 'stop-all' })}
@@ -294,13 +344,29 @@ export default function V11SessionAtmosphere() {
           >
             <header>
               <div>
-                <span>{selectedLayer.enabled ? runtime.soloId === selectedId ? 'Solo layer' : selectedLayer.volume === 0 ? 'Muted layer' : 'Playing layer' : 'Available layer'}</span>
+                <span>{selectedRuntime?.playbackState === 'error'
+                  ? 'Layer unavailable'
+                  : selectedRuntime?.playbackState === 'loading'
+                    ? 'Loading layer'
+                    : selectedRuntime?.playbackState === 'buffering'
+                      ? 'Buffering layer'
+                      : selectedLayer.enabled
+                        ? runtime.soloId === selectedId
+                          ? 'Solo layer'
+                          : selectedLayer.volume === 0
+                            ? 'Muted layer'
+                            : status === 'running'
+                              ? 'Playing layer'
+                              : 'Paused layer'
+                        : 'Available layer'}</span>
                 <h3 id="ev-atmosphere-sheet-title">{ambientCatalog[selectedId].name}</h3>
               </div>
               <button type="button" onClick={() => setSelectedId(null)} aria-label="Close atmosphere controls">×</button>
             </header>
 
-            <p>{ambientShortDescriptions[selectedId]} Changes apply instantly without restarting the timer.</p>
+            <p>{selectedRuntime?.playbackState === 'error'
+              ? 'This recording could not load. Retry uses the primary source once, then the fallback source.'
+              : `${ambientShortDescriptions[selectedId]} Changes apply instantly without restarting the timer.`}</p>
 
             <PrecisionVolumeControl
               className="evAtmosphereSheetPrecision"
@@ -310,7 +376,15 @@ export default function V11SessionAtmosphere() {
             />
 
             <div className={`evAtmosphereSheetActions ${selectedLayer.enabled ? '' : 'available'}`}>
-              {selectedLayer.enabled ? (
+              {selectedRuntime?.playbackState === 'error' ? (
+                <button
+                  type="button"
+                  className="primary"
+                  onClick={() => dispatchAmbientCommand({ type: 'retry', id: selectedId })}
+                >
+                  Retry sound
+                </button>
+              ) : selectedLayer.enabled ? (
                 <>
                   <button type="button" onClick={toggleMute}>
                     {selectedLayer.volume === 0 ? 'Restore volume' : 'Mute'}
