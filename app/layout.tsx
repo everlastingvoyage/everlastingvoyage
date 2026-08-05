@@ -6,6 +6,7 @@ import './v10-polish.css';
 import './v10-saved-spaces.css';
 import './v10-product-flow.css';
 import './v10-iphone-fixes.css';
+import './v10-3-polish.css';
 import HumanoidSwap from './HumanoidSwap';
 import SignalChamberPolish from './SignalChamberPolish';
 import SignalChamberBlend from './SignalChamberBlend';
@@ -13,6 +14,7 @@ import IOSAudioReliability from './IOSAudioReliability';
 import V10VoyageEngine from './V10VoyageEngine';
 import V10SessionPolish from './V10SessionPolish';
 import V10SavedSpaces from './V10SavedSpaces';
+import V10Notes from './V10Notes';
 import EntranceGate from './EntranceGate';
 import V10ProductFlow from './V10ProductFlow';
 import FrequencyPowerDetails from './FrequencyPowerDetails';
@@ -47,6 +49,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <V10VoyageEngine />
         <V10SessionPolish />
         <V10SavedSpaces />
+        <V10Notes />
         <V10ProductFlow />
         <FrequencyPowerDetails />
         <V10SessionUtilities />
