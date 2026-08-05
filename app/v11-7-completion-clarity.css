@@ -1,0 +1,317 @@
+/* V11.7 — Completion clarity, safe positioning and compact preservation actions. */
+
+.v10SessionOverlay.completed {
+  scroll-padding-top: calc(92px + env(safe-area-inset-top, 0px));
+}
+
+.v10SessionOverlay.completed .v10SessionHeader {
+  min-height: 82px;
+  padding-top: max(18px, env(safe-area-inset-top, 0px));
+  background: linear-gradient(180deg, rgba(2, 7, 15, 0.98) 0%, rgba(2, 7, 15, 0.84) 72%, transparent 100%);
+}
+
+.v10Completion.evCompletionClear {
+  width: min(920px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: clamp(26px, 4vw, 52px) 0 calc(86px + env(safe-area-inset-bottom, 0px));
+  scroll-margin-top: calc(92px + env(safe-area-inset-top, 0px));
+  text-align: center;
+}
+
+.v10Completion.evCompletionClear > .v10SessionEyebrow {
+  margin: 0 0 12px;
+  color: rgb(var(--session-rgb, 139, 122, 255));
+  font-size: 0.8rem;
+  letter-spacing: 0.22em;
+}
+
+.v10Completion.evCompletionClear > h2 {
+  margin: 0;
+  font-size: clamp(3rem, 8vw, 5.6rem);
+  line-height: 0.95;
+  letter-spacing: -0.06em;
+}
+
+.v10Completion.evCompletionClear .v10CompletionSummary {
+  margin: 18px 0 0;
+  color: #c4d2e2;
+  font-size: clamp(1rem, 2.4vw, 1.2rem);
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+.evCompletionMessage {
+  margin: 9px 0 30px;
+  color: #8598ae;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.v10Completion.evCompletionClear .v10CompletionIntention,
+.v10Completion.evCompletionClear .v10CompletionThoughts {
+  width: min(760px, 100%);
+}
+
+.v10Completion.evCompletionClear .v10CompletionThoughts {
+  min-height: 0 !important;
+  margin-top: 18px;
+  padding: 20px 24px !important;
+  text-align: left;
+}
+
+.v10Completion.evCompletionClear .v10CompletionThoughts > span {
+  margin-bottom: 8px !important;
+}
+
+.v10Completion.evCompletionClear .v10CompletionThoughts p {
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 8px 0 !important;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.v10Completion.evCompletionClear .v10CompletionActions {
+  width: min(760px, 100%);
+  margin-top: 28px;
+  gap: 12px;
+}
+
+.v10CompletionActions .evCompletionRepeat,
+.v10CompletionActions .evCompletionChoose {
+  min-height: 58px;
+  font-size: 1rem;
+}
+
+.evCompletionPreserve {
+  margin-top: 10px !important;
+  padding: 22px !important;
+  display: block !important;
+  border-radius: 26px !important;
+  text-align: left;
+  background:
+    radial-gradient(circle at 96% 0%, rgba(101, 205, 255, 0.07), transparent 31%),
+    linear-gradient(145deg, rgba(8, 21, 40, 0.9), rgba(3, 11, 26, 0.97)) !important;
+}
+
+.evCompletionPreserveCopy {
+  display: grid !important;
+  grid-template-columns: 42px minmax(0, 1fr) !important;
+  gap: 14px !important;
+  align-items: center !important;
+  margin-bottom: 18px;
+}
+
+.evCompletionPreserveIcon {
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 14px !important;
+}
+
+.evCompletionPreserveCopy p {
+  margin: 0 0 5px !important;
+  font-size: 0.72rem !important;
+}
+
+.evCompletionPreserveCopy strong {
+  margin: 0 !important;
+  color: #eff6ff !important;
+  font-size: 1rem !important;
+  line-height: 1.4;
+}
+
+.evCompletionPreserveCopy small {
+  display: none !important;
+}
+
+.evCompletionPreserveActions {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 10px !important;
+}
+
+.evCompletionPreserveActions > div {
+  display: block !important;
+  width: 100%;
+}
+
+.evCompletionPreserveActions button,
+.evCompletionPreserveActions .evSaveNotesButton,
+.evCompletionPreserveActions .evCopyNotesButton,
+.evCompletionPreserveActions .evSaveSpaceCompletionButton {
+  position: relative;
+  display: block !important;
+  width: 100% !important;
+  min-height: 78px !important;
+  margin: 0 !important;
+  padding: 15px 42px 15px 68px !important;
+  overflow: hidden;
+  border: 1px solid rgba(126, 174, 216, 0.22) !important;
+  border-radius: 19px !important;
+  color: #edf5ff !important;
+  background: linear-gradient(180deg, rgba(13, 31, 53, 0.94), rgba(5, 15, 31, 0.98)) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035) !important;
+  font-size: 1rem !important;
+  font-weight: 820 !important;
+  line-height: 1.25 !important;
+  text-align: left !important;
+  white-space: normal !important;
+}
+
+.evCompletionPreserveActions button::before {
+  content: attr(data-completion-icon);
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  transform: translateY(-50%);
+  border: 1px solid rgba(128, 211, 255, 0.25);
+  border-radius: 13px;
+  color: #8bdfff;
+  background: rgba(76, 188, 246, 0.07);
+  font-size: 1rem;
+}
+
+.evCompletionPreserveActions button::after {
+  content: attr(data-completion-description);
+  position: absolute;
+  left: 68px;
+  right: 30px;
+  top: 43px;
+  overflow: hidden;
+  color: #8094aa;
+  font-size: 0.82rem;
+  font-weight: 520;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.evCompletionPreserveActions button:hover,
+.evCompletionPreserveActions button:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(128, 211, 255, 0.42) !important;
+  background: linear-gradient(180deg, rgba(17, 40, 67, 0.98), rgba(7, 19, 38, 0.99)) !important;
+}
+
+.evCompletionPreserveActions button.is-saved,
+.evCompletionPreserveActions button.is-copied,
+.evCompletionPreserveActions button:disabled {
+  color: #bff3d8 !important;
+  border-color: rgba(96, 218, 162, 0.35) !important;
+  background: linear-gradient(180deg, rgba(19, 53, 47, 0.9), rgba(5, 25, 25, 0.98)) !important;
+  opacity: 1 !important;
+}
+
+.evCompletionPreserveActions button.is-saved::before,
+.evCompletionPreserveActions button.is-copied::before,
+.evCompletionPreserveActions button:disabled::before {
+  color: #95ecc1;
+  border-color: rgba(96, 218, 162, 0.3);
+  background: rgba(96, 218, 162, 0.08);
+}
+
+.v10CompletionActions .evCompletionReturn {
+  width: min(320px, 100%) !important;
+  min-height: 54px !important;
+  margin: 8px auto 0 !important;
+  padding: 20px 12px 0 !important;
+  border-top: 1px solid rgba(130, 167, 201, 0.14) !important;
+  border-radius: 0 !important;
+  color: #8496aa !important;
+  font-size: 0.92rem !important;
+}
+
+.v10CompletionActions .evCompletionReturn:hover {
+  color: #c3d2e1 !important;
+}
+
+@media (max-width: 760px) {
+  .v10SessionOverlay.completed .v10SessionHeader {
+    min-height: 76px;
+    padding: max(16px, env(safe-area-inset-top, 0px)) 24px 14px;
+  }
+
+  .v10Completion.evCompletionClear {
+    width: min(100% - 28px, 680px);
+    padding-top: 26px !important;
+    padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .v10Completion.evCompletionClear > h2 {
+    font-size: clamp(3.1rem, 15vw, 4.5rem);
+  }
+
+  .v10Completion.evCompletionClear .v10CompletionSummary {
+    font-size: 1rem;
+  }
+
+  .evCompletionMessage {
+    margin-bottom: 24px;
+  }
+
+  .v10Completion.evCompletionClear .v10CompletionThoughts {
+    padding: 18px 20px !important;
+    border-radius: 24px;
+  }
+
+  .v10Completion.evCompletionClear .v10CompletionActions {
+    margin-top: 24px;
+  }
+
+  .evCompletionPreserve {
+    padding: 20px !important;
+  }
+
+  .evCompletionPreserveActions button,
+  .evCompletionPreserveActions .evSaveNotesButton,
+  .evCompletionPreserveActions .evCopyNotesButton,
+  .evCompletionPreserveActions .evSaveSpaceCompletionButton {
+    min-height: 80px !important;
+    padding-right: 24px !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .v10Completion.evCompletionClear {
+    width: calc(100% - 22px);
+  }
+
+  .evCompletionPreserve {
+    padding: 16px !important;
+  }
+
+  .evCompletionPreserveCopy {
+    grid-template-columns: 38px minmax(0, 1fr) !important;
+    gap: 11px !important;
+  }
+
+  .evCompletionPreserveIcon {
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  .evCompletionPreserveActions button,
+  .evCompletionPreserveActions .evSaveNotesButton,
+  .evCompletionPreserveActions .evCopyNotesButton,
+  .evCompletionPreserveActions .evSaveSpaceCompletionButton {
+    min-height: 78px !important;
+    padding-left: 62px !important;
+    font-size: 0.96rem !important;
+  }
+
+  .evCompletionPreserveActions button::before {
+    left: 12px;
+    width: 36px;
+    height: 36px;
+  }
+
+  .evCompletionPreserveActions button::after {
+    left: 62px;
+    right: 18px;
+    font-size: 0.78rem;
+  }
+}
