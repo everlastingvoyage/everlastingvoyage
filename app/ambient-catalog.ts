@@ -42,7 +42,7 @@ export type AmbientDefinition = {
   tags: readonly string[];
 };
 
-export const ambientCatalog = {
+export const ambientCatalog: Record<AmbientId, AmbientDefinition> = {
   rain: {
     id: 'rain',
     name: 'Soft Rain',
@@ -271,7 +271,7 @@ export const ambientCatalog = {
     icon: 'night',
     tags: ['sleep', 'reflection', 'calm']
   }
-} satisfies Record<AmbientId, AmbientDefinition>;
+};
 
 export function isAmbientId(value: string | null | undefined): value is AmbientId {
   return Boolean(value && ambientIds.includes(value as AmbientId));
