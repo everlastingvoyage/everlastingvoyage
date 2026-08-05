@@ -1,3 +1,4 @@
+import './ambient-audio-v11-9';
 import type { AmbientId } from './ambient-catalog';
 
 export const playableAmbientIds = [
@@ -40,8 +41,8 @@ export const ambientShortDescriptions: Record<PlayableAmbientId, string> = {
   'brown-noise': 'Deep, soft masking.',
   'pink-noise': 'Balanced, natural texture.',
   rain: 'Real steady rainfall recording.',
-  ocean: 'Clean waves arriving and retreating.',
-  birds: 'Distant coastal birds over open air.',
+  ocean: 'Natural shoreline waves and water movement.',
+  birds: 'Natural woodland birdsong on a mild morning.',
   nature: 'Real stereo woodland ambience.',
   storm: 'Real rain and thunder recording.'
 };

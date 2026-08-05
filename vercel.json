@@ -10,20 +10,20 @@
       "destination": "https://upload.wikimedia.org/wikipedia/commons/0/0e/Rain_%281%29.ogg"
     },
     {
-      "source": "/audio/field/ocean.mp3",
-      "destination": "https://bigsoundbank.com/UPLOAD/mp3/1446.mp3"
+      "source": "/audio/field/ocean-v2.mp3",
+      "destination": "https://upload.wikimedia.org/wikipedia/commons/transcoded/1/1f/Waves.ogg/Waves.ogg.mp3"
     },
     {
-      "source": "/audio/field/ocean.ogg",
-      "destination": "https://bigsoundbank.com/UPLOAD/mp3/0266.mp3"
+      "source": "/audio/field/ocean-v2.ogg",
+      "destination": "https://upload.wikimedia.org/wikipedia/commons/1/1f/Waves.ogg"
     },
     {
-      "source": "/audio/field/birds.mp3",
-      "destination": "https://bigsoundbank.com/UPLOAD/mp3/0267.mp3"
+      "source": "/audio/field/birds-v2.mp3",
+      "destination": "https://upload.wikimedia.org/wikipedia/commons/transcoded/7/75/Birdsong_mild_sunny_day.ogg/Birdsong_mild_sunny_day.ogg.mp3"
     },
     {
-      "source": "/audio/field/birds.ogg",
-      "destination": "https://upload.wikimedia.org/wikipedia/commons/4/43/Gull_1.ogg"
+      "source": "/audio/field/birds-v2.ogg",
+      "destination": "https://upload.wikimedia.org/wikipedia/commons/7/75/Birdsong_mild_sunny_day.ogg"
     },
     {
       "source": "/audio/field/nature.mp3",
