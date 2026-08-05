@@ -1,0 +1,11 @@
+/* V12.0.1 — Desktop technical footer spacing. */
+
+@media (min-width: 1100px) {
+  .v10SessionOverlay:not(.completed) .v10SessionFooter {
+    margin: 20px auto 0 !important;
+    padding: 10px 0 36px !important;
+    gap: 10px 22px !important;
+    position: relative !important;
+    z-index: 1;
+  }
+}
