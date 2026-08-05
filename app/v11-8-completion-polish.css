@@ -1,0 +1,434 @@
+/* V11.8 — Completion centering, clean header and differentiated preservation rows. */
+
+/* Completion owns a single predictable axis and does not inherit browser scroll anchoring. */
+.v10SessionOverlay.completed,
+.v10SessionOverlay.completed .v10Completion,
+.v10SessionOverlay.completed .v10CompletionActions,
+.v10SessionOverlay.completed .evCompletionPreserve {
+  overflow-anchor: none;
+}
+
+/* Remove the broad sticky shade that visually covered the success heading. */
+.v10SessionOverlay.completed .v10SessionHeader {
+  min-height: 82px !important;
+  padding-top: max(18px, env(safe-area-inset-top, 0px)) !important;
+  background: transparent !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+.v10SessionOverlay.completed .v10SessionHeader::before,
+.v10SessionOverlay.completed .v10SessionHeader::after {
+  content: none !important;
+  display: none !important;
+}
+
+.v10Completion.evCompletionPolished {
+  align-self: start !important;
+  width: min(720px, calc(100% - 40px)) !important;
+  max-width: 720px !important;
+  margin: 0 auto !important;
+  padding: clamp(34px, 5vw, 60px) 20px calc(104px + env(safe-area-inset-bottom, 0px)) !important;
+  text-align: center !important;
+}
+
+.v10Completion.evCompletionPolished > .v10SessionEyebrow {
+  margin: 0 0 10px !important;
+  color: rgb(var(--session-rgb, 139, 122, 255)) !important;
+  font-size: clamp(0.81rem, 1.8vw, 0.9rem) !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.21em !important;
+  text-align: center !important;
+}
+
+.v10Completion.evCompletionPolished > h2 {
+  margin: 0 auto !important;
+  max-width: 12ch !important;
+  color: #f7f9ff !important;
+  font-size: clamp(2.55rem, 8vw, 4.35rem) !important;
+  line-height: 0.98 !important;
+  letter-spacing: -0.055em !important;
+  text-align: center !important;
+}
+
+.v10Completion.evCompletionPolished .v10CompletionSummary {
+  margin: 16px auto 0 !important;
+  color: #c4d2e2 !important;
+  font-size: clamp(1rem, 2.5vw, 1.08rem) !important;
+  font-weight: 650 !important;
+  line-height: 1.45 !important;
+  text-align: center !important;
+}
+
+.v10Completion.evCompletionPolished .evCompletionMessage {
+  margin: 8px auto 26px !important;
+  color: #8799ad !important;
+  font-size: clamp(1rem, 2.4vw, 1.08rem) !important;
+  line-height: 1.55 !important;
+  text-align: center !important;
+}
+
+/* Every completion block shares the same centered width. */
+.v10Completion.evCompletionPolished .v10CompletionIntention,
+.v10Completion.evCompletionPolished .v10CompletionThoughts,
+.v10Completion.evCompletionPolished .v10CompletionActions,
+.v10Completion.evCompletionPolished .evCompletionPreserve {
+  width: 100% !important;
+  max-width: 680px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* Captured thoughts grows only as much as its content requires. */
+.v10Completion.evCompletionPolished .v10CompletionThoughts {
+  min-height: 0 !important;
+  height: auto !important;
+  margin-top: 18px !important;
+  padding: 16px 18px !important;
+  display: grid !important;
+  row-gap: 8px !important;
+  border-radius: 22px !important;
+  text-align: center !important;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(var(--session-rgb, 139, 122, 255), 0.08), transparent 54%),
+    linear-gradient(145deg, rgba(8, 18, 37, 0.88), rgba(2, 8, 20, 0.94)) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.v10Completion.evCompletionPolished .v10CompletionThoughts > span {
+  margin: 0 !important;
+  color: rgb(var(--session-rgb, 139, 122, 255)) !important;
+  font-size: 0.8rem !important;
+  line-height: 1.35 !important;
+  text-align: center !important;
+}
+
+.v10Completion.evCompletionPolished .v10CompletionThoughts p {
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 8px 4px !important;
+  color: #d0d9e6 !important;
+  font-size: 1.04rem !important;
+  line-height: 1.5 !important;
+  overflow-wrap: anywhere;
+  text-align: center !important;
+}
+
+.v10Completion.evCompletionPolished .v10CompletionThoughts p + p {
+  border-top: 1px solid rgba(139, 125, 255, 0.13) !important;
+}
+
+/* Main decisions stay simple: one primary action, one outlined secondary. */
+.v10Completion.evCompletionPolished .v10CompletionActions {
+  margin-top: 24px !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+  align-items: stretch !important;
+}
+
+.v10Completion.evCompletionPolished .evCompletionRepeat,
+.v10Completion.evCompletionPolished .evCompletionChoose {
+  width: 100% !important;
+  min-height: 62px !important;
+  margin: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 0 22px !important;
+  font-size: 1.04rem !important;
+  line-height: 1.2 !important;
+  text-align: center !important;
+}
+
+.v10Completion.evCompletionPolished .evCompletionChoose {
+  color: #edf5ff !important;
+  border-color: rgba(111, 174, 224, 0.34) !important;
+  background: linear-gradient(180deg, rgba(11, 28, 50, 0.94), rgba(4, 13, 28, 0.98)) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035) !important;
+}
+
+/* Keep-this-voyage is a quiet utility group, not another primary CTA. */
+.v10Completion.evCompletionPolished .evCompletionPreserve {
+  grid-column: 1 / -1 !important;
+  margin-top: 10px !important;
+  padding: 22px !important;
+  border: 1px solid rgba(112, 184, 231, 0.19) !important;
+  border-radius: 27px !important;
+  text-align: center !important;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(101, 205, 255, 0.065), transparent 39%),
+    linear-gradient(145deg, rgba(8, 21, 40, 0.9), rgba(3, 11, 26, 0.97)) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035), 0 20px 55px rgba(0, 0, 0, 0.16) !important;
+}
+
+.v10Completion.evCompletionPolished .evCompletionPreserveCopy {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 13px !important;
+  margin: 0 auto 20px !important;
+  text-align: left !important;
+}
+
+.v10Completion.evCompletionPolished .evCompletionPreserveIcon {
+  flex: 0 0 auto !important;
+  width: 44px !important;
+  height: 44px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 15px !important;
+}
+
+.v10Completion.evCompletionPolished .evCompletionPreserveCopy p {
+  margin: 0 0 4px !important;
+  color: #7bdcff !important;
+  font-size: 0.76rem !important;
+  line-height: 1.25 !important;
+  text-align: left !important;
+}
+
+.v10Completion.evCompletionPolished .evCompletionPreserveCopy strong {
+  display: block !important;
+  margin: 0 !important;
+  color: #eff6ff !important;
+  font-size: clamp(1rem, 2.6vw, 1.12rem) !important;
+  line-height: 1.35 !important;
+  text-align: left !important;
+}
+
+.v10Completion.evCompletionPolished .evCompletionPreserveActions {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 13px !important;
+}
+
+/* Each portal root becomes the stable visible row; its real React button remains the click layer. */
+.evCompletionActionRoot {
+  --action-rgb: 103, 217, 255;
+  position: relative !important;
+  width: 100% !important;
+  min-height: 92px !important;
+  border: 1px solid rgba(var(--action-rgb), 0.3) !important;
+  border-radius: 24px !important;
+  overflow: hidden !important;
+  background:
+    radial-gradient(circle at 0% 50%, rgba(var(--action-rgb), 0.09), transparent 42%),
+    linear-gradient(180deg, rgba(12, 30, 52, 0.96), rgba(4, 14, 30, 0.99)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 13px 32px rgba(0, 0, 0, 0.12),
+    0 0 24px rgba(var(--action-rgb), 0.035) !important;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease !important;
+}
+
+.evCompletionActionRoot.is-setup { --action-rgb: 103, 217, 255; }
+.evCompletionActionRoot.is-thoughts { --action-rgb: 126, 240, 193; }
+.evCompletionActionRoot.is-copy { --action-rgb: 140, 166, 255; }
+.evCompletionActionRoot.is-complete { --action-rgb: 103, 224, 165; }
+
+.evCompletionActionRoot:hover,
+.evCompletionActionRoot:focus-within {
+  transform: translateY(-1px) !important;
+  border-color: rgba(var(--action-rgb), 0.52) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    0 16px 38px rgba(0, 0, 0, 0.17),
+    0 0 30px rgba(var(--action-rgb), 0.08) !important;
+}
+
+.evCompletionActionHitArea,
+.evCompletionPreserveActions .evCompletionActionHitArea {
+  position: absolute !important;
+  z-index: 3 !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: inherit !important;
+  opacity: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  cursor: pointer !important;
+}
+
+.evCompletionActionHitArea:focus-visible {
+  opacity: 0 !important;
+  outline: none !important;
+}
+
+.evCompletionActionPresentation {
+  position: relative !important;
+  z-index: 1 !important;
+  min-height: 92px !important;
+  padding: 16px 18px !important;
+  display: grid !important;
+  grid-template-columns: 52px minmax(0, 1fr) 20px !important;
+  align-items: center !important;
+  column-gap: 14px !important;
+  color: #eef5ff !important;
+  pointer-events: none !important;
+}
+
+.evCompletionActionIcon {
+  width: 52px !important;
+  height: 52px !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 1px solid rgba(var(--action-rgb), 0.36) !important;
+  border-radius: 17px !important;
+  color: rgb(var(--action-rgb)) !important;
+  background: rgba(var(--action-rgb), 0.08) !important;
+  box-shadow: 0 0 23px rgba(var(--action-rgb), 0.055) !important;
+  font-size: 1.08rem !important;
+  font-weight: 800 !important;
+}
+
+.evCompletionActionCopy {
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  text-align: left !important;
+}
+
+.evCompletionActionCopy strong {
+  display: block !important;
+  margin: 0 !important;
+  color: #f1f6ff !important;
+  font-size: 1.13rem !important;
+  font-weight: 780 !important;
+  line-height: 1.15 !important;
+  overflow-wrap: anywhere;
+}
+
+.evCompletionActionCopy small {
+  display: block !important;
+  margin: 0 !important;
+  color: #94a6ba !important;
+  font-size: 0.94rem !important;
+  font-weight: 520 !important;
+  line-height: 1.35 !important;
+  overflow-wrap: anywhere;
+}
+
+.evCompletionActionChevron {
+  color: rgba(var(--action-rgb), 0.9) !important;
+  font-size: 1.55rem !important;
+  font-weight: 500 !important;
+  line-height: 1 !important;
+  text-align: center !important;
+}
+
+/* Disable the old pseudo-element labels from V11.7. */
+.evCompletionActionHitArea::before,
+.evCompletionActionHitArea::after {
+  content: none !important;
+  display: none !important;
+}
+
+.v10Completion.evCompletionPolished .evCompletionReturn {
+  grid-column: 1 / -1 !important;
+  justify-self: center !important;
+  width: min(320px, 100%) !important;
+  min-height: 50px !important;
+  margin: 14px auto 0 !important;
+  padding: 22px 12px calc(24px + env(safe-area-inset-bottom, 0px)) !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 0 !important;
+  border-top: 1px solid rgba(130, 167, 201, 0.14) !important;
+  border-radius: 0 !important;
+  color: #91a2b5 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 0.96rem !important;
+  line-height: 1.25 !important;
+  text-align: center !important;
+}
+
+.v10Completion.evCompletionPolished .evCompletionReturn:hover,
+.v10Completion.evCompletionPolished .evCompletionReturn:focus-visible {
+  color: #d1dcea !important;
+  transform: none !important;
+}
+
+@media (max-width: 760px) {
+  .v10SessionOverlay.completed .v10SessionHeader {
+    min-height: 74px !important;
+    padding: max(16px, env(safe-area-inset-top, 0px)) 24px 12px !important;
+  }
+
+  .v10Completion.evCompletionPolished {
+    width: min(100%, 720px) !important;
+    padding: 30px 16px calc(116px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .v10Completion.evCompletionPolished > h2 {
+    font-size: clamp(2.7rem, 13vw, 4rem) !important;
+  }
+
+  .v10Completion.evCompletionPolished .v10CompletionActions {
+    grid-template-columns: 1fr !important;
+    gap: 13px !important;
+  }
+
+  .v10Completion.evCompletionPolished .evCompletionRepeat,
+  .v10Completion.evCompletionPolished .evCompletionChoose,
+  .v10Completion.evCompletionPolished .evCompletionPreserve,
+  .v10Completion.evCompletionPolished .evCompletionReturn {
+    grid-column: 1 !important;
+  }
+
+  .v10Completion.evCompletionPolished .evCompletionPreserve {
+    padding: 20px !important;
+  }
+
+  .evCompletionActionPresentation {
+    min-height: 94px !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .v10Completion.evCompletionPolished {
+    padding-inline: 12px !important;
+  }
+
+  .v10Completion.evCompletionPolished .evCompletionPreserve {
+    padding: 16px !important;
+  }
+
+  .v10Completion.evCompletionPolished .evCompletionPreserveCopy {
+    gap: 10px !important;
+  }
+
+  .v10Completion.evCompletionPolished .evCompletionPreserveIcon {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .evCompletionActionPresentation {
+    grid-template-columns: 46px minmax(0, 1fr) 16px !important;
+    column-gap: 11px !important;
+    padding: 14px !important;
+  }
+
+  .evCompletionActionIcon {
+    width: 46px !important;
+    height: 46px !important;
+    border-radius: 15px !important;
+  }
+
+  .evCompletionActionCopy strong {
+    font-size: 1.04rem !important;
+  }
+
+  .evCompletionActionCopy small {
+    font-size: 0.87rem !important;
+  }
+}
