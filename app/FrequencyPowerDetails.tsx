@@ -11,6 +11,7 @@ import {
 } from './frequency-preview-audio';
 
 type StateId = 'alpha' | 'gamma' | 'theta' | 'delta' | 'abundance';
+type PopupPhase = 'idle' | 'open' | 'closing';
 
 type FrequencyPower = {
   id: StateId;
@@ -118,16 +119,48 @@ function getNodeId(element: Element | null): StateId | null {
   return ids.find((id) => element.classList.contains(id)) ?? null;
 }
 
+function nextPaint() {
+  return new Promise<void>((resolve) => {
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve()));
+  });
+}
+
+function waitForBackdropTransition(element: HTMLElement | null, timeoutMs = 430) {
+  return new Promise<void>((resolve) => {
+    if (!element) {
+      window.setTimeout(resolve, timeoutMs);
+      return;
+    }
+
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      element.removeEventListener('transitionend', handleTransitionEnd);
+      window.clearTimeout(fallback);
+      resolve();
+    };
+    const handleTransitionEnd = (event: TransitionEvent) => {
+      if (event.target === element && event.propertyName === 'opacity') finish();
+    };
+    const fallback = window.setTimeout(finish, timeoutMs);
+    element.addEventListener('transitionend', handleTransitionEnd);
+  });
+}
+
 export default function FrequencyPowerDetails() {
   const pathname = usePathname();
   const enabled = pathname === '/voyage';
   const [activeId, setActiveId] = useState<StateId | null>(null);
-  const [closing, setClosing] = useState(false);
+  const [phase, setPhase] = useState<PopupPhase>('idle');
   const [previewStatus, setPreviewStatus] = useState<'idle' | 'starting' | 'playing'>('idle');
   const [previewProgress, setPreviewProgress] = useState(0);
   const previewHandleRef = useRef<FrequencyPreviewHandle | null>(null);
   const previewIntervalRef = useRef<number | undefined>(undefined);
   const previewRequestRef = useRef(0);
+  const backdropRef = useRef<HTMLDivElement | null>(null);
+  const closeRunRef = useRef(0);
+  const cleanupTimerRef = useRef<number | undefined>(undefined);
   const active = useMemo(() => activeId ? powers[activeId] : null, [activeId]);
 
   const stopPreview = useCallback(() => {
@@ -141,24 +174,77 @@ export default function FrequencyPowerDetails() {
     setPreviewProgress(0);
   }, []);
 
+  const removeLegacyGhosts = useCallback(() => {
+    document.querySelectorAll<HTMLElement>('#library .signalPopupExitGhost').forEach((ghost) => ghost.remove());
+  }, []);
+
+  const clearChamberExitState = useCallback(() => {
+    const library = document.querySelector<HTMLElement>('#library');
+    const stage = library?.querySelector<HTMLElement>('.signalStage');
+    removeLegacyGhosts();
+
+    [library, stage].forEach((element) => {
+      if (!element) return;
+      delete element.dataset.popupPhase;
+      delete element.dataset.signalState;
+      delete element.dataset.enterState;
+      delete element.dataset.exitState;
+      delete element.dataset.restState;
+    });
+
+    window.dispatchEvent(new CustomEvent('ev:frequency-popup-cleanup'));
+  }, [removeLegacyGhosts]);
+
+  useEffect(() => {
+    const library = document.querySelector<HTMLElement>('#library');
+    const stage = library?.querySelector<HTMLElement>('.signalStage');
+    const isOpen = phase !== 'idle' || Boolean(active);
+
+    document.body.classList.toggle('ev-frequency-power-open', isOpen);
+    document.body.classList.toggle('ev-frequency-power-closing', phase === 'closing');
+
+    [library, stage].forEach((element) => {
+      if (!element) return;
+      if (phase === 'idle') delete element.dataset.popupPhase;
+      else element.dataset.popupPhase = phase;
+    });
+  }, [active, phase]);
+
+  useEffect(() => () => {
+    document.body.classList.remove('ev-frequency-power-open', 'ev-frequency-power-closing');
+    if (cleanupTimerRef.current) window.clearTimeout(cleanupTimerRef.current);
+    clearChamberExitState();
+  }, [clearChamberExitState]);
+
   useEffect(() => {
     if (!enabled) return;
     const handleSignalClick = (event: MouseEvent) => {
       const node = (event.target as Element | null)?.closest('.signalNode') ?? null;
       const id = getNodeId(node);
-      if (!id) return;
+      if (!id || phase === 'closing') return;
+
+      closeRunRef.current += 1;
+      if (cleanupTimerRef.current) window.clearTimeout(cleanupTimerRef.current);
+      clearChamberExitState();
       stopPreview();
-      setClosing(false);
       setActiveId(id);
+      setPhase('open');
     };
     document.addEventListener('click', handleSignalClick, true);
     return () => document.removeEventListener('click', handleSignalClick, true);
-  }, [enabled, stopPreview]);
+  }, [clearChamberExitState, enabled, phase, stopPreview]);
 
   useEffect(() => {
-    document.body.classList.toggle('ev-frequency-power-open', Boolean(active));
-    return () => document.body.classList.remove('ev-frequency-power-open');
-  }, [active]);
+    if (phase !== 'closing') return;
+    const stage = document.querySelector<HTMLElement>('#library .signalStage');
+    if (!stage) return;
+
+    const removeGhosts = () => removeLegacyGhosts();
+    const observer = new MutationObserver(removeGhosts);
+    observer.observe(stage, { childList: true, subtree: true });
+    removeGhosts();
+    return () => observer.disconnect();
+  }, [phase, removeLegacyGhosts]);
 
   useEffect(() => {
     const handleVisibility = () => {
@@ -170,27 +256,39 @@ export default function FrequencyPowerDetails() {
 
   useEffect(() => () => stopPreview(), [stopPreview]);
 
-  const close = useCallback(() => {
-    if (!active || closing) return;
+  const completeLegacyExit = useCallback(async (selector: '.signalPopupClose' | '.signalPopupAction') => {
+    if (!active || phase === 'closing') return;
+
+    const runId = closeRunRef.current + 1;
+    closeRunRef.current = runId;
     stopPreview();
-    setClosing(true);
-    window.setTimeout(() => {
-      document.querySelector<HTMLButtonElement>('.signalPopupClose')?.click();
-      setActiveId(null);
-      setClosing(false);
-    }, 280);
-  }, [active, closing, stopPreview]);
+    setPhase('closing');
+
+    await nextPaint();
+    await waitForBackdropTransition(backdropRef.current);
+    if (closeRunRef.current !== runId) return;
+
+    document.querySelector<HTMLButtonElement>(selector)?.click();
+    removeLegacyGhosts();
+    setActiveId(null);
+
+    cleanupTimerRef.current = window.setTimeout(() => {
+      if (closeRunRef.current !== runId) return;
+      clearChamberExitState();
+      setPhase('idle');
+    }, 620);
+  }, [active, clearChamberExitState, phase, removeLegacyGhosts, stopPreview]);
+
+  const close = useCallback(() => {
+    void completeLegacyExit('.signalPopupClose');
+  }, [completeLegacyExit]);
 
   const applyState = useCallback(() => {
-    if (!active) return;
-    stopPreview();
-    document.querySelector<HTMLButtonElement>('.signalPopupAction')?.click();
-    setActiveId(null);
-    setClosing(false);
-  }, [active, stopPreview]);
+    void completeLegacyExit('.signalPopupAction');
+  }, [completeLegacyExit]);
 
   const togglePreview = useCallback(async () => {
-    if (!active) return;
+    if (!active || phase !== 'open') return;
     if (previewStatus !== 'idle') {
       stopPreview();
       return;
@@ -236,7 +334,7 @@ export default function FrequencyPowerDetails() {
       const elapsed = performance.now() - startedAt;
       setPreviewProgress(Math.min(100, (elapsed / handle.durationMs) * 100));
     }, 100);
-  }, [active, previewStatus, stopPreview]);
+  }, [active, phase, previewStatus, stopPreview]);
 
   useEffect(() => {
     if (!active) return;
@@ -253,14 +351,16 @@ export default function FrequencyPowerDetails() {
 
   return createPortal(
     <div
-      className={`evFrequencyPowerBackdrop ${active.id} ${closing ? 'closing' : ''}`}
+      ref={backdropRef}
+      className={`evFrequencyPowerBackdrop ${active.id} ${phase === 'closing' ? 'closing' : ''}`}
       role="presentation"
+      aria-busy={phase === 'closing'}
       onMouseDown={(event) => event.target === event.currentTarget && close()}
     >
       <article className={`evFrequencyPowerCard ${active.id}`} role="dialog" aria-modal="true" aria-labelledby="ev-frequency-power-title">
         <div className="evFrequencyPowerTop">
           <span>{active.frequency} · {active.hz}</span>
-          <button type="button" onClick={close} aria-label="Close frequency details">×</button>
+          <button type="button" onClick={close} aria-label="Close frequency details" disabled={phase === 'closing'}>×</button>
         </div>
 
         <div className="evFrequencyPowerHero">
@@ -303,6 +403,7 @@ export default function FrequencyPowerDetails() {
             onClick={togglePreview}
             aria-pressed={previewStatus === 'playing'}
             style={previewStyle}
+            disabled={phase === 'closing'}
           >
             <span aria-hidden="true">{previewStatus === 'playing' ? '■' : '▶'}</span>
             {previewStatus === 'starting'
@@ -311,7 +412,7 @@ export default function FrequencyPowerDetails() {
                 ? 'Stop preview'
                 : 'Preview signal · 10 sec'}
           </button>
-          <button type="button" className="evFrequencyPowerAction" onClick={applyState}>
+          <button type="button" className="evFrequencyPowerAction" onClick={applyState} disabled={phase === 'closing'}>
             {active.actionLabel} <span aria-hidden="true">→</span>
           </button>
         </div>
