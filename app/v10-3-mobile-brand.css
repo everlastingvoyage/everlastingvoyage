@@ -1,5 +1,294 @@
-/* V10.3 — focused mobile branding and selection-mark refinement */
+/* V10.3/V10.4 — landing and product branding refinement */
 
+/* ---------------------------------------------------------
+   TRUE ENTRANCE LANDING — MOBILE
+   Keep the infinity in the corner; make the wordmark the hero.
+   --------------------------------------------------------- */
+@media (max-width: 760px) {
+  .evEntranceHeader {
+    position: relative;
+    width: 100%;
+    min-height: clamp(148px, 43vw, 174px);
+    flex: 0 0 auto;
+    display: block;
+    padding: 0 18px !important;
+  }
+
+  .evEntranceBrand {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: clamp(148px, 43vw, 174px);
+    display: block;
+    margin: 0;
+  }
+
+  .evEntranceMark {
+    position: absolute;
+    top: clamp(15px, 4vw, 21px);
+    left: 0;
+    width: clamp(43px, 11.5vw, 51px);
+    height: auto;
+    margin: 0;
+    object-fit: contain;
+    filter:
+      drop-shadow(0 0 7px rgba(66, 137, 255, 0.48))
+      drop-shadow(0 0 14px rgba(40, 102, 255, 0.16));
+  }
+
+  .evEntranceWordmark {
+    position: absolute;
+    left: 50%;
+    top: 55%;
+    width: min(82vw, 348px);
+    max-width: calc(100vw - 28px);
+    height: auto;
+    margin: 0;
+    object-fit: contain;
+    transform: translate(-50%, -50%);
+    filter:
+      drop-shadow(0 0 8px rgba(255, 255, 255, 0.08))
+      drop-shadow(0 0 17px rgba(105, 124, 255, 0.11));
+  }
+
+  .evEntranceAbout {
+    display: none !important;
+  }
+
+  .evEntranceContent {
+    width: min(100% - 36px, 720px) !important;
+    flex: 1 0 auto;
+    align-self: auto !important;
+    padding: 0 0 26px !important;
+    transform: none !important;
+  }
+
+  .evEntranceContent > .eyebrow {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 370px) {
+  .evEntranceHeader,
+  .evEntranceBrand {
+    min-height: 140px;
+  }
+
+  .evEntranceHeader {
+    padding-inline: 14px !important;
+  }
+
+  .evEntranceMark {
+    top: 13px;
+    width: 41px;
+  }
+
+  .evEntranceWordmark {
+    top: 56%;
+    width: min(85vw, 305px);
+    max-width: calc(100vw - 22px);
+  }
+}
+
+/* ---------------------------------------------------------
+   TRUE ENTRANCE LANDING — DESKTOP
+   Infinity stays at the corner; wordmark is large and centered.
+   --------------------------------------------------------- */
+@media (min-width: 900px) {
+  .evEntranceHeader {
+    position: relative;
+    min-height: 112px;
+    display: block;
+    padding: 14px 0 2px !important;
+  }
+
+  .evEntranceBrand {
+    position: relative;
+    width: 100%;
+    height: 96px;
+    display: block;
+    margin: 0;
+  }
+
+  .evEntranceMark {
+    position: absolute;
+    left: 0;
+    top: 19px;
+    width: clamp(64px, 5.4vw, 82px);
+    height: auto;
+    margin: 0;
+    object-fit: contain;
+    filter:
+      drop-shadow(0 0 10px rgba(66, 137, 255, 0.48))
+      drop-shadow(0 0 22px rgba(40, 102, 255, 0.17));
+  }
+
+  .evEntranceWordmark {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: clamp(350px, 31vw, 480px);
+    height: auto;
+    margin: 0;
+    object-fit: contain;
+    transform: translate(-50%, -50%);
+    filter:
+      drop-shadow(0 0 10px rgba(255, 255, 255, 0.07))
+      drop-shadow(0 0 20px rgba(105, 124, 255, 0.12));
+  }
+
+  .evEntranceAbout {
+    position: absolute;
+    top: 30px;
+    right: 0;
+    margin: 0;
+  }
+
+  .evEntranceContent {
+    padding-top: 0 !important;
+    transform: translateY(-1.8vh) !important;
+  }
+}
+
+@media (min-width: 900px) and (max-height: 820px) {
+  .evEntranceHeader {
+    min-height: 96px;
+    padding-top: 8px !important;
+  }
+
+  .evEntranceBrand {
+    height: 84px;
+  }
+
+  .evEntranceMark {
+    top: 17px;
+    width: 66px;
+  }
+
+  .evEntranceWordmark {
+    width: clamp(320px, 28vw, 420px);
+  }
+
+  .evEntranceAbout {
+    top: 23px;
+  }
+
+  .evEntranceContent {
+    transform: translateY(-2.2vh) !important;
+  }
+}
+
+/* ---------------------------------------------------------
+   PRODUCT BUILDER — DESKTOP
+   Larger centered identity, compact header, builder moved upward.
+   --------------------------------------------------------- */
+@media (min-width: 900px) {
+  .ev-product-route .topbar {
+    position: relative;
+    z-index: 10;
+    min-height: 120px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-rows: 76px auto;
+    align-items: start;
+    padding-top: 16px;
+    padding-bottom: 6px;
+  }
+
+  .ev-product-route .brandLockup {
+    position: relative;
+    grid-column: 1 / -1;
+    grid-row: 1;
+    width: 100%;
+    height: 76px;
+    display: block;
+    margin: 0;
+  }
+
+  .ev-product-route .brandMark {
+    position: absolute;
+    left: 0;
+    top: 12px;
+    width: clamp(50px, 4.3vw, 64px);
+    height: auto;
+    margin: 0;
+    object-fit: contain;
+    filter:
+      drop-shadow(0 0 9px rgba(66, 137, 255, 0.46))
+      drop-shadow(0 0 18px rgba(40, 102, 255, 0.15));
+  }
+
+  .ev-product-route .brandWordmark {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: clamp(300px, 27vw, 410px);
+    max-width: calc(100vw - 330px);
+    height: auto;
+    margin: 0;
+    object-fit: contain;
+    transform: translate(-50%, -50%);
+    filter:
+      drop-shadow(0 0 9px rgba(255, 255, 255, 0.06))
+      drop-shadow(0 0 17px rgba(105, 124, 255, 0.1));
+  }
+
+  .ev-product-route .navLinks {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: center;
+    align-self: start;
+    margin: 0;
+  }
+
+  .ev-product-route .navCta {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+    align-self: start;
+    margin-top: 7px;
+  }
+
+  .ev-product-route .heroSection {
+    padding-top: 8px !important;
+    padding-bottom: 54px !important;
+  }
+}
+
+@media (min-width: 900px) and (max-height: 820px) {
+  .ev-product-route .topbar {
+    min-height: 106px;
+    grid-template-rows: 66px auto;
+    padding-top: 10px;
+    padding-bottom: 4px;
+  }
+
+  .ev-product-route .brandLockup {
+    height: 66px;
+  }
+
+  .ev-product-route .brandMark {
+    top: 9px;
+    width: 52px;
+  }
+
+  .ev-product-route .brandWordmark {
+    width: clamp(280px, 24vw, 360px);
+  }
+
+  .ev-product-route .navCta {
+    margin-top: 4px;
+  }
+
+  .ev-product-route .heroSection {
+    padding-top: 2px !important;
+  }
+}
+
+/* ---------------------------------------------------------
+   PRODUCT BUILDER — MOBILE
+   Keep the clean wordmark-only header already approved.
+   --------------------------------------------------------- */
 @media (max-width: 760px) {
   .ev-product-route .topbar {
     position: relative;
