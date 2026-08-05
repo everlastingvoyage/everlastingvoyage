@@ -1,0 +1,143 @@
+/* V12.1.2 — Complete Chamber Rectangle Removal
+   Root cause: blurred aura layers were clipped by the rectangular signalStage.
+   The stage is now visually empty; the only ambient light is a full-section
+   radial glow mounted outside the stage. */
+
+body.ev-product-route #library.evFrequencyChamber {
+  position: relative !important;
+  isolation: isolate !important;
+  overflow-x: clip !important;
+  overflow-y: visible !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  background:
+    radial-gradient(ellipse 72% 46% at 50% 58%, rgba(23, 91, 208, .10) 0%, rgba(11, 48, 119, .045) 42%, transparent 73%),
+    linear-gradient(180deg, #020817 0%, #031029 34%, #04122c 58%, #02091a 82%, #01040c 100%) !important;
+}
+
+/* Remove every old full-width overlay. The section background above is now
+   the single source of base colour. */
+body.ev-product-route #library.evFrequencyChamber::before,
+body.ev-product-route #library.evFrequencyChamber::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* Independent radial glow. It belongs to the section, not to signalStage, so
+   no rectangular parent can clip its blur. */
+body.ev-product-route #library.evFrequencyChamber .evChamberOpenGlow {
+  position: absolute !important;
+  z-index: 1 !important;
+  left: 50% !important;
+  top: 58% !important;
+  width: min(980px, 78vw) !important;
+  aspect-ratio: 1.35 !important;
+  transform: translate(-50%, -50%) !important;
+  pointer-events: none !important;
+  border: 0 !important;
+  outline: 0 !important;
+  border-radius: 50% !important;
+  background:
+    radial-gradient(
+      ellipse at center,
+      rgba(35, 123, 255, .23) 0%,
+      rgba(22, 91, 220, .13) 31%,
+      rgba(12, 52, 139, .055) 53%,
+      transparent 74%
+    ) !important;
+  filter: blur(18px) !important;
+  opacity: .95 !important;
+}
+
+/* Remove the old nested visual surfaces completely. */
+body.ev-product-route #library.evFrequencyChamber .signalExperience,
+body.ev-product-route #library.evFrequencyChamber .signalExperience.glassCard,
+body.ev-product-route #library.evFrequencyChamber .signalStage,
+body.ev-product-route #library.evFrequencyChamber .signalStage.popupOpen,
+body.ev-product-route #library.evFrequencyChamber .signalStage:has(.signalNode.active),
+body.ev-product-route #library.evFrequencyChamber .signalStage:has(.signalNode.alpha.active),
+body.ev-product-route #library.evFrequencyChamber .signalStage:has(.signalNode.gamma.active),
+body.ev-product-route #library.evFrequencyChamber .signalStage:has(.signalNode.theta.active),
+body.ev-product-route #library.evFrequencyChamber .signalStage:has(.signalNode.delta.active),
+body.ev-product-route #library.evFrequencyChamber .signalStage:has(.signalNode.abundance.active),
+body.ev-product-route #library.evFrequencyChamber .signalStage[data-rest-state],
+body.ev-product-route #library.evFrequencyChamber .signalStage[data-signal-state],
+body.ev-product-route #library.evFrequencyChamber .signalStage[data-enter-state],
+body.ev-product-route #library.evFrequencyChamber .signalStage[data-exit-state] {
+  background: none !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  outline: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  mask-image: none !important;
+  -webkit-mask-image: none !important;
+  clip-path: none !important;
+  overflow: visible !important;
+}
+
+body.ev-product-route #library.evFrequencyChamber .signalExperience::before,
+body.ev-product-route #library.evFrequencyChamber .signalExperience::after,
+body.ev-product-route #library.evFrequencyChamber .signalStage::before,
+body.ev-product-route #library.evFrequencyChamber .signalStage::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  mask-image: none !important;
+  -webkit-mask-image: none !important;
+}
+
+/* The previous hard rectangle came from blurred auras clipped by these
+   stage-sized wrappers. Keep links and particles, but never clip them. */
+body.ev-product-route #library.evFrequencyChamber .evChamberVisualLayer,
+body.ev-product-route #library.evFrequencyChamber .evChamberEnergyLinks,
+body.ev-product-route #library.evFrequencyChamber .evChamberParticles {
+  overflow: visible !important;
+  border: 0 !important;
+  outline: 0 !important;
+  border-radius: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+  mask-image: none !important;
+  -webkit-mask-image: none !important;
+  clip-path: none !important;
+}
+
+body.ev-product-route #library.evFrequencyChamber .evChamberAuras,
+body.ev-product-route #library.evFrequencyChamber .evChamberAura {
+  display: none !important;
+}
+
+body.ev-product-route #library.evFrequencyChamber .sectionIntro,
+body.ev-product-route #library.evFrequencyChamber .signalExperience,
+body.ev-product-route #library.evFrequencyChamber .evChamberTrustRow {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+body.ev-product-route #library.evFrequencyChamber .signalFigureAsset {
+  filter:
+    drop-shadow(0 0 24px rgba(38, 191, 255, .32))
+    drop-shadow(0 0 58px rgba(6, 76, 255, .27)) !important;
+}
+
+@media (max-width: 760px) {
+  body.ev-product-route #library.evFrequencyChamber {
+    background:
+      radial-gradient(ellipse 94% 42% at 50% 58%, rgba(23, 91, 208, .095), transparent 74%),
+      linear-gradient(180deg, #020817 0%, #031029 34%, #04122c 58%, #02091a 82%, #01040c 100%) !important;
+  }
+
+  body.ev-product-route #library.evFrequencyChamber .evChamberOpenGlow {
+    top: 57% !important;
+    width: min(760px, 118vw) !important;
+    filter: blur(14px) !important;
+    opacity: .82 !important;
+  }
+}
