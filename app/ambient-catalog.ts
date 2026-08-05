@@ -19,10 +19,9 @@ export const ambientIds = [
 
 export type AmbientId = (typeof ambientIds)[number];
 export type AmbientCategory = 'water' | 'nature' | 'weather' | 'place' | 'texture' | 'ritual';
-export type AmbientSourceType = 'sample' | 'procedural-noise' | 'procedural-atmosphere';
+export type AmbientSourceType = 'sample' | 'procedural-noise';
 export type AmbientAccess = 'free' | 'premium';
 export type NoiseColor = 'white' | 'brown' | 'pink';
-export type ProceduralAtmosphereKind = 'rain' | 'ocean' | 'birds' | 'nature' | 'storm';
 
 export type AmbientDefinition = {
   id: AmbientId;
@@ -34,23 +33,30 @@ export type AmbientDefinition = {
   access: AmbientAccess;
   defaultVolume: number;
   assetPath?: string;
+  fallbackAssetPath?: string;
+  sourcePage?: string;
+  sourceCredit?: string;
+  license?: 'public-domain' | 'cc0';
   noiseColor?: NoiseColor;
-  generator?: ProceduralAtmosphereKind;
   icon: string;
   tags: readonly string[];
 };
 
-export const ambientCatalog = {
+export const ambientCatalog: Record<AmbientId, AmbientDefinition> = {
   rain: {
     id: 'rain',
     name: 'Soft Rain',
     shortName: 'Rain',
-    description: 'A continuously generated stereo rain bed with no thunder or sudden peaks.',
+    description: 'A real field recording of steady rainfall with natural texture and variation.',
     category: 'water',
-    sourceType: 'procedural-atmosphere',
+    sourceType: 'sample',
     access: 'free',
     defaultVolume: 0.28,
-    generator: 'rain',
+    assetPath: '/audio/field/rain.mp3',
+    fallbackAssetPath: '/audio/field/rain.ogg',
+    sourcePage: 'https://commons.wikimedia.org/wiki/File:Rain_(1).ogg',
+    sourceCredit: 'Ezwa / PDSounds',
+    license: 'public-domain',
     icon: 'rain',
     tags: ['study', 'sleep', 'calm']
   },
@@ -58,12 +64,16 @@ export const ambientCatalog = {
     id: 'ocean',
     name: 'Distant Ocean',
     shortName: 'Ocean',
-    description: 'Slow, evolving surf with layered movement and no fixed recorded loop.',
+    description: 'A long real shoreline recording with spacious water movement and natural dynamics.',
     category: 'water',
-    sourceType: 'procedural-atmosphere',
+    sourceType: 'sample',
     access: 'premium',
     defaultVolume: 0.24,
-    generator: 'ocean',
+    assetPath: '/audio/field/ocean.mp3',
+    fallbackAssetPath: '/audio/field/ocean.ogg',
+    sourcePage: 'https://commons.wikimedia.org/wiki/File:Waves.ogg',
+    sourceCredit: 'Dsw4',
+    license: 'public-domain',
     icon: 'ocean',
     tags: ['rest', 'meditation', 'reset']
   },
@@ -71,12 +81,16 @@ export const ambientCatalog = {
     id: 'birds',
     name: 'Morning Birds',
     shortName: 'Birds',
-    description: 'Restrained generative birdsong with randomized timing, pitch and stereo position.',
+    description: 'An authentic outdoor recording of birds chirping in a garden in Abuja.',
     category: 'nature',
-    sourceType: 'procedural-atmosphere',
+    sourceType: 'sample',
     access: 'premium',
     defaultVolume: 0.16,
-    generator: 'birds',
+    assetPath: '/audio/field/birds.mp3',
+    fallbackAssetPath: '/audio/field/birds.ogg',
+    sourcePage: 'https://commons.wikimedia.org/wiki/File:Birds_chirping_in_a_garden.ogg',
+    sourceCredit: 'Akum20',
+    license: 'cc0',
     icon: 'birds',
     tags: ['morning', 'creative', 'nature']
   },
@@ -84,12 +98,16 @@ export const ambientCatalog = {
     id: 'nature',
     name: 'Open Nature',
     shortName: 'Nature',
-    description: 'An evolving natural field of air, leaves and distant wildlife.',
+    description: 'A real stereo forest ambience with wind, insects, birds and distant woodland life.',
     category: 'nature',
-    sourceType: 'procedural-atmosphere',
+    sourceType: 'sample',
     access: 'premium',
     defaultVolume: 0.2,
-    generator: 'nature',
+    assetPath: '/audio/field/nature.mp3',
+    fallbackAssetPath: '/audio/field/nature.ogg',
+    sourcePage: 'https://commons.wikimedia.org/wiki/File:20090610_0_ambience.ogg',
+    sourceCredit: 'Nille / PDSounds',
+    license: 'public-domain',
     icon: 'nature',
     tags: ['reset', 'creative', 'calm']
   },
@@ -97,12 +115,16 @@ export const ambientCatalog = {
     id: 'storm',
     name: 'Distant Storm',
     shortName: 'Storm',
-    description: 'Dark rain, low atmospheric pressure and randomized distant thunder.',
+    description: 'A five-minute real storm recording with rain and naturally spaced thunder.',
     category: 'weather',
-    sourceType: 'procedural-atmosphere',
+    sourceType: 'sample',
     access: 'premium',
     defaultVolume: 0.22,
-    generator: 'storm',
+    assetPath: '/audio/field/storm.mp3',
+    fallbackAssetPath: '/audio/field/storm.ogg',
+    sourcePage: 'https://commons.wikimedia.org/wiki/File:Storm_thunderbolts.ogg',
+    sourceCredit: 'Stephan / PDSounds',
+    license: 'public-domain',
     icon: 'storm',
     tags: ['sleep', 'deep-work', 'weather']
   },
@@ -249,7 +271,7 @@ export const ambientCatalog = {
     icon: 'night',
     tags: ['sleep', 'reflection', 'calm']
   }
-} satisfies Record<AmbientId, AmbientDefinition>;
+};
 
 export function isAmbientId(value: string | null | undefined): value is AmbientId {
   return Boolean(value && ambientIds.includes(value as AmbientId));

@@ -1,0 +1,85 @@
+/* V11.4 — Session-only atmosphere library with real field recordings. */
+
+/* The Builder no longer renders an atmosphere mixer. Keep this guard for stale cached roots. */
+#ev-ambient-mixer-root {
+  display: none !important;
+}
+
+.evSessionAtmosphere {
+  gap: 20px;
+}
+
+.evSessionAtmosphereGrid {
+  gap: 14px !important;
+  padding: 2px 4px 4px 0;
+}
+
+.evSessionAtmosphereChip {
+  min-height: 76px;
+  border-radius: 20px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.018);
+}
+
+.evSessionAtmosphereToggle {
+  min-height: 74px;
+  padding: 13px 15px;
+  gap: 13px;
+}
+
+.evSessionAtmosphereToggle > span:first-child {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+}
+
+.evSessionAtmosphereToggle strong {
+  font-size: 0.9rem;
+}
+
+.evSessionAtmosphereToggle small {
+  margin-top: 5px;
+  line-height: 1.35;
+}
+
+.evSessionAtmosphereLevels {
+  border-radius: 0 19px 19px 0;
+}
+
+.evSessionAtmosphereFooter {
+  margin-top: 2px;
+  padding-top: 2px;
+}
+
+.evSessionAtmosphereFooter > span {
+  max-width: 68%;
+  line-height: 1.55;
+}
+
+@media (max-width: 760px) {
+  .evSessionAtmosphere {
+    padding: 19px;
+  }
+
+  .evSessionAtmosphereGrid {
+    max-height: min(54dvh, 560px) !important;
+    gap: 13px !important;
+    padding-right: 4px;
+  }
+
+  .evSessionAtmosphereChip {
+    min-height: 74px;
+  }
+
+  .evSessionAtmosphereToggle {
+    min-height: 72px;
+    padding: 12px 13px;
+  }
+
+  .evSessionAtmosphereFooter {
+    gap: 16px;
+  }
+
+  .evSessionAtmosphereFooter > span {
+    max-width: 64%;
+  }
+}

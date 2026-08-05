@@ -39,11 +39,11 @@ export const ambientShortDescriptions: Record<PlayableAmbientId, string> = {
   'white-noise': 'Bright, even masking.',
   'brown-noise': 'Deep, soft masking.',
   'pink-noise': 'Balanced, natural texture.',
-  rain: 'Steady rain without sudden peaks.',
-  ocean: 'Slow waves with spacious movement.',
-  birds: 'Restrained, non-repeating birdsong.',
-  nature: 'Air, leaves and distant wildlife.',
-  storm: 'Dark rain with distant thunder.'
+  rain: 'Real steady rainfall recording.',
+  ocean: 'Real shoreline water movement.',
+  birds: 'Real outdoor birdsong recording.',
+  nature: 'Real stereo woodland ambience.',
+  storm: 'Real rain and thunder recording.'
 };
 
 export function isPlayableAmbientId(id: AmbientId): id is PlayableAmbientId {

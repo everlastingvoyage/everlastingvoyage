@@ -1,0 +1,45 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/audio/field/rain.mp3",
+      "destination": "https://upload.wikimedia.org/wikipedia/commons/transcoded/0/0e/Rain_%281%29.ogg/Rain_%281%29.ogg.mp3"
+    },
+    {
+      "source": "/audio/field/rain.ogg",
+      "destination": "https://upload.wikimedia.org/wikipedia/commons/0/0e/Rain_%281%29.ogg"
+    },
+    {
+      "source": "/audio/field/ocean.mp3",
+      "destination": "https://upload.wikimedia.org/wikipedia/commons/transcoded/1/1f/Waves.ogg/Waves.ogg.mp3"
+    },
+    {
+      "source": "/audio/field/ocean.ogg",
+      "destination": "https://upload.wikimedia.org/wikipedia/commons/1/1f/Waves.ogg"
+    },
+    {
+      "source": "/audio/field/birds.mp3",
+      "destination": "https://upload.wikimedia.org/wikipedia/commons/transcoded/2/2f/Birds_chirping_in_a_garden.ogg/Birds_chirping_in_a_garden.ogg.mp3"
+    },
+    {
+      "source": "/audio/field/birds.ogg",
+      "destination": "https://upload.wikimedia.org/wikipedia/commons/2/2f/Birds_chirping_in_a_garden.ogg"
+    },
+    {
+      "source": "/audio/field/nature.mp3",
+      "destination": "https://upload.wikimedia.org/wikipedia/commons/transcoded/0/0a/20090610_0_ambience.ogg/20090610_0_ambience.ogg.mp3"
+    },
+    {
+      "source": "/audio/field/nature.ogg",
+      "destination": "https://upload.wikimedia.org/wikipedia/commons/0/0a/20090610_0_ambience.ogg"
+    },
+    {
+      "source": "/audio/field/storm.mp3",
+      "destination": "https://upload.wikimedia.org/wikipedia/commons/transcoded/b/bd/Storm_thunderbolts.ogg/Storm_thunderbolts.ogg.mp3"
+    },
+    {
+      "source": "/audio/field/storm.ogg",
+      "destination": "https://upload.wikimedia.org/wikipedia/commons/b/bd/Storm_thunderbolts.ogg"
+    }
+  ]
+}

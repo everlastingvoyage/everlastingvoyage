@@ -22,6 +22,7 @@ import './v10-13-foundation.css';
 import './v11-1-ambient-mixer.css';
 import './v11-2-live-session-atmosphere.css';
 import './v11-3-precision-audio.css';
+import './v11-4-real-field-recordings.css';
 import HumanoidSwap from './HumanoidSwap';
 import SignalChamberPolish from './SignalChamberPolish';
 import SignalChamberBlend from './SignalChamberBlend';
