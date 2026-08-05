@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - v12-1-2-chamber-rectangle-removal
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
