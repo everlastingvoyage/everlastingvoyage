@@ -25,6 +25,7 @@ import './v11-3-precision-audio.css';
 import './v11-4-real-field-recordings.css';
 import './v11-5-session-ux.css';
 import './v11-6-completion-layout.css';
+import './v11-7-completion-clarity.css';
 import HumanoidSwap from './HumanoidSwap';
 import SignalChamberPolish from './SignalChamberPolish';
 import SignalChamberBlend from './SignalChamberBlend';
