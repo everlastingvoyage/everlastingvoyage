@@ -16,6 +16,7 @@ import './v10-7-frequency-chamber-safari.css';
 import './v10-8-blue-chamber-refinement.css';
 import './v10-9-compact-chamber.css';
 import './v10-10-mobile-chamber-polish.css';
+import './v10-11-mobile-labels-chamber-blend.css';
 import HumanoidSwap from './HumanoidSwap';
 import SignalChamberPolish from './SignalChamberPolish';
 import SignalChamberBlend from './SignalChamberBlend';
