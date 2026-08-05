@@ -1,0 +1,167 @@
+/* V10.11 — Mobile labels + seamless Frequency Chamber
+   Stronger builder frequency names and a chamber that dissolves into the page. */
+
+@media (max-width: 760px) {
+  /* Builder frequency families are now the visual entry point. */
+  body.ev-product-route .stateChoice > span {
+    margin: 0 0 9px !important;
+    font-size: clamp(1.08rem, 4.9vw, 1.3rem) !important;
+    font-weight: 950 !important;
+    line-height: 1 !important;
+    letter-spacing: .12em !important;
+    text-transform: uppercase !important;
+    text-shadow:
+      0 0 14px rgba(120, 205, 255, .24),
+      0 0 28px rgba(55, 110, 255, .12) !important;
+  }
+
+  body.ev-product-route .stateChoice.alpha > span {
+    color: #78e5ff !important;
+    text-shadow:
+      0 0 15px rgba(86, 220, 255, .45),
+      0 0 30px rgba(38, 161, 255, .2) !important;
+  }
+
+  body.ev-product-route .stateChoice.gamma > span {
+    color: #62e9ad !important;
+    text-shadow:
+      0 0 15px rgba(74, 230, 166, .42),
+      0 0 30px rgba(45, 184, 131, .18) !important;
+  }
+
+  body.ev-product-route .stateChoice.theta > span {
+    color: #9f91ff !important;
+    text-shadow:
+      0 0 15px rgba(139, 123, 255, .44),
+      0 0 30px rgba(89, 73, 219, .2) !important;
+  }
+
+  body.ev-product-route .stateChoice.delta > span {
+    color: #d9f2ff !important;
+    text-shadow:
+      0 0 15px rgba(190, 229, 255, .38),
+      0 0 30px rgba(96, 155, 207, .18) !important;
+  }
+
+  body.ev-product-route .stateChoice.abundance > span {
+    color: #e7bd5c !important;
+    font-size: clamp(1rem, 4.45vw, 1.2rem) !important;
+    letter-spacing: .115em !important;
+    text-shadow:
+      0 0 15px rgba(231, 189, 92, .4),
+      0 0 30px rgba(184, 130, 39, .18) !important;
+  }
+
+  /* The section and the surrounding page now share the same midnight base.
+     Blue exists as a centered atmosphere, not as a rectangular surface. */
+  body.ev-product-route #library.evFrequencyChamber {
+    background:
+      linear-gradient(90deg,
+        #020817 0%,
+        rgba(2, 8, 23, .98) 5%,
+        rgba(2, 8, 23, .72) 13%,
+        rgba(2, 8, 23, .16) 25%,
+        rgba(2, 8, 23, .04) 50%,
+        rgba(2, 8, 23, .16) 75%,
+        rgba(2, 8, 23, .72) 87%,
+        rgba(2, 8, 23, .98) 95%,
+        #020817 100%),
+      linear-gradient(180deg,
+        #01040c 0%,
+        rgba(2, 8, 23, .94) 8%,
+        rgba(3, 13, 36, .48) 22%,
+        rgba(4, 17, 45, .18) 43%,
+        rgba(4, 17, 45, .18) 69%,
+        rgba(2, 8, 23, .62) 86%,
+        #01040c 100%),
+      radial-gradient(ellipse 72% 46% at 50% 56%, rgba(7, 64, 198, .22), transparent 70%),
+      radial-gradient(ellipse 43% 29% at 50% 57%, rgba(30, 143, 255, .09), transparent 73%),
+      #020817 !important;
+    box-shadow: none !important;
+  }
+
+  /* Remove the hidden glass-card surface responsible for the visible inner
+     rectangle in the user's screenshots. */
+  body.ev-product-route #library.evFrequencyChamber .signalExperience,
+  body.ev-product-route #library.evFrequencyChamber .signalExperience.glassCard {
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    overflow: visible !important;
+  }
+
+  body.ev-product-route #library.evFrequencyChamber .signalExperience::before {
+    inset: -8% -10% -7% !important;
+    border-radius: 50% !important;
+    background:
+      radial-gradient(ellipse 64% 48% at 50% 52%, rgba(6, 76, 255, .12), transparent 72%),
+      radial-gradient(ellipse 38% 29% at 50% 53%, rgba(38, 191, 255, .045), transparent 76%) !important;
+    filter: blur(66px) !important;
+    opacity: .78 !important;
+    mask-image: radial-gradient(ellipse 82% 78% at center, #000 0 62%, transparent 96%) !important;
+    -webkit-mask-image: radial-gradient(ellipse 82% 78% at center, #000 0 62%, transparent 96%) !important;
+  }
+
+  body.ev-product-route #library.evFrequencyChamber .signalStage,
+  body.ev-product-route #library.evFrequencyChamber .signalStage.popupOpen {
+    border: 0 !important;
+    border-radius: 0 !important;
+    background:
+      radial-gradient(ellipse 58% 45% at 50% 49%, rgba(6, 76, 255, .11), transparent 68%),
+      radial-gradient(ellipse 34% 27% at 50% 50%, rgba(38, 191, 255, .042), transparent 73%) !important;
+    box-shadow: none !important;
+    mask-image:
+      linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%),
+      linear-gradient(to bottom, transparent 0%, #000 6%, #000 94%, transparent 100%) !important;
+    -webkit-mask-image:
+      linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%),
+      linear-gradient(to bottom, transparent 0%, #000 6%, #000 94%, transparent 100%) !important;
+    mask-composite: intersect !important;
+    -webkit-mask-composite: source-in !important;
+  }
+
+  /* Fade every visual layer before it reaches the chamber's edges. */
+  body.ev-product-route #library.evFrequencyChamber .evChamberVisualLayer,
+  body.ev-product-route #library.evFrequencyChamber .evChamberAuras,
+  body.ev-product-route #library.evFrequencyChamber .evChamberEnergyLinks,
+  body.ev-product-route #library.evFrequencyChamber .evChamberParticles {
+    border-radius: 0 !important;
+    mask-image: radial-gradient(ellipse 76% 84% at center, #000 0 66%, rgba(0,0,0,.65) 79%, transparent 100%) !important;
+    -webkit-mask-image: radial-gradient(ellipse 76% 84% at center, #000 0 66%, rgba(0,0,0,.65) 79%, transparent 100%) !important;
+  }
+
+  body.ev-product-route #library.evFrequencyChamber::before {
+    background:
+      linear-gradient(90deg,
+        rgba(2, 8, 23, .96) 0%,
+        rgba(2, 8, 23, .48) 13%,
+        transparent 27%,
+        transparent 73%,
+        rgba(2, 8, 23, .48) 87%,
+        rgba(2, 8, 23, .96) 100%),
+      linear-gradient(180deg,
+        rgba(1, 4, 12, .94) 0%,
+        rgba(2, 8, 23, .42) 14%,
+        transparent 31%,
+        transparent 76%,
+        rgba(2, 8, 23, .48) 89%,
+        rgba(1, 4, 12, .92) 100%),
+      radial-gradient(ellipse 70% 35% at 50% 57%, rgba(6, 76, 255, .13), transparent 72%),
+      radial-gradient(ellipse 40% 23% at 50% 58%, rgba(38, 191, 255, .045), transparent 74%) !important;
+    opacity: 1 !important;
+  }
+
+  body.ev-product-route #library.evFrequencyChamber::after {
+    background:
+      radial-gradient(ellipse 46% 28% at 50% 57%, rgba(46, 104, 225, .055), transparent 74%),
+      linear-gradient(90deg,
+        rgba(2, 8, 23, .65) 0%,
+        transparent 18%,
+        transparent 82%,
+        rgba(2, 8, 23, .65) 100%) !important;
+    opacity: .9 !important;
+  }
+}
