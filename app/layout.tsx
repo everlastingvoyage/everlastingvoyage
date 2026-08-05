@@ -28,6 +28,7 @@ import './v11-6-completion-layout.css';
 import './v11-7-completion-clarity.css';
 import './v11-8-completion-polish.css';
 import './v12-0-desktop-session-console.css';
+import './v12-0-1-desktop-footer-spacing.css';
 import HumanoidSwap from './HumanoidSwap';
 import SignalChamberPolish from './SignalChamberPolish';
 import SignalChamberBlend from './SignalChamberBlend';
