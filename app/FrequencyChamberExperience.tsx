@@ -2,23 +2,12 @@
 
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-
-type StateId = 'alpha' | 'gamma' | 'theta' | 'delta' | 'abundance';
-
-const stateMeta: Record<StateId, { label: string; aria: string }> = {
-  alpha: { label: 'Calm Focus', aria: 'Open Alpha 10 Hz — Calm Focus details' },
-  gamma: { label: 'Deep Focus', aria: 'Open Gamma 40 Hz — Deep Focus details' },
-  theta: { label: 'Creative Flow', aria: 'Open Theta 4 Hz — Creative Flow details' },
-  delta: { label: 'Deep Rest', aria: 'Open Delta 2 Hz — Deep Rest details' },
-  abundance: { label: 'Abundance', aria: 'Open Pure Tone 888 Hz — Abundance details' }
-};
-
-const stateIds = Object.keys(stateMeta) as StateId[];
-
-function getStateId(element: Element | null): StateId | null {
-  if (!element) return null;
-  return stateIds.find((id) => element.classList.contains(id)) ?? null;
-}
+import {
+  frequencyCatalog,
+  frequencyIds,
+  getFrequencyIdFromElement,
+  type FrequencyId
+} from './frequency-catalog';
 
 export default function FrequencyChamberExperience() {
   const pathname = usePathname();
@@ -63,15 +52,15 @@ export default function FrequencyChamberExperience() {
 
     const auras = document.createElement('div');
     auras.className = 'evChamberAuras';
-    stateIds.forEach((id) => {
-      const aura = document.createElement('span');
-      aura.className = `evChamberAura ${id}`;
-      auras.appendChild(aura);
-    });
 
     const links = document.createElement('div');
     links.className = 'evChamberEnergyLinks';
-    stateIds.forEach((id) => {
+
+    frequencyIds.forEach((id) => {
+      const aura = document.createElement('span');
+      aura.className = `evChamberAura ${id}`;
+      auras.appendChild(aura);
+
       const link = document.createElement('span');
       link.className = `evChamberEnergyLink ${id}`;
       links.appendChild(link);
@@ -79,15 +68,18 @@ export default function FrequencyChamberExperience() {
 
     const particles = document.createElement('div');
     particles.className = 'evChamberParticles';
+    const particleFragment = document.createDocumentFragment();
+
     Array.from({ length: particleCount }).forEach((_, index) => {
       const particle = document.createElement('span');
       particle.style.setProperty('--ev-particle-index', String(index));
       particle.style.setProperty('--ev-particle-angle', `${index * (360 / particleCount)}deg`);
       particle.style.setProperty('--ev-particle-distance', `${170 + index * (isMobile ? 11 : 7)}px`);
       particle.style.setProperty('--ev-particle-delay', `${index * -360}ms`);
-      particles.appendChild(particle);
+      particleFragment.appendChild(particle);
     });
 
+    particles.appendChild(particleFragment);
     visualLayer.append(auras, links, particles);
     stage.prepend(visualLayer);
 
@@ -107,7 +99,7 @@ export default function FrequencyChamberExperience() {
     const nodes = Array.from(stage.querySelectorAll<HTMLButtonElement>('.signalNode'));
     const cleanupNodes: Array<() => void> = [];
 
-    const setHoverState = (id: StateId | null) => {
+    const setHoverState = (id: FrequencyId | null) => {
       if (id) {
         library.dataset.hoverState = id;
         stage.dataset.hoverState = id;
@@ -118,16 +110,17 @@ export default function FrequencyChamberExperience() {
     };
 
     nodes.forEach((node) => {
-      const id = getStateId(node);
+      const id = getFrequencyIdFromElement(node);
       if (!id) return;
 
+      const definition = frequencyCatalog[id];
       const stateName = document.createElement('small');
       stateName.className = 'evSignalStateName';
-      stateName.textContent = stateMeta[id].label;
+      stateName.textContent = definition.state;
       node.appendChild(stateName);
 
       const previousAria = node.getAttribute('aria-label');
-      node.setAttribute('aria-label', stateMeta[id].aria);
+      node.setAttribute('aria-label', definition.ariaLabel);
       node.dataset.chamberState = id;
 
       const enter = () => setHoverState(id);
@@ -144,8 +137,8 @@ export default function FrequencyChamberExperience() {
         }, 0);
       };
 
-      node.addEventListener('pointerenter', enter);
-      node.addEventListener('pointerleave', leave);
+      node.addEventListener('pointerenter', enter, { passive: true });
+      node.addEventListener('pointerleave', leave, { passive: true });
       node.addEventListener('focus', focus);
       node.addEventListener('blur', blur);
 
@@ -161,39 +154,11 @@ export default function FrequencyChamberExperience() {
       });
     });
 
-    let resetTimer: number | undefined;
-    const hasManagedPopupState = () => Boolean(
-      library.dataset.popupPhase ||
-      stage.dataset.popupPhase ||
-      library.dataset.exitState ||
-      stage.dataset.exitState
-    );
-
-    const resetAfterPopup = () => {
-      window.clearTimeout(resetTimer);
-      const popupOpen = Boolean(stage.querySelector('.signalPopupOverlay:not(.signalPopupExitGhost)'));
-      if (popupOpen || hasManagedPopupState()) return;
-
-      resetTimer = window.setTimeout(() => {
-        if (stage.querySelector('.signalPopupOverlay:not(.signalPopupExitGhost)') || hasManagedPopupState()) return;
-        delete stage.dataset.restState;
-        delete library.dataset.restState;
-      }, 2400);
-    };
-
-    const handleManagedCleanup = () => {
-      window.clearTimeout(resetTimer);
-      setHoverState(null);
-    };
-
-    const observer = new MutationObserver(resetAfterPopup);
-    observer.observe(stage, { childList: true, subtree: true });
+    const handleManagedCleanup = () => setHoverState(null);
     window.addEventListener('ev:frequency-popup-cleanup', handleManagedCleanup);
 
     return () => {
-      observer.disconnect();
       window.removeEventListener('ev:frequency-popup-cleanup', handleManagedCleanup);
-      window.clearTimeout(resetTimer);
       cleanupNodes.forEach((cleanup) => cleanup());
       visualLayer.remove();
       trustRow.remove();

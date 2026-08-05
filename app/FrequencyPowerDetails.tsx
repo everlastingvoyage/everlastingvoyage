@@ -1,123 +1,21 @@
 'use client';
 
 import type { CSSProperties } from 'react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { usePathname } from 'next/navigation';
+import {
+  frequencyCatalog,
+  getFrequencyIdFromElement,
+  type FrequencyId
+} from './frequency-catalog';
 import {
   startFrequencyPreview,
   stopActiveFrequencyPreview,
   type FrequencyPreviewHandle
 } from './frequency-preview-audio';
 
-type StateId = 'alpha' | 'gamma' | 'theta' | 'delta' | 'abundance';
 type PopupPhase = 'idle' | 'open' | 'closing';
-
-type FrequencyPower = {
-  id: StateId;
-  frequency: string;
-  hz: string;
-  state: string;
-  promise: string;
-  benefits: string[];
-  uses: string[];
-  technical: string;
-  guidance: string;
-  recommended: string;
-  listeningType: string;
-  leftHz: number;
-  rightHz: number;
-  actionLabel: string;
-};
-
-const powers: Record<StateId, FrequencyPower> = {
-  alpha: {
-    id: 'alpha',
-    frequency: 'Alpha',
-    hz: '10 Hz',
-    state: 'Calm Focus',
-    promise: 'Enter a clear, steady state for learning, planning and focused work without unnecessary pressure.',
-    benefits: ['Supports sustained attention', 'Creates a calmer entry into study', 'Helps organize attention around one task'],
-    uses: ['Studying', 'Reading', 'Planning', 'Morning clarity', 'Steady work'],
-    technical: 'Left 180 Hz · Right 190 Hz · 10 Hz difference',
-    guidance: 'Keep volume moderate · Begin in a quiet setting',
-    recommended: '25–60 minutes',
-    listeningType: 'Binaural signal · Headphones required for the binaural effect',
-    leftHz: 180,
-    rightHz: 190,
-    actionLabel: 'Build a Calm Focus voyage'
-  },
-  gamma: {
-    id: 'gamma',
-    frequency: 'Gamma',
-    hz: '40 Hz',
-    state: 'Deep Focus',
-    promise: 'Enter a sharper, high-attention atmosphere for demanding work, research and complex problem solving.',
-    benefits: ['Supports high-demand concentration', 'Encourages active information processing', 'Designed for precise analytical sessions'],
-    uses: ['Research', 'Programming', 'Complex study', 'Problem solving', 'Deep work'],
-    technical: 'Left 220 Hz · Right 260 Hz · 40 Hz difference',
-    guidance: 'Begin at a low volume · Best for active work',
-    recommended: '25–50 minutes',
-    listeningType: 'Binaural signal · Headphones required for the binaural effect',
-    leftHz: 220,
-    rightHz: 260,
-    actionLabel: 'Build a Deep Focus voyage'
-  },
-  theta: {
-    id: 'theta',
-    frequency: 'Theta',
-    hz: '4 Hz',
-    state: 'Creative Flow',
-    promise: 'Enter a slower, more imaginative state for original thought, reflection and visualization.',
-    benefits: ['Encourages creative ideation', 'Supports reflective thinking', 'Creates space for mental flexibility'],
-    uses: ['Writing', 'Brainstorming', 'Meditation', 'Journaling', 'Visualization'],
-    technical: 'Left 95 Hz · Right 99 Hz · 4 Hz difference',
-    guidance: 'Keep volume moderate · Best in a quiet setting',
-    recommended: '25–60 minutes',
-    listeningType: 'Binaural signal · Headphones required for the binaural effect',
-    leftHz: 95,
-    rightHz: 99,
-    actionLabel: 'Build a Creative Flow voyage'
-  },
-  delta: {
-    id: 'delta',
-    frequency: 'Delta',
-    hz: '2 Hz',
-    state: 'Deep Rest',
-    promise: 'Enter a cold, quiet and deeply slowed atmosphere designed for wind-down rituals and sleep preparation.',
-    benefits: ['Supports progressive relaxation', 'Helps reduce stimulation before rest', 'Encourages a deliberate transition into stillness'],
-    uses: ['Sleep preparation', 'Evening wind-down', 'Rest', 'Slow breathing', 'Recovery rituals'],
-    technical: 'Left 70 Hz · Right 72 Hz · 2 Hz difference',
-    guidance: 'Use only when resting safely · Begin at a low volume',
-    recommended: '40–60 minutes',
-    listeningType: 'Binaural signal · Headphones required for the binaural effect',
-    leftHz: 70,
-    rightHz: 72,
-    actionLabel: 'Build a Deep Rest voyage'
-  },
-  abundance: {
-    id: 'abundance',
-    frequency: 'Pure Tone',
-    hz: '888 Hz',
-    state: 'Abundance',
-    promise: 'Enter a warm ceremonial space for intention, visualization, gratitude and focused manifestation rituals.',
-    benefits: ['Supports deliberate visualization', 'Creates a symbolic focus point', 'Pairs intention with a repeatable ritual'],
-    uses: ['Manifestation', 'Affirmations', 'Gratitude', 'Journaling', 'Ceremonial meditation'],
-    technical: 'Pure 888 Hz tone · Clean uninterrupted signal',
-    guidance: 'Start at a very low volume · Speakers or headphones',
-    recommended: '15–40 minutes',
-    listeningType: 'Pure tone · Speakers or headphones',
-    leftHz: 888,
-    rightHz: 888,
-    actionLabel: 'Build an Abundance voyage'
-  }
-};
-
-function getNodeId(element: Element | null): StateId | null {
-  if (!element) return null;
-  const ids: StateId[] = ['alpha', 'gamma', 'theta', 'delta', 'abundance'];
-  return ids.find((id) => element.classList.contains(id)) ?? null;
-}
 
 function nextPaint() {
   return new Promise<void>((resolve) => {
@@ -151,7 +49,7 @@ function waitForBackdropTransition(element: HTMLElement | null, timeoutMs = 430)
 export default function FrequencyPowerDetails() {
   const pathname = usePathname();
   const enabled = pathname === '/voyage';
-  const [activeId, setActiveId] = useState<StateId | null>(null);
+  const [activeId, setActiveId] = useState<FrequencyId | null>(null);
   const [phase, setPhase] = useState<PopupPhase>('idle');
   const [previewStatus, setPreviewStatus] = useState<'idle' | 'starting' | 'playing'>('idle');
   const [previewProgress, setPreviewProgress] = useState(0);
@@ -159,9 +57,11 @@ export default function FrequencyPowerDetails() {
   const previewIntervalRef = useRef<number | undefined>(undefined);
   const previewRequestRef = useRef(0);
   const backdropRef = useRef<HTMLDivElement | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
   const closeRunRef = useRef(0);
   const cleanupTimerRef = useRef<number | undefined>(undefined);
-  const active = useMemo(() => activeId ? powers[activeId] : null, [activeId]);
+  const active = activeId ? frequencyCatalog[activeId] : null;
 
   const stopPreview = useCallback(() => {
     previewRequestRef.current += 1;
@@ -218,11 +118,13 @@ export default function FrequencyPowerDetails() {
 
   useEffect(() => {
     if (!enabled) return;
+
     const handleSignalClick = (event: MouseEvent) => {
-      const node = (event.target as Element | null)?.closest('.signalNode') ?? null;
-      const id = getNodeId(node);
+      const node = (event.target as Element | null)?.closest<HTMLElement>('.signalNode') ?? null;
+      const id = getFrequencyIdFromElement(node);
       if (!id || phase === 'closing') return;
 
+      triggerRef.current = node;
       closeRunRef.current += 1;
       if (cleanupTimerRef.current) window.clearTimeout(cleanupTimerRef.current);
       clearChamberExitState();
@@ -230,9 +132,16 @@ export default function FrequencyPowerDetails() {
       setActiveId(id);
       setPhase('open');
     };
+
     document.addEventListener('click', handleSignalClick, true);
     return () => document.removeEventListener('click', handleSignalClick, true);
   }, [clearChamberExitState, enabled, phase, stopPreview]);
+
+  useEffect(() => {
+    if (phase !== 'open') return;
+    const focusFrame = window.requestAnimationFrame(() => closeButtonRef.current?.focus());
+    return () => window.cancelAnimationFrame(focusFrame);
+  }, [phase, activeId]);
 
   useEffect(() => {
     if (phase !== 'closing') return;
@@ -276,6 +185,8 @@ export default function FrequencyPowerDetails() {
       if (closeRunRef.current !== runId) return;
       clearChamberExitState();
       setPhase('idle');
+      triggerRef.current?.focus({ preventScroll: true });
+      triggerRef.current = null;
     }, 620);
   }, [active, clearChamberExitState, phase, removeLegacyGhosts, stopPreview]);
 
@@ -338,7 +249,11 @@ export default function FrequencyPowerDetails() {
 
   useEffect(() => {
     if (!active) return;
-    const handleKey = (event: KeyboardEvent) => { if (event.key === 'Escape') close(); };
+
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') close();
+    };
+
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
   }, [active, close]);
@@ -357,16 +272,30 @@ export default function FrequencyPowerDetails() {
       aria-busy={phase === 'closing'}
       onMouseDown={(event) => event.target === event.currentTarget && close()}
     >
-      <article className={`evFrequencyPowerCard ${active.id}`} role="dialog" aria-modal="true" aria-labelledby="ev-frequency-power-title">
+      <article
+        className={`evFrequencyPowerCard ${active.id}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="ev-frequency-power-title"
+        aria-describedby="ev-frequency-power-description"
+      >
         <div className="evFrequencyPowerTop">
           <span>{active.frequency} · {active.hz}</span>
-          <button type="button" onClick={close} aria-label="Close frequency details" disabled={phase === 'closing'}>×</button>
+          <button
+            ref={closeButtonRef}
+            type="button"
+            onClick={close}
+            aria-label="Close frequency details"
+            disabled={phase === 'closing'}
+          >
+            ×
+          </button>
         </div>
 
         <div className="evFrequencyPowerHero">
           <p>State potential</p>
           <h2 id="ev-frequency-power-title">{active.state}</h2>
-          <strong>{active.promise}</strong>
+          <strong id="ev-frequency-power-description">{active.promise}</strong>
         </div>
 
         <div className="evFrequencyInfoStrip">
