@@ -1,0 +1,413 @@
+/* V11.1 — Visible Ambient Mixer */
+
+#ev-ambient-mixer-root {
+  width: 100%;
+  margin: 24px 0;
+}
+
+.evAmbientMixer {
+  --ambient-rgb: 92, 177, 255;
+  position: relative;
+  overflow: hidden;
+  padding: clamp(20px, 2.7vw, 30px);
+  border: 1px solid rgba(124, 205, 255, 0.17);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(47, 155, 255, 0.11), transparent 33%),
+    radial-gradient(circle at 100% 100%, rgba(91, 94, 255, 0.09), transparent 37%),
+    linear-gradient(180deg, rgba(5, 18, 34, 0.93), rgba(2, 10, 22, 0.97));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.018),
+    0 24px 58px rgba(0, 6, 18, 0.22);
+}
+
+.evAmbientMixer::before {
+  content: '';
+  position: absolute;
+  inset: -35% auto auto -8%;
+  width: 44%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgba(37, 136, 255, 0.12);
+  filter: blur(72px);
+  pointer-events: none;
+}
+
+.evAmbientMixerHeader {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px;
+  align-items: start;
+}
+
+.evAmbientMixerEyebrow {
+  display: inline-flex;
+  margin-bottom: 10px;
+  color: #75d8ff;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+}
+
+.evAmbientMixerHeader h3 {
+  margin: 0;
+  max-width: 670px;
+  color: #f2f8ff;
+  font-size: clamp(1.38rem, 2.2vw, 2rem);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
+
+.evAmbientMixerHeader p {
+  max-width: 700px;
+  margin: 10px 0 0;
+  color: rgba(218, 233, 248, 0.66);
+  font-size: 0.94rem;
+  line-height: 1.55;
+}
+
+.evAmbientMixerStatus {
+  min-width: 116px;
+  padding: 14px;
+  border: 1px solid rgba(128, 211, 255, 0.14);
+  border-radius: 20px;
+  background: rgba(4, 15, 29, 0.72);
+  text-align: center;
+}
+
+.evAmbientMixerStatus strong,
+.evAmbientMixerStatus span {
+  display: block;
+}
+
+.evAmbientMixerStatus strong {
+  color: #ffffff;
+  font-size: 1.65rem;
+  line-height: 1;
+}
+
+.evAmbientMixerStatus span {
+  margin-top: 5px;
+  color: rgba(207, 226, 243, 0.56);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.evAmbientMixerStatus button {
+  width: 100%;
+  margin-top: 11px;
+  padding: 8px 10px;
+  border: 1px solid rgba(117, 216, 255, 0.17);
+  border-radius: 999px;
+  background: rgba(27, 91, 137, 0.22);
+  color: #bdeaff;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.evAmbientMixerStatus button:disabled {
+  opacity: 0.36;
+  cursor: default;
+}
+
+.evAmbientLayerGrid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.evAmbientLayer {
+  min-width: 0;
+  border: 1px solid rgba(129, 205, 255, 0.13);
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(9, 26, 43, 0.84), rgba(3, 13, 27, 0.92));
+  transition:
+    transform 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    background 220ms ease;
+}
+
+.evAmbientLayer:hover {
+  transform: translateY(-2px);
+  border-color: rgba(117, 216, 255, 0.28);
+}
+
+.evAmbientLayer.active {
+  border-color: rgba(var(--ambient-rgb), 0.55);
+  background:
+    radial-gradient(circle at 13% 10%, rgba(var(--ambient-rgb), 0.14), transparent 39%),
+    linear-gradient(180deg, rgba(12, 35, 58, 0.96), rgba(3, 15, 31, 0.98));
+  box-shadow:
+    0 16px 36px rgba(0, 9, 24, 0.24),
+    inset 0 0 0 1px rgba(var(--ambient-rgb), 0.06),
+    0 0 30px rgba(var(--ambient-rgb), 0.07);
+}
+
+.evAmbientLayer.brown-noise {
+  --ambient-rgb: 140, 184, 255;
+}
+
+.evAmbientLayer.pink-noise {
+  --ambient-rgb: 185, 151, 255;
+}
+
+.evAmbientLayerToggle {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  padding: 16px 16px 13px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.evAmbientLayerToggle:disabled {
+  cursor: progress;
+}
+
+.evAmbientLayerIcon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(var(--ambient-rgb), 0.2);
+  border-radius: 15px;
+  background: rgba(var(--ambient-rgb), 0.08);
+  color: rgb(var(--ambient-rgb));
+  font-size: 1.45rem;
+  text-shadow: 0 0 18px rgba(var(--ambient-rgb), 0.36);
+}
+
+.evAmbientLayerCopy {
+  min-width: 0;
+}
+
+.evAmbientLayerCopy strong,
+.evAmbientLayerCopy small {
+  display: block;
+}
+
+.evAmbientLayerCopy strong {
+  color: #edf7ff;
+  font-size: 0.94rem;
+}
+
+.evAmbientLayerCopy small {
+  display: -webkit-box;
+  overflow: hidden;
+  margin-top: 4px;
+  color: rgba(207, 225, 241, 0.52);
+  font-size: 0.72rem;
+  line-height: 1.42;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.evAmbientLayerState {
+  min-width: 47px;
+  padding: 7px 10px;
+  border: 1px solid rgba(var(--ambient-rgb), 0.16);
+  border-radius: 999px;
+  background: rgba(var(--ambient-rgb), 0.06);
+  color: rgba(218, 237, 250, 0.7);
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.evAmbientLayer.active .evAmbientLayerState {
+  background: rgba(var(--ambient-rgb), 0.17);
+  color: rgb(var(--ambient-rgb));
+  box-shadow: 0 0 18px rgba(var(--ambient-rgb), 0.1);
+}
+
+.evAmbientVolume {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 0 16px 16px;
+}
+
+.evAmbientVolume span,
+.evAmbientVolume strong {
+  color: rgba(212, 230, 244, 0.56);
+  font-size: 0.69rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.evAmbientVolume strong {
+  color: rgb(var(--ambient-rgb));
+}
+
+.evAmbientVolume input {
+  grid-column: 1 / -1;
+  width: 100%;
+  accent-color: rgb(var(--ambient-rgb));
+}
+
+.evAmbientComingNext {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  margin-top: 14px;
+  padding: 14px 16px;
+  border: 1px dashed rgba(137, 204, 255, 0.15);
+  border-radius: 18px;
+  background: rgba(4, 14, 27, 0.46);
+}
+
+.evAmbientComingNext > div:first-child span,
+.evAmbientComingNext > div:first-child strong {
+  display: block;
+}
+
+.evAmbientComingNext > div:first-child span {
+  color: #72d7ff;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.evAmbientComingNext > div:first-child strong {
+  margin-top: 4px;
+  color: rgba(231, 242, 252, 0.76);
+  font-size: 0.84rem;
+}
+
+.evAmbientUpcomingChips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.evAmbientUpcomingChips span {
+  padding: 6px 9px;
+  border: 1px solid rgba(126, 203, 255, 0.11);
+  border-radius: 999px;
+  background: rgba(25, 68, 101, 0.16);
+  color: rgba(206, 227, 243, 0.58);
+  font-size: 0.67rem;
+  font-weight: 750;
+}
+
+.evAmbientMixerError {
+  position: relative;
+  z-index: 1;
+  margin: 12px 0 0;
+  color: #ffb7b7;
+  font-size: 0.8rem;
+}
+
+.evAmbientLayerToggle:focus-visible,
+.evAmbientMixerStatus button:focus-visible,
+.evAmbientVolume input:focus-visible {
+  outline: 2px solid rgba(126, 220, 255, 0.9);
+  outline-offset: 3px;
+}
+
+@media (max-width: 960px) {
+  .evAmbientLayerGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .evAmbientLayerCopy small {
+    -webkit-line-clamp: 1;
+  }
+}
+
+@media (max-width: 760px) {
+  #ev-ambient-mixer-root {
+    margin: 18px 0;
+  }
+
+  .evAmbientMixer {
+    padding: 18px;
+    border-radius: 24px;
+  }
+
+  .evAmbientMixerHeader {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .evAmbientMixerStatus {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    min-width: 0;
+    padding: 11px 13px;
+    text-align: left;
+  }
+
+  .evAmbientMixerStatus strong {
+    font-size: 1.3rem;
+  }
+
+  .evAmbientMixerStatus span {
+    margin: 0 0 0 8px;
+  }
+
+  .evAmbientMixerStatus button {
+    width: auto;
+    margin: 0;
+  }
+
+  .evAmbientLayerGrid {
+    margin-top: 15px;
+  }
+
+  .evAmbientLayerToggle {
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    padding: 14px 14px 11px;
+  }
+
+  .evAmbientLayerIcon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .evAmbientVolume {
+    padding: 0 14px 14px;
+  }
+
+  .evAmbientComingNext {
+    grid-template-columns: 1fr;
+  }
+
+  .evAmbientUpcomingChips {
+    justify-content: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .evAmbientLayer {
+    transition: none;
+  }
+
+  .evAmbientLayer:hover {
+    transform: none;
+  }
+}
