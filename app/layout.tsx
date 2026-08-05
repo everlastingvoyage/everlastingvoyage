@@ -13,6 +13,7 @@ import './v10-5-builder-cta.css';
 import './v10-6-completion-flow.css';
 import './v10-7-frequency-chamber.css';
 import './v10-7-frequency-chamber-safari.css';
+import './v10-8-blue-chamber-refinement.css';
 import HumanoidSwap from './HumanoidSwap';
 import SignalChamberPolish from './SignalChamberPolish';
 import SignalChamberBlend from './SignalChamberBlend';
