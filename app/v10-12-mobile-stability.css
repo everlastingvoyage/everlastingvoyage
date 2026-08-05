@@ -1,0 +1,229 @@
+/* V10.12 — Mobile stability, deterministic popup exits and tighter builder. */
+
+/* Desktop receives the same stronger frequency-family hierarchy as mobile. */
+@media (min-width: 761px) {
+  body.ev-product-route .sessionBuilder .stateChoice > span {
+    margin-bottom: 9px !important;
+    font-size: clamp(1.12rem, 1.35vw, 1.42rem) !important;
+    font-weight: 950 !important;
+    line-height: 1 !important;
+    letter-spacing: .12em !important;
+    text-transform: uppercase !important;
+    text-shadow:
+      0 0 15px rgba(var(--state-rgb), .34),
+      0 0 30px rgba(var(--state-rgb), .14) !important;
+  }
+
+  body.ev-product-route .sessionBuilder .stateChoice.abundance > span {
+    font-size: clamp(1.02rem, 1.18vw, 1.28rem) !important;
+    white-space: nowrap;
+  }
+}
+
+/* Keep the polished, borderless chamber surface available throughout every
+   stage of the managed popup close. This prevents Safari from flashing the
+   legacy glass-card background during layer recomposition. */
+body.ev-frequency-power-closing #library .signalExperience,
+body.ev-frequency-power-closing #library .signalExperience.glassCard,
+body.ev-frequency-power-closing #library .signalStage,
+body.ev-frequency-power-closing #library .signalStage.popupOpen,
+#library[data-popup-phase='closing'] .signalExperience,
+#library[data-popup-phase='closing'] .signalStage,
+#library[data-exit-state] .signalExperience,
+#library[data-exit-state] .signalStage {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body.ev-frequency-power-closing #library .signalStage,
+#library[data-popup-phase='closing'] .signalStage,
+#library[data-exit-state] .signalStage {
+  overflow: visible !important;
+  mask-image:
+    linear-gradient(to right, transparent 0%, #000 10%, #000 90%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, #000 5%, #000 95%, transparent 100%) !important;
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0%, #000 10%, #000 90%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, #000 5%, #000 95%, transparent 100%) !important;
+  mask-composite: intersect !important;
+  -webkit-mask-composite: source-in !important;
+}
+
+body.ev-frequency-power-closing #library .signalPopupExitGhost,
+#library[data-popup-phase='closing'] .signalPopupExitGhost {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+@media (max-width: 760px) {
+  /* Preserve the large wordmark while removing the empty shelf before the
+     builder. The final visual gap stays close to 28–40px. */
+  body.ev-product-route .topbar {
+    margin-bottom: 0 !important;
+    padding-bottom: 4px !important;
+  }
+
+  body.ev-product-route .heroSection {
+    padding-top: 8px !important;
+  }
+
+  body.ev-product-route .sessionBuilder {
+    margin-top: 26px !important;
+  }
+
+  /* Saved Spaces and Notes are one compact utility group, not two stacked
+     sections. React already mounts both roots inside this container. */
+  body.ev-product-route #ev-builder-library-controls {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr) !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    width: 100% !important;
+    margin: 18px 0 0 !important;
+  }
+
+  body.ev-product-route #ev-saved-spaces-button-root,
+  body.ev-product-route #ev-notes-button-root {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  body.ev-product-route .evSavedSpacesTrigger,
+  body.ev-product-route .evLibraryTrigger.evNotesTrigger {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 62px !important;
+    height: 62px !important;
+    margin: 0 !important;
+    padding: 0 14px 0 17px !important;
+    gap: 10px !important;
+  }
+
+  body.ev-product-route .evSavedSpacesTrigger > span,
+  body.ev-product-route .evLibraryTrigger.evNotesTrigger > span {
+    min-width: 0 !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: clamp(.91rem, 4vw, 1.03rem) !important;
+  }
+
+  body.ev-product-route .evSavedSpacesTrigger > strong,
+  body.ev-product-route .evLibraryTrigger.evNotesTrigger > strong {
+    flex: 0 0 42px !important;
+    width: 42px !important;
+    height: 42px !important;
+    display: grid !important;
+    place-items: center !important;
+    font-size: 1rem !important;
+  }
+
+  /* Selected State is the final confirmation before the main CTA. */
+  body.ev-product-route .sessionBuilder .selectedSummary strong {
+    display: block !important;
+    margin-top: 8px !important;
+    font-size: clamp(1.65rem, 7vw, 2rem) !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+    letter-spacing: -.035em !important;
+  }
+
+  body.ev-product-route .sessionBuilder .selectedSummary p {
+    margin-top: 14px !important;
+    font-size: 1rem !important;
+    line-height: 1.45 !important;
+  }
+
+  body.ev-product-route .sessionBuilder .selectedSummary .technicalSummary {
+    margin-top: 16px !important;
+    font-size: .8rem !important;
+    line-height: 1.45 !important;
+  }
+
+  /* Mobile performance mode: keep the visual identity while avoiding large
+     animated blurs, masks and background recalculation on every scroll frame. */
+  #library[data-performance-mode='mobile'] .signalStage {
+    contain: layout style !important;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  #library[data-performance-mode='mobile'] .signalFigure,
+  #library[data-performance-mode='mobile'] .signalFigureAsset {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  #library[data-performance-mode='mobile'] .signalExperience::before,
+  #library[data-performance-mode='mobile'] .evChamberAura {
+    filter: blur(30px) !important;
+    animation: none !important;
+  }
+
+  #library[data-performance-mode='mobile'] .evChamberParticles > span,
+  #library[data-performance-mode='mobile'] .evChamberAuras,
+  #library[data-performance-mode='mobile'] .signalStage::before,
+  #library[data-performance-mode='mobile'] .signalStage::after {
+    animation: none !important;
+  }
+
+  #library[data-performance-mode='mobile'] .evChamberParticles > span {
+    opacity: .46 !important;
+  }
+
+  #library[data-performance-mode='mobile']::after {
+    filter: blur(34px) !important;
+  }
+
+  #library[data-performance-mode='mobile']::before,
+  #library[data-performance-mode='mobile']::after,
+  #library[data-performance-mode='mobile'] .signalExperience::before,
+  #library[data-performance-mode='mobile'] .signalStage::before,
+  #library[data-performance-mode='mobile'] .signalStage::after,
+  #library[data-performance-mode='mobile'] .evChamberAura,
+  #library[data-performance-mode='mobile'] .evChamberParticles > span {
+    transition-property: opacity, transform !important;
+    transition-duration: 420ms !important;
+  }
+
+  #library[data-performance-mode='mobile'][data-popup-phase='closing'] .evChamberVisualLayer,
+  #library[data-performance-mode='mobile'][data-exit-state] .evChamberVisualLayer {
+    opacity: .82 !important;
+    transform: translateZ(0) scale(.995);
+    transition: opacity 520ms ease, transform 520ms ease !important;
+  }
+
+  /* The custom popup fade remains smooth and isolated from the chamber. */
+  .evFrequencyPowerBackdrop,
+  .evFrequencyPowerCard {
+    will-change: auto !important;
+  }
+
+  .evFrequencyPowerBackdrop.closing {
+    pointer-events: none !important;
+  }
+}
+
+@media (max-width: 370px) {
+  body.ev-product-route #ev-builder-library-controls {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  body.ev-product-route .evSavedSpacesTrigger,
+  body.ev-product-route .evLibraryTrigger.evNotesTrigger {
+    padding-inline: 12px !important;
+  }
+
+  body.ev-product-route .evSavedSpacesTrigger > span,
+  body.ev-product-route .evLibraryTrigger.evNotesTrigger > span {
+    font-size: .88rem !important;
+  }
+}
