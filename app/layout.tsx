@@ -11,9 +11,11 @@ import './v10-3-mobile-brand.css';
 import './v10-4-desktop-brand.css';
 import './v10-5-builder-cta.css';
 import './v10-6-completion-flow.css';
+import './v10-7-frequency-chamber.css';
 import HumanoidSwap from './HumanoidSwap';
 import SignalChamberPolish from './SignalChamberPolish';
 import SignalChamberBlend from './SignalChamberBlend';
+import FrequencyChamberExperience from './FrequencyChamberExperience';
 import IOSAudioReliability from './IOSAudioReliability';
 import V10VoyageEngine from './V10VoyageEngine';
 import V10SessionPolish from './V10SessionPolish';
@@ -50,6 +52,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         {children}
         <SignalChamberPolish />
         <SignalChamberBlend />
+        <FrequencyChamberExperience />
         <IOSAudioReliability />
         <V10VoyageEngine />
         <V10SessionPolish />
