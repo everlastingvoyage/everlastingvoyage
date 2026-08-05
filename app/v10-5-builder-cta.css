@@ -1,0 +1,151 @@
+/* V10.5 — wider builder stage and magnetic state-aware CTA */
+
+/* Give the desktop builder more authority and breathing room. */
+@media (min-width: 900px) {
+  .ev-product-route .sessionBuilder {
+    width: min(1360px, calc(100% - 56px)) !important;
+    max-width: 1360px !important;
+    padding: 32px 36px 42px !important;
+  }
+
+  .ev-product-route .builderActions {
+    margin-top: 22px;
+  }
+}
+
+@media (min-width: 900px) and (max-height: 820px) {
+  .ev-product-route .sessionBuilder {
+    width: min(1320px, calc(100% - 48px)) !important;
+    max-width: 1320px !important;
+    padding: 28px 30px 36px !important;
+  }
+}
+
+/* Keep one recognizable CTA while its light responds to the chosen state. */
+.sessionBuilder {
+  --ev-cta-accent: 102, 216, 255;
+  --ev-cta-accent-two: 102, 96, 255;
+  --ev-cta-shine: 225, 249, 255;
+}
+
+.sessionBuilder:has(.stateChoice.alpha.active) {
+  --ev-cta-accent: 87, 216, 255;
+  --ev-cta-accent-two: 74, 136, 255;
+  --ev-cta-shine: 229, 251, 255;
+}
+
+.sessionBuilder:has(.stateChoice.gamma.active) {
+  --ev-cta-accent: 92, 224, 153;
+  --ev-cta-accent-two: 47, 165, 113;
+  --ev-cta-shine: 229, 255, 240;
+}
+
+.sessionBuilder:has(.stateChoice.theta.active) {
+  --ev-cta-accent: 156, 126, 255;
+  --ev-cta-accent-two: 91, 74, 230;
+  --ev-cta-shine: 244, 238, 255;
+}
+
+.sessionBuilder:has(.stateChoice.delta.active) {
+  --ev-cta-accent: 196, 224, 248;
+  --ev-cta-accent-two: 91, 151, 211;
+  --ev-cta-shine: 255, 255, 255;
+}
+
+.sessionBuilder:has(.stateChoice.abundance.active) {
+  --ev-cta-accent: 236, 198, 91;
+  --ev-cta-accent-two: 178, 121, 34;
+  --ev-cta-shine: 255, 249, 220;
+}
+
+.builderActions .primaryButton,
+.evEntrancePrimary {
+  will-change: box-shadow, filter;
+  animation: evV105CtaBreathe 2.75s ease-in-out infinite !important;
+}
+
+.builderActions .primaryButton::after,
+.evEntrancePrimary::after {
+  top: -70% !important;
+  bottom: -70% !important;
+  left: -42% !important;
+  width: 24% !important;
+  opacity: 0;
+  transform: skewX(-22deg) translateX(-260%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(var(--ev-cta-shine, 235, 250, 255), 0.18) 18%,
+    rgba(var(--ev-cta-shine, 235, 250, 255), 0.82) 50%,
+    rgba(var(--ev-cta-shine, 235, 250, 255), 0.18) 82%,
+    transparent
+  ) !important;
+  filter: blur(0.8px);
+  animation: evV105CtaSweep 3.35s cubic-bezier(0.42, 0, 0.22, 1) infinite !important;
+}
+
+.builderActions .primaryButton span,
+.evEntrancePrimary span {
+  animation: evV105ArrowInvite 1.75s ease-in-out infinite;
+}
+
+.builderActions .primaryButton:hover,
+.evEntrancePrimary:hover {
+  filter: saturate(1.1) brightness(1.07) !important;
+}
+
+.builderActions .primaryButton:active,
+.evEntrancePrimary:active {
+  animation-play-state: paused;
+}
+
+@keyframes evV105CtaBreathe {
+  0%, 100% {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.44),
+      inset 0 -12px 28px rgba(20, 25, 86, 0.2),
+      0 13px 34px rgba(var(--ev-cta-accent, 92, 207, 255), 0.2),
+      0 0 20px rgba(var(--ev-cta-accent-two, 104, 83, 255), 0.12) !important;
+  }
+  50% {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.58),
+      inset 0 -12px 28px rgba(20, 25, 86, 0.16),
+      0 18px 48px rgba(var(--ev-cta-accent, 92, 207, 255), 0.34),
+      0 0 42px rgba(var(--ev-cta-accent-two, 104, 83, 255), 0.27) !important;
+  }
+}
+
+@keyframes evV105CtaSweep {
+  0%, 12% {
+    opacity: 0;
+    transform: skewX(-22deg) translateX(-260%);
+  }
+  18% {
+    opacity: 0.9;
+  }
+  48% {
+    opacity: 0.9;
+  }
+  62%, 100% {
+    opacity: 0;
+    transform: skewX(-22deg) translateX(720%);
+  }
+}
+
+@keyframes evV105ArrowInvite {
+  0%, 100% { transform: translateX(0); }
+  45% { transform: translateX(4px); }
+  60% { transform: translateX(2px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .builderActions .primaryButton,
+  .evEntrancePrimary,
+  .builderActions .primaryButton::after,
+  .evEntrancePrimary::after,
+  .builderActions .primaryButton span,
+  .evEntrancePrimary span {
+    animation: none !important;
+  }
+}
