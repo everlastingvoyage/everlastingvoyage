@@ -24,6 +24,12 @@ export default function PrecisionVolumeControl({
 }: PrecisionVolumeControlProps) {
   const repeatTimeoutRef = useRef<number | null>(null);
   const repeatIntervalRef = useRef<number | null>(null);
+  const valueRef = useRef(value);
+  const pointerHandledRef = useRef(false);
+
+  useEffect(() => {
+    valueRef.current = value;
+  }, [value]);
 
   const clearRepeat = () => {
     if (repeatTimeoutRef.current !== null) window.clearTimeout(repeatTimeoutRef.current);
@@ -35,15 +41,28 @@ export default function PrecisionVolumeControl({
   useEffect(() => clearRepeat, []);
 
   const adjust = (deltaDb: number) => {
-    onChange(adjustGainByDb(value, deltaDb));
+    const next = adjustGainByDb(valueRef.current, deltaDb);
+    valueRef.current = next;
+    onChange(next);
   };
 
-  const beginRepeat = (deltaDb: number) => {
+  const beginRepeat = (event: React.PointerEvent<HTMLButtonElement>, deltaDb: number) => {
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    event.preventDefault();
+    pointerHandledRef.current = true;
     clearRepeat();
     adjust(deltaDb);
     repeatTimeoutRef.current = window.setTimeout(() => {
       repeatIntervalRef.current = window.setInterval(() => adjust(deltaDb), 110);
     }, 430);
+  };
+
+  const handleClick = (deltaDb: number) => {
+    if (pointerHandledRef.current) {
+      pointerHandledRef.current = false;
+      return;
+    }
+    adjust(deltaDb);
   };
 
   return (
@@ -58,10 +77,11 @@ export default function PrecisionVolumeControl({
         <button
           type="button"
           className="evPrecisionStep"
-          onPointerDown={() => beginRepeat(-1)}
+          onPointerDown={(event) => beginRepeat(event, -1)}
           onPointerUp={clearRepeat}
           onPointerCancel={clearRepeat}
           onPointerLeave={clearRepeat}
+          onClick={() => handleClick(-1)}
           aria-label={`Lower ${ariaLabel} by 1 decibel`}
           disabled={value <= 0}
         >
@@ -83,10 +103,11 @@ export default function PrecisionVolumeControl({
         <button
           type="button"
           className="evPrecisionStep"
-          onPointerDown={() => beginRepeat(1)}
+          onPointerDown={(event) => beginRepeat(event, 1)}
           onPointerUp={clearRepeat}
           onPointerCancel={clearRepeat}
           onPointerLeave={clearRepeat}
+          onClick={() => handleClick(1)}
           aria-label={`Raise ${ariaLabel} by 1 decibel`}
           disabled={value >= 1}
         >
