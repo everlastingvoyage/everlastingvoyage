@@ -1,7 +1,8 @@
 import {
   ambientCatalog,
   type AmbientId,
-  type NoiseColor
+  type NoiseColor,
+  type ProceduralAtmosphereKind
 } from './ambient-catalog';
 import {
   clampUnitVolume,
@@ -10,15 +11,26 @@ import {
   type VoyageConfig
 } from './voyage-model';
 
+type LayerVoice = {
+  stop: () => void;
+  disconnect: () => void;
+};
+
 type LayerRuntime = {
   gain: GainNode;
-  source: AudioBufferSourceNode | null;
+  voice: LayerVoice | null;
   generation: number;
   volume: number;
 };
 
+type FilterStage = {
+  type: BiquadFilterType;
+  frequency: number;
+  q?: number;
+};
+
 const DEFAULT_FADE_SECONDS = 0.36;
-const NOISE_BUFFER_SECONDS = 8;
+const NOISE_BUFFER_SECONDS = 12;
 
 function createNoiseBuffer(context: AudioContext, color: NoiseColor): AudioBuffer {
   const frameCount = Math.max(1, Math.floor(context.sampleRate * NOISE_BUFFER_SECONDS));
@@ -64,12 +76,28 @@ function createNoiseBuffer(context: AudioContext, color: NoiseColor): AudioBuffe
   return buffer;
 }
 
+function safelyStop(source: AudioScheduledSourceNode): void {
+  try {
+    source.stop();
+  } catch {
+    // A scheduled source can already be stopped during rapid UI changes.
+  }
+}
+
+function safelyDisconnect(node: AudioNode): void {
+  try {
+    node.disconnect();
+  } catch {
+    // A node can already be disconnected during browser lifecycle cleanup.
+  }
+}
+
 export class AmbientMixerEngine {
   private readonly context: AudioContext;
   private readonly output: GainNode;
   private readonly compressor: DynamicsCompressorNode;
   private readonly layers = new Map<AmbientId, LayerRuntime>();
-  private readonly bufferCache = new Map<AmbientId, Promise<AudioBuffer>>();
+  private readonly bufferCache = new Map<string, Promise<AudioBuffer>>();
   private disposed = false;
 
   constructor(context: AudioContext, destination: AudioNode = context.destination) {
@@ -94,7 +122,7 @@ export class AmbientMixerEngine {
 
   get activeLayerIds(): AmbientId[] {
     return Array.from(this.layers.entries())
-      .filter(([, runtime]) => Boolean(runtime.source))
+      .filter(([, runtime]) => Boolean(runtime.voice))
       .map(([id]) => id);
   }
 
@@ -139,44 +167,30 @@ export class AmbientMixerEngine {
     const generation = runtime.generation + 1;
     runtime.generation = generation;
 
-    if (runtime.source) {
+    if (runtime.voice) {
       this.rampGain(runtime.gain, runtime.volume, 0.1);
       return;
     }
 
-    const buffer = await this.getBuffer(id);
-    if (this.disposed || runtime.generation !== generation || runtime.source) return;
+    const voice = await this.createLayerVoice(id, runtime.gain);
+    if (this.disposed || runtime.generation !== generation || runtime.voice) {
+      voice.stop();
+      voice.disconnect();
+      return;
+    }
 
-    const source = this.context.createBufferSource();
-    source.buffer = buffer;
-    source.loop = true;
-    source.loopStart = 0;
-    source.loopEnd = buffer.duration;
-    source.connect(runtime.gain);
-    runtime.source = source;
-
+    runtime.voice = voice;
     const now = this.context.currentTime;
     runtime.gain.gain.cancelScheduledValues(now);
     runtime.gain.gain.setValueAtTime(0, now);
     this.rampGain(runtime.gain, runtime.volume, DEFAULT_FADE_SECONDS);
-
-    source.onended = () => {
-      if (runtime.source === source) runtime.source = null;
-      try {
-        source.disconnect();
-      } catch {
-        // Source may already be disconnected during disposal.
-      }
-    };
-
-    source.start(now);
   }
 
   setLayerVolume(id: AmbientId, volume: number): void {
     if (this.disposed) return;
     const runtime = this.getOrCreateRuntime(id, volume);
     runtime.volume = clampUnitVolume(volume, ambientCatalog[id].defaultVolume);
-    this.rampGain(runtime.gain, runtime.source ? runtime.volume : 0, 0.08);
+    this.rampGain(runtime.gain, runtime.voice ? runtime.volume : 0, 0.08);
   }
 
   async stopLayer(id: AmbientId, fadeSeconds = DEFAULT_FADE_SECONDS): Promise<void> {
@@ -184,20 +198,16 @@ export class AmbientMixerEngine {
     if (!runtime) return;
 
     runtime.generation += 1;
-    const source = runtime.source;
-    runtime.source = null;
-    if (!source) return;
+    const voice = runtime.voice;
+    runtime.voice = null;
+    if (!voice) return;
 
     this.rampGain(runtime.gain, 0, fadeSeconds);
 
     await new Promise<void>((resolve) => {
       window.setTimeout(() => {
-        try {
-          source.stop();
-          source.disconnect();
-        } catch {
-          // The source can already be stopped by browser lifecycle events.
-        }
+        voice.stop();
+        voice.disconnect();
         resolve();
       }, Math.ceil(fadeSeconds * 1000) + 40);
     });
@@ -212,22 +222,12 @@ export class AmbientMixerEngine {
     await this.stopAll(0.08);
     this.disposed = true;
 
-    this.layers.forEach((runtime) => {
-      try {
-        runtime.gain.disconnect();
-      } catch {
-        // Gain may already be disconnected.
-      }
-    });
+    this.layers.forEach((runtime) => safelyDisconnect(runtime.gain));
     this.layers.clear();
     this.bufferCache.clear();
 
-    try {
-      this.output.disconnect();
-      this.compressor.disconnect();
-    } catch {
-      // Output nodes may already be disconnected.
-    }
+    safelyDisconnect(this.output);
+    safelyDisconnect(this.compressor);
   }
 
   private getOrCreateRuntime(id: AmbientId, volume: number): LayerRuntime {
@@ -240,7 +240,7 @@ export class AmbientMixerEngine {
 
     const runtime: LayerRuntime = {
       gain,
-      source: null,
+      voice: null,
       generation: 0,
       volume: clampUnitVolume(volume, ambientCatalog[id].defaultVolume)
     };
@@ -269,29 +269,300 @@ export class AmbientMixerEngine {
     gain.gain.exponentialRampToValueAtTime(target, now + duration);
   }
 
-  private getBuffer(id: AmbientId): Promise<AudioBuffer> {
-    const cached = this.bufferCache.get(id);
+  private async createLayerVoice(id: AmbientId, destination: AudioNode): Promise<LayerVoice> {
+    const definition = ambientCatalog[id];
+
+    if (definition.sourceType === 'procedural-atmosphere') {
+      return this.createProceduralAtmosphere(definition.generator ?? 'rain', destination);
+    }
+
+    const buffer = definition.sourceType === 'procedural-noise'
+      ? await this.getNoiseBuffer(definition.noiseColor ?? 'white')
+      : await this.loadSampleBuffer(definition.assetPath);
+
+    const source = this.context.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+    source.loopStart = 0;
+    source.loopEnd = buffer.duration;
+    source.connect(destination);
+    source.start(this.context.currentTime, Math.random() * Math.max(0.01, buffer.duration - 0.01));
+
+    return {
+      stop: () => safelyStop(source),
+      disconnect: () => safelyDisconnect(source)
+    };
+  }
+
+  private async createProceduralAtmosphere(
+    kind: ProceduralAtmosphereKind,
+    destination: AudioNode
+  ): Promise<LayerVoice> {
+    const context = this.context;
+    const master = context.createGain();
+    const sources = new Set<AudioScheduledSourceNode>();
+    const nodes = new Set<AudioNode>([master]);
+    const timers = new Set<number>();
+    let stopped = false;
+
+    master.gain.value = 0.86;
+    master.connect(destination);
+
+    const registerSource = <T extends AudioScheduledSourceNode>(source: T): T => {
+      sources.add(source);
+      nodes.add(source);
+      source.addEventListener('ended', () => {
+        sources.delete(source);
+        safelyDisconnect(source);
+      }, { once: true });
+      return source;
+    };
+
+    const schedule = (callback: () => void, delayMs: number) => {
+      const timer = window.setTimeout(() => {
+        timers.delete(timer);
+        if (!stopped) callback();
+      }, delayMs);
+      timers.add(timer);
+    };
+
+    const createBed = async (
+      color: NoiseColor,
+      stages: readonly FilterStage[],
+      level: number
+    ) => {
+      const buffer = await this.getNoiseBuffer(color);
+      if (stopped) return null;
+
+      const source = registerSource(context.createBufferSource());
+      source.buffer = buffer;
+      source.loop = true;
+      source.loopStart = 0;
+      source.loopEnd = buffer.duration;
+
+      let previous: AudioNode = source;
+      stages.forEach((stage) => {
+        const filter = context.createBiquadFilter();
+        filter.type = stage.type;
+        filter.frequency.value = stage.frequency;
+        filter.Q.value = stage.q ?? 0.7;
+        previous.connect(filter);
+        previous = filter;
+        nodes.add(filter);
+      });
+
+      const gain = context.createGain();
+      gain.gain.value = level;
+      previous.connect(gain);
+      gain.connect(master);
+      nodes.add(gain);
+      source.start(context.currentTime, Math.random() * buffer.duration);
+      return gain;
+    };
+
+    const addLfo = (target: AudioParam, frequency: number, amount: number, phaseDelay = 0) => {
+      const oscillator = registerSource(context.createOscillator());
+      const depth = context.createGain();
+      oscillator.type = 'sine';
+      oscillator.frequency.value = frequency;
+      depth.gain.value = amount;
+      oscillator.connect(depth);
+      depth.connect(target);
+      nodes.add(depth);
+      oscillator.start(context.currentTime + phaseDelay);
+    };
+
+    const makeChirp = (startAt: number, level: number) => {
+      if (stopped) return;
+      const duration = 0.16 + Math.random() * 0.2;
+      const base = 1700 + Math.random() * 1700;
+      const peak = base * (1.18 + Math.random() * 0.38);
+      const oscillator = registerSource(context.createOscillator());
+      const gain = context.createGain();
+      const panner = context.createStereoPanner();
+      oscillator.type = Math.random() > 0.45 ? 'sine' : 'triangle';
+      oscillator.frequency.setValueAtTime(base, startAt);
+      oscillator.frequency.exponentialRampToValueAtTime(peak, startAt + duration * 0.42);
+      oscillator.frequency.exponentialRampToValueAtTime(base * 0.92, startAt + duration);
+      gain.gain.setValueAtTime(0, startAt);
+      gain.gain.linearRampToValueAtTime(level, startAt + 0.025);
+      gain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
+      panner.pan.value = Math.random() * 1.5 - 0.75;
+      oscillator.connect(gain);
+      gain.connect(panner);
+      panner.connect(master);
+      nodes.add(gain);
+      nodes.add(panner);
+      oscillator.start(startAt);
+      oscillator.stop(startAt + duration + 0.03);
+    };
+
+    const scheduleBirdPhrase = (minimumSeconds: number, maximumSeconds: number, level: number) => {
+      const next = () => {
+        if (stopped) return;
+        const now = context.currentTime + 0.04;
+        const calls = 1 + Math.floor(Math.random() * 3);
+        for (let index = 0; index < calls; index += 1) {
+          makeChirp(now + index * (0.1 + Math.random() * 0.08), level * (0.72 + Math.random() * 0.35));
+        }
+        const delay = minimumSeconds + Math.random() * (maximumSeconds - minimumSeconds);
+        schedule(next, delay * 1000);
+      };
+      schedule(next, 500 + Math.random() * 1400);
+    };
+
+    const makeThunder = async () => {
+      if (stopped) return;
+      const buffer = await this.getNoiseBuffer('brown');
+      if (stopped) return;
+
+      const now = context.currentTime + 0.03;
+      const duration = 3.6 + Math.random() * 2.8;
+      const noise = registerSource(context.createBufferSource());
+      const lowpass = context.createBiquadFilter();
+      const noiseGain = context.createGain();
+      const panner = context.createStereoPanner();
+      noise.buffer = buffer;
+      lowpass.type = 'lowpass';
+      lowpass.frequency.value = 150 + Math.random() * 90;
+      lowpass.Q.value = 0.8;
+      noiseGain.gain.setValueAtTime(0, now);
+      noiseGain.gain.linearRampToValueAtTime(0.22, now + 0.32);
+      noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+      panner.pan.value = Math.random() * 1.3 - 0.65;
+      noise.connect(lowpass);
+      lowpass.connect(noiseGain);
+      noiseGain.connect(panner);
+      panner.connect(master);
+      nodes.add(lowpass);
+      nodes.add(noiseGain);
+      nodes.add(panner);
+      noise.start(now, Math.random() * Math.max(0.1, buffer.duration - duration), duration);
+
+      const rumble = registerSource(context.createOscillator());
+      const rumbleGain = context.createGain();
+      rumble.type = 'sine';
+      rumble.frequency.setValueAtTime(48 + Math.random() * 12, now);
+      rumble.frequency.exponentialRampToValueAtTime(25 + Math.random() * 8, now + duration);
+      rumbleGain.gain.setValueAtTime(0, now);
+      rumbleGain.gain.linearRampToValueAtTime(0.055, now + 0.28);
+      rumbleGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+      rumble.connect(rumbleGain);
+      rumbleGain.connect(master);
+      nodes.add(rumbleGain);
+      rumble.start(now);
+      rumble.stop(now + duration + 0.03);
+    };
+
+    const scheduleThunder = () => {
+      const next = () => {
+        void makeThunder();
+        schedule(next, (10 + Math.random() * 16) * 1000);
+      };
+      schedule(next, (4 + Math.random() * 7) * 1000);
+    };
+
+    if (kind === 'rain') {
+      const rain = await createBed('white', [
+        { type: 'highpass', frequency: 720 },
+        { type: 'lowpass', frequency: 9200 }
+      ], 0.46);
+      await createBed('pink', [
+        { type: 'highpass', frequency: 100 },
+        { type: 'lowpass', frequency: 1100 }
+      ], 0.12);
+      if (rain) addLfo(rain.gain, 0.09, 0.045);
+    }
+
+    if (kind === 'ocean') {
+      const surf = await createBed('pink', [
+        { type: 'highpass', frequency: 55 },
+        { type: 'lowpass', frequency: 1450 }
+      ], 0.4);
+      const body = await createBed('brown', [
+        { type: 'lowpass', frequency: 310 }
+      ], 0.2);
+      if (surf) {
+        addLfo(surf.gain, 0.065, 0.2);
+        addLfo(surf.gain, 0.113, 0.08, 0.2);
+      }
+      if (body) addLfo(body.gain, 0.043, 0.07);
+    }
+
+    if (kind === 'birds') {
+      await createBed('pink', [
+        { type: 'highpass', frequency: 100 },
+        { type: 'lowpass', frequency: 1800 }
+      ], 0.065);
+      scheduleBirdPhrase(1.7, 5.2, 0.055);
+    }
+
+    if (kind === 'nature') {
+      const leaves = await createBed('pink', [
+        { type: 'highpass', frequency: 90 },
+        { type: 'lowpass', frequency: 2700 }
+      ], 0.16);
+      await createBed('brown', [
+        { type: 'lowpass', frequency: 380 }
+      ], 0.055);
+      if (leaves) addLfo(leaves.gain, 0.12, 0.035);
+      scheduleBirdPhrase(4.2, 10.5, 0.032);
+    }
+
+    if (kind === 'storm') {
+      const rain = await createBed('white', [
+        { type: 'highpass', frequency: 480 },
+        { type: 'lowpass', frequency: 7200 }
+      ], 0.35);
+      const pressure = await createBed('brown', [
+        { type: 'lowpass', frequency: 240 }
+      ], 0.16);
+      if (rain) addLfo(rain.gain, 0.075, 0.055);
+      if (pressure) addLfo(pressure.gain, 0.037, 0.05);
+      scheduleThunder();
+    }
+
+    return {
+      stop: () => {
+        if (stopped) return;
+        stopped = true;
+        timers.forEach((timer) => window.clearTimeout(timer));
+        timers.clear();
+        sources.forEach(safelyStop);
+        sources.clear();
+      },
+      disconnect: () => {
+        nodes.forEach(safelyDisconnect);
+        nodes.clear();
+      }
+    };
+  }
+
+  private getNoiseBuffer(color: NoiseColor): Promise<AudioBuffer> {
+    const key = `procedural-noise:${color}`;
+    const cached = this.bufferCache.get(key);
     if (cached) return cached;
 
-    const definition = ambientCatalog[id];
-    const promise = definition.sourceType === 'procedural-noise'
-      ? Promise.resolve(createNoiseBuffer(this.context, definition.noiseColor ?? 'white'))
-      : this.loadSampleBuffer(definition.assetPath);
-
-    this.bufferCache.set(id, promise);
-    promise.catch(() => this.bufferCache.delete(id));
+    const promise = Promise.resolve(createNoiseBuffer(this.context, color));
+    this.bufferCache.set(key, promise);
     return promise;
   }
 
   private async loadSampleBuffer(assetPath: string | undefined): Promise<AudioBuffer> {
     if (!assetPath) throw new Error('Ambient sample is missing an asset path.');
+    const key = `sample:${assetPath}`;
+    const cached = this.bufferCache.get(key);
+    if (cached) return cached;
 
-    const response = await fetch(assetPath, { cache: 'force-cache' });
-    if (!response.ok) {
-      throw new Error(`Unable to load ambient sample: ${assetPath}`);
-    }
+    const promise = (async () => {
+      const response = await fetch(assetPath, { cache: 'force-cache' });
+      if (!response.ok) throw new Error(`Unable to load ambient sample: ${assetPath}`);
+      const bytes = await response.arrayBuffer();
+      return this.context.decodeAudioData(bytes.slice(0));
+    })();
 
-    const bytes = await response.arrayBuffer();
-    return this.context.decodeAudioData(bytes.slice(0));
+    this.bufferCache.set(key, promise);
+    promise.catch(() => this.bufferCache.delete(key));
+    return promise;
   }
 }

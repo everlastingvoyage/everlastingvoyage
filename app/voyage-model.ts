@@ -2,7 +2,7 @@ import { ambientCatalog, ambientIds, isAmbientId, type AmbientId } from './ambie
 import { frequencyIds, isFrequencyId, type FrequencyId } from './frequency-catalog';
 
 export const VOYAGE_SCHEMA_VERSION = 1 as const;
-export const MAX_ACTIVE_AMBIENT_LAYERS = 6;
+export const MAX_ACTIVE_AMBIENT_LAYERS = 8;
 
 export type AccessTier = 'free' | 'founder' | 'premium';
 

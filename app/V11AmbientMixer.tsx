@@ -3,7 +3,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { usePathname } from 'next/navigation';
-import { ambientCatalog, type AmbientId } from './ambient-catalog';
+import { ambientCatalog } from './ambient-catalog';
+import {
+  ambientShortDescriptions,
+  ambientSymbols,
+  isPlayableAmbientId,
+  playableAmbientCategories,
+  playableAmbientIds,
+  type PlayableAmbientId
+} from './ambient-playable';
 import { AmbientMixerEngine } from './ambient-mixer-engine';
 import {
   dispatchAmbientCommand,
@@ -14,31 +22,11 @@ import {
   writeAmbientMix,
   type AmbientCommand
 } from './ambient-mixer-store';
+import PrecisionVolumeControl from './PrecisionVolumeControl';
 import { clampUnitVolume, createDefaultAmbientLayers, type AmbientLayerConfig } from './voyage-model';
-
-const playableIds = ['white-noise', 'brown-noise', 'pink-noise'] as const satisfies readonly AmbientId[];
-const upcomingIds = ['rain', 'ocean', 'birds', 'airplane', 'cafe', 'fire'] as const satisfies readonly AmbientId[];
-
-type PlayableId = (typeof playableIds)[number];
-
-const layerSymbols: Record<PlayableId, string> = {
-  'white-noise': '◌',
-  'brown-noise': '≈',
-  'pink-noise': '∿'
-};
-
-const shortDescriptions: Record<PlayableId, string> = {
-  'white-noise': 'Bright, even sound masking.',
-  'brown-noise': 'Deep, soft low-frequency masking.',
-  'pink-noise': 'Balanced, natural noise texture.'
-};
 
 function createSilentInitialLayers(): AmbientLayerConfig[] {
   return createDefaultAmbientLayers().map((layer) => ({ ...layer, enabled: false }));
-}
-
-function isPlayableId(id: AmbientId): id is PlayableId {
-  return playableIds.includes(id as PlayableId);
 }
 
 function sessionAllowsAtmosphere(): boolean {
@@ -52,13 +40,13 @@ export default function V11AmbientMixer() {
   const enabled = pathname === '/voyage';
   const [mount, setMount] = useState<HTMLElement | null>(null);
   const [layers, setLayers] = useState<AmbientLayerConfig[]>(createSilentInitialLayers);
-  const [busyId, setBusyId] = useState<PlayableId | null>(null);
-  const [soloId, setSoloId] = useState<PlayableId | null>(null);
+  const [busyId, setBusyId] = useState<PlayableAmbientId | null>(null);
+  const [soloId, setSoloId] = useState<PlayableAmbientId | null>(null);
   const [error, setError] = useState('');
   const engineRef = useRef<AmbientMixerEngine | null>(null);
   const contextRef = useRef<AudioContext | null>(null);
   const layersRef = useRef(layers);
-  const soloIdRef = useRef<PlayableId | null>(null);
+  const soloIdRef = useRef<PlayableAmbientId | null>(null);
   const commandRunRef = useRef(0);
 
   useEffect(() => {
@@ -140,7 +128,9 @@ export default function V11AmbientMixer() {
     if (!engine) return;
 
     const enabledLayers = nextLayers.filter(
-      (layer): layer is AmbientLayerConfig & { id: PlayableId } => layer.enabled && isPlayableId(layer.id)
+      (layer): layer is AmbientLayerConfig & { id: PlayableAmbientId } => (
+        layer.enabled && isPlayableAmbientId(layer.id)
+      )
     );
     const selectedLayers = soloIdRef.current
       ? enabledLayers.filter((layer) => layer.id === soloIdRef.current)
@@ -150,7 +140,7 @@ export default function V11AmbientMixer() {
     await Promise.all(selectedLayers.map((layer) => engine.startLayer(layer.id, layer.volume)));
     await Promise.all(
       engine.activeLayerIds
-        .filter((id) => isPlayableId(id) && !selectedIds.has(id))
+        .filter((id) => isPlayableAmbientId(id) && !selectedIds.has(id))
         .map((id) => engine.stopLayer(id, 0.22))
     );
   }, [ensureEngine]);
@@ -181,7 +171,7 @@ export default function V11AmbientMixer() {
       return;
     }
 
-    if (!isPlayableId(command.id)) return;
+    if (!isPlayableAmbientId(command.id)) return;
     const current = layersRef.current.find((layer) => layer.id === command.id);
     if (!current) return;
 
@@ -304,7 +294,7 @@ export default function V11AmbientMixer() {
   }, []);
 
   const addedCount = useMemo(
-    () => playableIds.filter((id) => layers.find((layer) => layer.id === id)?.enabled).length,
+    () => playableAmbientIds.filter((id) => layers.find((layer) => layer.id === id)?.enabled).length,
     [layers]
   );
 
@@ -316,7 +306,7 @@ export default function V11AmbientMixer() {
         <div>
           <span className="evAmbientMixerEyebrow">Atmosphere mixer</span>
           <h3 id="ev-ambient-mixer-title">Shape the space around your signal.</h3>
-          <p>Tap one texture or blend all three. Every layer stays synchronized with your live voyage controls.</p>
+          <p>Blend noise, water, nature and weather. Every layer is generated privately on your device and remains synchronized with the live voyage.</p>
         </div>
         <div className="evAmbientMixerStatus">
           <strong>{addedCount}</strong>
@@ -325,64 +315,58 @@ export default function V11AmbientMixer() {
         </div>
       </header>
 
-      <div className="evAmbientLayerGrid">
-        {playableIds.map((id) => {
-          const definition = ambientCatalog[id];
-          const layer = layers.find((item) => item.id === id) ?? {
-            id,
-            enabled: false,
-            volume: definition.defaultVolume
-          };
-          const isBusy = busyId === id;
-          const percentage = Math.round(layer.volume * 100);
+      <div className="evAmbientLibrary">
+        {playableAmbientCategories.map((category) => (
+          <section className="evAmbientCategory" key={category.label} aria-labelledby={`ambient-category-${category.label.toLowerCase()}`}>
+            <div className="evAmbientCategoryHeading">
+              <span id={`ambient-category-${category.label.toLowerCase()}`}>{category.label}</span>
+              <small>{category.ids.length} {category.ids.length === 1 ? 'layer' : 'layers'}</small>
+            </div>
 
-          return (
-            <article className={`evAmbientLayer ${id} ${layer.enabled ? 'active' : ''} ${soloId === id ? 'solo' : ''}`} key={id}>
-              <button
-                type="button"
-                className="evAmbientLayerToggle"
-                onClick={() => dispatchAmbientCommand({ type: 'toggle', id })}
-                aria-pressed={layer.enabled}
-                disabled={isBusy}
-              >
-                <span className="evAmbientLayerIcon" aria-hidden="true">{layerSymbols[id]}</span>
-                <span className="evAmbientLayerCopy">
-                  <strong>{definition.name}</strong>
-                  <small>{shortDescriptions[id]}</small>
-                </span>
-                <span className="evAmbientLayerState">{isBusy ? 'Starting…' : layer.enabled ? 'On' : 'Add'}</span>
-              </button>
+            <div className="evAmbientLayerGrid">
+              {category.ids.map((id) => {
+                const definition = ambientCatalog[id];
+                const layer = layers.find((item) => item.id === id) ?? {
+                  id,
+                  enabled: false,
+                  volume: definition.defaultVolume
+                };
+                const isBusy = busyId === id;
 
-              <label className="evAmbientVolume">
-                <span>Layer volume</span>
-                <strong>{percentage === 0 ? 'Muted' : `${percentage}%`}</strong>
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.01"
-                  value={layer.volume}
-                  onChange={(event) => dispatchAmbientCommand({
-                    type: 'set-volume',
-                    id,
-                    volume: Number(event.target.value)
-                  })}
-                  aria-label={`${definition.name} volume`}
-                />
-              </label>
-            </article>
-          );
-        })}
+                return (
+                  <article className={`evAmbientLayer ${id} ${layer.enabled ? 'active' : ''} ${soloId === id ? 'solo' : ''}`} key={id}>
+                    <button
+                      type="button"
+                      className="evAmbientLayerToggle"
+                      onClick={() => dispatchAmbientCommand({ type: 'toggle', id })}
+                      aria-pressed={layer.enabled}
+                      disabled={isBusy}
+                    >
+                      <span className="evAmbientLayerIcon" aria-hidden="true">{ambientSymbols[id]}</span>
+                      <span className="evAmbientLayerCopy">
+                        <strong>{definition.name}</strong>
+                        <small>{ambientShortDescriptions[id]}</small>
+                      </span>
+                      <span className="evAmbientLayerState">{isBusy ? 'Starting…' : layer.enabled ? 'On' : 'Add'}</span>
+                    </button>
+
+                    <PrecisionVolumeControl
+                      className="evAmbientCardPrecision"
+                      value={layer.volume}
+                      onChange={(volume) => dispatchAmbientCommand({ type: 'set-volume', id, volume })}
+                      ariaLabel={`${definition.name} volume`}
+                    />
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        ))}
       </div>
 
-      <div className="evAmbientComingNext">
-        <div>
-          <span>High-fidelity atmosphere pack</span>
-          <strong>Rain, ocean, birds and places are next.</strong>
-        </div>
-        <div className="evAmbientUpcomingChips" aria-label="Upcoming ambient sounds">
-          {upcomingIds.map((id) => <span key={id}>{ambientCatalog[id].shortName}</span>)}
-        </div>
+      <div className="evAmbientQualityNote">
+        <span>Generative high-fidelity audio</span>
+        <strong>No ads, no recorded-loop seam and no audio upload. Generated at your device sample rate.</strong>
       </div>
 
       {error ? <p className="evAmbientMixerError" role="status">{error}</p> : null}
