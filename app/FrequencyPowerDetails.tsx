@@ -175,6 +175,13 @@ export default function FrequencyPowerDetails() {
     if (closeRunRef.current !== runId) return;
 
     document.querySelector<HTMLButtonElement>(selector)?.click();
+
+    /* The legacy MutationObserver creates its exit clone in a microtask after
+       the hidden button click. Keep closing state alive for one paint, remove
+       that inert clone, then release the portal immediately. */
+    await nextPaint();
+    if (closeRunRef.current !== runId) return;
+
     removeLegacyGhosts();
     clearChamberExitState();
     setActiveId(null);
