@@ -88,19 +88,29 @@ jobs:
 
           const openPopup = async (page, state) => {
             await page.evaluate(() => document.querySelector('#library')?.scrollIntoView({ block: 'center' }));
-            const startedAt = performance.now();
-            await page.click(`#library .signalNode.${state}`);
-            await page.waitForSelector(`.evFrequencyPowerBackdrop.${state}:not(.closing)`, { timeout: 5000 });
+            const startedAt = await page.evaluate((activeState) => {
+              const node = document.querySelector(`#library .signalNode.${activeState}`);
+              if (!(node instanceof HTMLElement)) throw new Error(`Missing signal node: ${activeState}`);
+              const start = performance.now();
+              node.click();
+              return start;
+            }, state);
+            await page.waitForSelector(`.evFrequencyPowerBackdrop.${state}:not(.closing)`, { timeout: 3000 });
             await waitForMotion(page);
-            return Math.round(performance.now() - startedAt);
+            return page.evaluate((start) => Math.round(performance.now() - start), startedAt);
           };
 
           const closeWithButton = async (page) => {
-            const startedAt = performance.now();
-            await page.click('.evFrequencyPowerTop button[aria-label="Close frequency details"]');
-            await page.waitForSelector('.evFrequencyPowerBackdrop.closing', { timeout: 2000 });
-            await page.waitForSelector('.evFrequencyPowerBackdrop', { hidden: true, timeout: 2000 });
-            return Math.round(performance.now() - startedAt);
+            const startedAt = await page.evaluate(() => {
+              const button = document.querySelector('.evFrequencyPowerTop button[aria-label="Close frequency details"]');
+              if (!(button instanceof HTMLButtonElement)) throw new Error('Close button is missing');
+              const start = performance.now();
+              button.click();
+              return start;
+            });
+            await page.waitForSelector('.evFrequencyPowerBackdrop.closing', { timeout: 1000 });
+            await page.waitForSelector('.evFrequencyPowerBackdrop', { hidden: true, timeout: 1500 });
+            return page.evaluate((start) => Math.round(performance.now() - start), startedAt);
           };
 
           const readMotionState = (page) => page.evaluate(() => {
@@ -139,7 +149,7 @@ jobs:
             await page.goto('http://127.0.0.1:3000/voyage', { waitUntil: 'networkidle0' });
             await page.waitForSelector('#library.evFrequencyChamber');
             await page.evaluate(() => document.querySelector('#library')?.scrollIntoView({ block: 'center' }));
-            await new Promise((resolve) => setTimeout(resolve, 350));
+            await new Promise((resolve) => setTimeout(resolve, 300));
 
             for (const state of states) {
               for (let iteration = 0; iteration < profile.iterations; iteration += 1) {
@@ -175,60 +185,63 @@ jobs:
                   ...styles
                 });
 
-                /* Reopen immediately. Any old 620 ms lock makes the next loop fail. */
+                /* The next loop starts immediately; this detects the removed 620 ms lock. */
               }
             }
 
-            /* Escape closes the same real portal. */
             await openPopup(page, 'alpha');
-            const escapeStartedAt = performance.now();
+            const escapeStartedAt = await page.evaluate(() => performance.now());
             await page.keyboard.press('Escape');
-            await page.waitForSelector('.evFrequencyPowerBackdrop', { hidden: true, timeout: 2000 });
+            await page.waitForSelector('.evFrequencyPowerBackdrop', { hidden: true, timeout: 1500 });
             allResults.push({
               profile: profile.name,
               interaction: 'escape',
-              closedInMs: Math.round(performance.now() - escapeStartedAt)
+              closedInMs: await page.evaluate((start) => Math.round(performance.now() - start), escapeStartedAt)
             });
 
-            /* Clicking the backdrop closes without touching the card. */
             await openPopup(page, 'gamma');
-            const outsideStartedAt = performance.now();
-            await page.evaluate(() => {
+            const outsideStartedAt = await page.evaluate(() => {
               const backdrop = document.querySelector('.evFrequencyPowerBackdrop');
-              backdrop?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+              if (!(backdrop instanceof HTMLElement)) throw new Error('Backdrop is missing');
+              const start = performance.now();
+              backdrop.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+              return start;
             });
-            await page.waitForSelector('.evFrequencyPowerBackdrop', { hidden: true, timeout: 2000 });
+            await page.waitForSelector('.evFrequencyPowerBackdrop', { hidden: true, timeout: 1500 });
             allResults.push({
               profile: profile.name,
               interaction: 'outside-click',
-              closedInMs: Math.round(performance.now() - outsideStartedAt)
+              closedInMs: await page.evaluate((start) => Math.round(performance.now() - start), outsideStartedAt)
             });
 
-            /* The action button must close and preserve the original state-selection flow. */
             await openPopup(page, 'theta');
-            const actionStartedAt = performance.now();
-            await page.click('.evFrequencyPowerAction');
-            await page.waitForSelector('.evFrequencyPowerBackdrop', { hidden: true, timeout: 2000 });
+            const actionStartedAt = await page.evaluate(() => {
+              const button = document.querySelector('.evFrequencyPowerAction');
+              if (!(button instanceof HTMLButtonElement)) throw new Error('Use state button is missing');
+              const start = performance.now();
+              button.click();
+              return start;
+            });
+            await page.waitForSelector('.evFrequencyPowerBackdrop', { hidden: true, timeout: 1500 });
             await page.waitForFunction(() => document.querySelector('.stateChoice.theta')?.classList.contains('active'));
             allResults.push({
               profile: profile.name,
               interaction: 'use-state',
-              closedInMs: Math.round(performance.now() - actionStartedAt)
+              closedInMs: await page.evaluate((start) => Math.round(performance.now() - start), actionStartedAt)
             });
 
             await page.close();
           }
 
           const measuredCycles = allResults.filter((item) => item.state);
-          const interactionResults = allResults.filter((item) => item.interaction);
+          const standardClosures = allResults.filter((item) => item.state || ['escape', 'outside-click'].includes(item.interaction));
+          const useStateClosures = allResults.filter((item) => item.interaction === 'use-state');
           const summary = {
             pageErrors,
             allResults,
             maxOpenMs: Math.max(...measuredCycles.map((item) => item.openedInMs)),
-            maxCloseMs: Math.max(
-              ...measuredCycles.map((item) => item.closedInMs),
-              ...interactionResults.map((item) => item.closedInMs)
-            )
+            maxStandardCloseMs: Math.max(...standardClosures.map((item) => item.closedInMs)),
+            maxUseStateCloseMs: Math.max(...useStateClosures.map((item) => item.closedInMs))
           };
           fs.writeFileSync('popup-motion-qa/results.json', JSON.stringify(summary, null, 2));
 
@@ -248,8 +261,9 @@ jobs:
           if (measuredCycles.some((item) => item.stageFilter !== 'none')) throw new Error('Full-stage filter is still active');
           if (measuredCycles.some((item) => !['none', 'not-mounted'].includes(item.waveDisplay))) throw new Error('Transition wave is still visible');
           if (measuredCycles.some((item) => !['0', 'not-mounted'].includes(item.legacyPopupOpacity))) throw new Error('Legacy popup became visible');
-          if (summary.maxOpenMs > 650) throw new Error(`Popup opening exceeded target: ${summary.maxOpenMs} ms`);
-          if (summary.maxCloseMs > 450) throw new Error(`Popup closing exceeded target: ${summary.maxCloseMs} ms`);
+          if (summary.maxOpenMs > 400) throw new Error(`Popup opening exceeded target: ${summary.maxOpenMs} ms`);
+          if (summary.maxStandardCloseMs > 350) throw new Error(`Popup closing exceeded target: ${summary.maxStandardCloseMs} ms`);
+          if (summary.maxUseStateCloseMs > 650) throw new Error(`Use-state close exceeded target: ${summary.maxUseStateCloseMs} ms`);
 
           await browser.close();
           EOF
