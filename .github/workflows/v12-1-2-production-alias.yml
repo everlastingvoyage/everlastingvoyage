@@ -1,0 +1,42 @@
+name: V12.1.2 Production Alias
+
+on:
+  push:
+    branches:
+      - v12-1-2-chamber-rectangle-removal
+  workflow_dispatch:
+
+jobs:
+  alias-production:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      PREVIEW_URL: everlastingvoyage-git-v12-1-2-chamber-fa5325-everlasting-voyage.vercel.app
+      PRODUCTION_DOMAIN: everlastingvoyage.vercel.app
+      VERCEL_SCOPE: everlasting-voyage
+
+    steps:
+      - name: Verify Vercel authentication secret
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "VERCEL_TOKEN is not configured in this repository."
+            exit 2
+          fi
+          echo "Vercel authentication secret is configured."
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Point production domain to validated preview
+        run: |
+          vercel alias set "$PREVIEW_URL" "$PRODUCTION_DOMAIN" \
+            --scope "$VERCEL_SCOPE" \
+            --token "$VERCEL_TOKEN"
+
+      - name: Verify production response
+        run: |
+          curl --fail --silent --show-error --location \
+            --retry 5 --retry-delay 3 \
+            "https://$PRODUCTION_DOMAIN/voyage" >/dev/null
+          echo "Production domain is responding."
