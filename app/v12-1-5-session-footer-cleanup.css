@@ -1,6 +1,6 @@
 /* V12.1.5 — Clean Pomodoro technical footer.
-   Keeps signal guidance in normal document flow below Atmosphere instead of
-   allowing older responsive rules to place it over sound cards. */
+   Keeps Atmosphere and signal guidance in normal overlay flow instead of
+   allowing the technical footer to sit over desktop sound cards. */
 
 .v10SessionOverlay:not(.completed) .v10SessionFooter {
   position: relative !important;
@@ -18,16 +18,43 @@
   filter: none !important;
 }
 
-@media (min-width: 761px) {
+@media (min-width: 1100px) {
+  .v10SessionOverlay:not(.completed) {
+    grid-template-rows: auto auto auto auto !important;
+  }
+
+  .v10SessionOverlay:not(.completed) .v10SessionMain {
+    grid-template-areas:
+      "identity timer capture"
+      "signal signal signal"
+      "thoughts thoughts thoughts" !important;
+  }
+
+  .v10SessionOverlay:not(.completed) > #ev-session-atmosphere-root {
+    grid-area: auto !important;
+    grid-column: 1 !important;
+    grid-row: auto !important;
+    align-self: start !important;
+    width: min(1600px, calc(100% - 64px)) !important;
+    min-width: 0;
+    margin: 18px auto 0 !important;
+  }
+
   .v10SessionOverlay:not(.completed) .v10SessionFooter {
-    margin-top: 28px !important;
+    width: min(1600px, calc(100% - 64px)) !important;
   }
 }
 
-@media (min-width: 761px) and (max-width: 1099px) {
+@media (min-width: 1700px) {
+  .v10SessionOverlay:not(.completed) > #ev-session-atmosphere-root,
   .v10SessionOverlay:not(.completed) .v10SessionFooter {
-    width: min(980px, calc(100% - 48px)) !important;
-    margin: 30px auto 0 !important;
+    width: min(1660px, calc(100% - 112px)) !important;
+  }
+}
+
+@media (min-width: 761px) {
+  .v10SessionOverlay:not(.completed) .v10SessionFooter {
+    margin: 28px auto 0 !important;
     padding: 18px 0 34px !important;
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -61,6 +88,13 @@
     margin: 8px auto 0 !important;
     padding: 18px 28px 0 !important;
     border-top: 0 !important;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1099px) {
+  .v10SessionOverlay:not(.completed) .v10SessionFooter {
+    width: min(980px, calc(100% - 48px)) !important;
+    margin-top: 30px !important;
   }
 }
 
