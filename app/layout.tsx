@@ -35,6 +35,7 @@ import './v12-1-1-readability-chamber-ocean.css';
 import './v12-1-2-chamber-rectangle-removal.css';
 import './v12-1-3-popup-motion-polish.css';
 import './v12-1-4-session-layout-navigation.css';
+import './v12-1-5-session-footer-cleanup.css';
 import HumanoidSwap from './HumanoidSwap';
 import SignalChamberPolish from './SignalChamberPolish';
 import SignalChamberBlend from './SignalChamberBlend';
