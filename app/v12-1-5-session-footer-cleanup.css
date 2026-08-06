@@ -24,15 +24,24 @@
 
 @media (min-width: 1100px) {
   .v10SessionOverlay:not(.completed) {
+    grid-template-columns: minmax(0, 1fr) !important;
     grid-template-rows: auto auto auto auto !important;
+    grid-auto-flow: row !important;
     align-content: start !important;
+  }
+
+  .v10SessionOverlay:not(.completed) > .v10SessionHeader {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
   }
 
   /* V10 polish previously forced the console to occupy nearly a full viewport:
      min-height: calc(100dvh - 178px). Once Atmosphere became a separate DOM
      section, that inherited height appeared as a large empty band. Keep the
      console content-sized and leave only a small intentional transition gap. */
-  .v10SessionOverlay:not(.completed) .v10SessionMain {
+  .v10SessionOverlay:not(.completed) > .v10SessionMain {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
     min-height: 0 !important;
     height: auto !important;
     align-self: start !important;
@@ -49,7 +58,7 @@
     position: static !important;
     grid-area: auto !important;
     grid-column: 1 !important;
-    grid-row: auto !important;
+    grid-row: 3 !important;
     align-self: start !important;
     display: block !important;
     width: min(1600px, calc(100% - 64px)) !important;
@@ -75,7 +84,7 @@
   .v10SessionOverlay:not(.completed) > #ev-session-atmosphere-root + .v10SessionFooter {
     grid-area: auto !important;
     grid-column: 1 !important;
-    grid-row: auto !important;
+    grid-row: 4 !important;
     width: min(1600px, calc(100% - 64px)) !important;
     min-height: 0 !important;
     margin: 28px auto 0 !important;
