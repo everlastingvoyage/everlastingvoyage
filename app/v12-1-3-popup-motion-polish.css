@@ -2,7 +2,7 @@
    The visible Chamber modal is the portal-based FrequencyPowerDetails layer.
    Keep motion short and compositor-friendly: opacity + transform only. */
 
-.evFrequencyPowerBackdrop {
+body.ev-product-route .evFrequencyPowerBackdrop {
   background: rgba(0, 5, 15, .76) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
@@ -10,7 +10,7 @@
   will-change: opacity;
 }
 
-.evFrequencyPowerCard {
+body.ev-product-route .evFrequencyPowerCard {
   animation: evFrequencyCardQuickIn 180ms cubic-bezier(.2, .82, .24, 1) both !important;
   filter: none !important;
   will-change: transform, opacity;
@@ -19,12 +19,12 @@
   transform-origin: center center;
 }
 
-.evFrequencyPowerBackdrop.closing {
+body.ev-product-route .evFrequencyPowerBackdrop.closing {
   pointer-events: none !important;
   animation: evFrequencyBackdropQuickOut 140ms ease-in both !important;
 }
 
-.evFrequencyPowerBackdrop.closing .evFrequencyPowerCard {
+body.ev-product-route .evFrequencyPowerBackdrop.closing .evFrequencyPowerCard {
   animation: evFrequencyCardQuickOut 120ms cubic-bezier(.4, 0, .8, .4) both !important;
   filter: none !important;
 }
@@ -62,19 +62,19 @@ body.ev-product-route #library.evFrequencyChamber[data-exit-state]::before {
     transition: none !important;
   }
 
-  .evFrequencyPowerBackdrop {
+  body.ev-product-route .evFrequencyPowerBackdrop {
     animation-duration: 140ms !important;
   }
 
-  .evFrequencyPowerCard {
+  body.ev-product-route .evFrequencyPowerCard {
     animation-duration: 160ms !important;
   }
 
-  .evFrequencyPowerBackdrop.closing {
+  body.ev-product-route .evFrequencyPowerBackdrop.closing {
     animation-duration: 120ms !important;
   }
 
-  .evFrequencyPowerBackdrop.closing .evFrequencyPowerCard {
+  body.ev-product-route .evFrequencyPowerBackdrop.closing .evFrequencyPowerCard {
     animation-duration: 110ms !important;
   }
 }
@@ -114,10 +114,10 @@ body.ev-product-route #library.evFrequencyChamber[data-exit-state]::before {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .evFrequencyPowerBackdrop,
-  .evFrequencyPowerBackdrop.closing,
-  .evFrequencyPowerCard,
-  .evFrequencyPowerBackdrop.closing .evFrequencyPowerCard {
+  body.ev-product-route .evFrequencyPowerBackdrop,
+  body.ev-product-route .evFrequencyPowerBackdrop.closing,
+  body.ev-product-route .evFrequencyPowerCard,
+  body.ev-product-route .evFrequencyPowerBackdrop.closing .evFrequencyPowerCard {
     animation-duration: 1ms !important;
   }
 }
