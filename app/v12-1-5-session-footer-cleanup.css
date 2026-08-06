@@ -1,0 +1,88 @@
+/* V12.1.5 — Clean Pomodoro technical footer.
+   Keeps signal guidance in normal document flow below Atmosphere instead of
+   allowing older responsive rules to place it over sound cards. */
+
+.v10SessionOverlay:not(.completed) .v10SessionFooter {
+  position: relative !important;
+  inset: auto !important;
+  z-index: 2;
+  clear: both;
+  align-self: start;
+  isolation: isolate;
+}
+
+.v10SessionOverlay:not(.completed) .v10SessionFooter > span {
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+  filter: none !important;
+}
+
+@media (min-width: 761px) {
+  .v10SessionOverlay:not(.completed) .v10SessionFooter {
+    margin-top: 28px !important;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1099px) {
+  .v10SessionOverlay:not(.completed) .v10SessionFooter {
+    width: min(980px, calc(100% - 48px)) !important;
+    margin: 30px auto 0 !important;
+    padding: 18px 0 34px !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch !important;
+    justify-content: stretch !important;
+    gap: 10px 14px !important;
+    border-top: 1px solid rgba(113, 164, 211, 0.14);
+    text-align: center;
+  }
+
+  .v10SessionOverlay:not(.completed) .v10SessionFooter > span {
+    min-width: 0;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 14px;
+    border: 1px solid rgba(118, 175, 220, 0.14);
+    border-radius: 14px;
+    background: rgba(3, 14, 28, 0.78);
+    color: rgba(184, 207, 227, 0.72);
+    font-size: 0.78rem;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+
+  .v10SessionOverlay:not(.completed) .v10SessionFooter .v12SessionFooterBrand {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: fit-content !important;
+    margin: 8px auto 0 !important;
+    padding: 18px 28px 0 !important;
+    border-top: 0 !important;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 820px) {
+  .v10SessionOverlay:not(.completed) .v10SessionFooter {
+    grid-template-columns: 1fr;
+  }
+
+  .v10SessionOverlay:not(.completed) .v10SessionFooter .v12SessionFooterBrand {
+    grid-column: 1;
+  }
+}
+
+@media (max-width: 760px) {
+  .v10SessionOverlay:not(.completed) .v10SessionFooter {
+    margin-top: 22px !important;
+    gap: 9px !important;
+  }
+
+  .v10SessionOverlay:not(.completed) .v10SessionFooter > span {
+    width: min(100%, 430px);
+    padding-inline: 12px;
+    line-height: 1.4;
+  }
+}
