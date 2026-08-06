@@ -1,9 +1,6 @@
-/* V12.1.1 — Atmosphere Readability, Chamber Reconstruction & Ocean Replacement
-   Final visual override. Audio routing is configured separately in vercel.json. */
+/* V12.1.1 — Atmosphere readability.
+   Chamber styling moved to V12.1.2 after the clipped-aura root cause was identified. */
 
-/* --------------------------------------------------------------------------
-   Desktop Atmosphere: every sound name must be readable.
-   -------------------------------------------------------------------------- */
 @media (min-width: 1100px) {
   .v10SessionOverlay:not(.completed) .evSessionAtmosphereCategory .evSessionAtmosphereGrid {
     grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)) !important;
@@ -59,8 +56,6 @@
     letter-spacing: -.015em !important;
   }
 
-  /* The current data model uses short labels for procedural noise. Complete
-     those customer-facing names without changing stable internal IDs. */
   .v10SessionOverlay:not(.completed) .evSessionAtmosphereChip.white-noise .evSessionAtmosphereCopy > strong::after,
   .v10SessionOverlay:not(.completed) .evSessionAtmosphereChip.brown-noise .evSessionAtmosphereCopy > strong::after,
   .v10SessionOverlay:not(.completed) .evSessionAtmosphereChip.pink-noise .evSessionAtmosphereCopy > strong::after {
@@ -90,7 +85,6 @@
   }
 }
 
-/* Do not compress four categories into narrow towers on normal laptops. */
 @media (min-width: 1100px) and (max-width: 1799px) {
   .v10SessionOverlay:not(.completed) .evSessionAtmosphereLibrary {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -106,104 +100,5 @@
       minmax(0, 1fr)
       minmax(230px, .72fr) !important;
     gap: 20px !important;
-  }
-}
-
-/* --------------------------------------------------------------------------
-   Frequency Chamber: remove the bounded blue rectangle and rebuild the scene
-   as an open, full-width field. Interactions and nodes remain untouched.
-   -------------------------------------------------------------------------- */
-body.ev-product-route #library.evFrequencyChamber {
-  background:
-    radial-gradient(ellipse 68% 48% at 50% 56%, rgba(20, 91, 220, .16) 0%, rgba(8, 44, 112, .07) 38%, transparent 72%),
-    linear-gradient(180deg, #020817 0%, #04102a 26%, #061631 54%, #031026 78%, #01050e 100%) !important;
-  border: 0 !important;
-  outline: 0 !important;
-  box-shadow: none !important;
-}
-
-body.ev-product-route #library.evFrequencyChamber::before {
-  inset: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  transform: none !important;
-  background:
-    radial-gradient(circle at 50% 55%, rgba(38, 191, 255, .11), transparent 20%),
-    radial-gradient(ellipse 56% 42% at 50% 55%, rgba(6, 76, 255, .13), transparent 70%),
-    radial-gradient(circle at 17% 42%, rgba(51, 136, 255, .055), transparent 28%),
-    radial-gradient(circle at 83% 42%, rgba(75, 77, 206, .05), transparent 28%) !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  filter: none !important;
-  opacity: 1 !important;
-  mask-image: none !important;
-  -webkit-mask-image: none !important;
-}
-
-body.ev-product-route #library.evFrequencyChamber::after {
-  inset: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  transform: none !important;
-  background: linear-gradient(180deg, rgba(1, 5, 14, .72), transparent 13%, transparent 84%, rgba(1, 4, 12, .78)) !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  filter: none !important;
-  opacity: 1 !important;
-  mask-image: none !important;
-  -webkit-mask-image: none !important;
-  pointer-events: none !important;
-}
-
-body.ev-product-route #library.evFrequencyChamber .signalExperience,
-body.ev-product-route #library.evFrequencyChamber .signalExperience.glassCard,
-body.ev-product-route #library.evFrequencyChamber .signalStage,
-body.ev-product-route #library.evFrequencyChamber .signalStage.popupOpen,
-body.ev-product-route #library.evFrequencyChamber .signalStage:has(.signalNode.active) {
-  background: transparent !important;
-  border: 0 !important;
-  outline: 0 !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  mask-image: none !important;
-  -webkit-mask-image: none !important;
-  clip-path: none !important;
-  overflow: visible !important;
-}
-
-/* Old scanner and bounded-stage overlays were the visible rectangular source. */
-body.ev-product-route #library.evFrequencyChamber .signalExperience::before,
-body.ev-product-route #library.evFrequencyChamber .signalExperience::after,
-body.ev-product-route #library.evFrequencyChamber .signalStage::before,
-body.ev-product-route #library.evFrequencyChamber .signalStage::after {
-  content: none !important;
-  display: none !important;
-}
-
-body.ev-product-route #library.evFrequencyChamber .evChamberVisualLayer,
-body.ev-product-route #library.evFrequencyChamber .evChamberAuras,
-body.ev-product-route #library.evFrequencyChamber .evChamberEnergyLinks,
-body.ev-product-route #library.evFrequencyChamber .evChamberParticles {
-  background: transparent !important;
-  border: 0 !important;
-  outline: 0 !important;
-  box-shadow: none !important;
-  mask-image: none !important;
-  -webkit-mask-image: none !important;
-  clip-path: none !important;
-}
-
-body.ev-product-route #library.evFrequencyChamber .signalFigureAsset {
-  filter:
-    drop-shadow(0 0 24px rgba(38, 191, 255, .32))
-    drop-shadow(0 0 58px rgba(6, 76, 255, .28)) !important;
-}
-
-@media (max-width: 760px) {
-  body.ev-product-route #library.evFrequencyChamber {
-    background:
-      radial-gradient(ellipse 90% 42% at 50% 55%, rgba(20, 91, 220, .13), transparent 72%),
-      linear-gradient(180deg, #020817 0%, #04102a 30%, #05152f 56%, #020b1c 82%, #01040c 100%) !important;
   }
 }

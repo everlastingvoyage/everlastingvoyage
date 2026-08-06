@@ -46,21 +46,21 @@ export default function FrequencyChamberExperience() {
     hint.setAttribute('aria-hidden', 'false');
     legacyCopy?.classList.add('evFrequencyLegacyCopy');
 
+    // V12.1.2: the ambient glow now lives directly inside the full-width
+    // Chamber section. It is no longer clipped by the rectangular stage.
+    const openGlow = document.createElement('div');
+    openGlow.className = 'evChamberOpenGlow';
+    openGlow.setAttribute('aria-hidden', 'true');
+    intro.insertAdjacentElement('afterend', openGlow);
+
     const visualLayer = document.createElement('div');
     visualLayer.className = 'evChamberVisualLayer';
     visualLayer.setAttribute('aria-hidden', 'true');
-
-    const auras = document.createElement('div');
-    auras.className = 'evChamberAuras';
 
     const links = document.createElement('div');
     links.className = 'evChamberEnergyLinks';
 
     frequencyIds.forEach((id) => {
-      const aura = document.createElement('span');
-      aura.className = `evChamberAura ${id}`;
-      auras.appendChild(aura);
-
       const link = document.createElement('span');
       link.className = `evChamberEnergyLink ${id}`;
       links.appendChild(link);
@@ -80,7 +80,7 @@ export default function FrequencyChamberExperience() {
     });
 
     particles.appendChild(particleFragment);
-    visualLayer.append(auras, links, particles);
+    visualLayer.append(links, particles);
     stage.prepend(visualLayer);
 
     const trustRow = document.createElement('div');
@@ -160,6 +160,7 @@ export default function FrequencyChamberExperience() {
     return () => {
       window.removeEventListener('ev:frequency-popup-cleanup', handleManagedCleanup);
       cleanupNodes.forEach((cleanup) => cleanup());
+      openGlow.remove();
       visualLayer.remove();
       trustRow.remove();
       setHoverState(null);
