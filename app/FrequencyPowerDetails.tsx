@@ -62,6 +62,17 @@ export default function FrequencyPowerDetails() {
   const closeRunRef = useRef(0);
   const active = activeId ? frequencyCatalog[activeId] : null;
 
+  const setBackdropElement = useCallback((node: HTMLDivElement | null) => {
+    backdropRef.current = node;
+    if (!node) return;
+
+    /* A legacy high-specificity rule applies a 24px backdrop blur. Setting
+       these properties as inline-important during the ref commit removes that
+       compositor cost before the browser paints the portal. */
+    node.style.setProperty('backdrop-filter', 'none', 'important');
+    node.style.setProperty('-webkit-backdrop-filter', 'none', 'important');
+  }, []);
+
   const stopPreview = useCallback(() => {
     previewRequestRef.current += 1;
     previewHandleRef.current?.stop();
@@ -270,7 +281,7 @@ export default function FrequencyPowerDetails() {
 
   return createPortal(
     <div
-      ref={backdropRef}
+      ref={setBackdropElement}
       className={`evFrequencyPowerBackdrop ${active.id} ${phase === 'closing' ? 'closing' : ''}`}
       role="presentation"
       aria-busy={phase === 'closing'}
