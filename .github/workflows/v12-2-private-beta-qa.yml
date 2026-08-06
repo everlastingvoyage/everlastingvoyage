@@ -1,0 +1,264 @@
+name: V12.2 Private Beta QA
+
+on:
+  push:
+    branches:
+      - v12-2-private-beta-foundation
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  private-beta-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      NEXT_PUBLIC_BETA_ANALYTICS_ENABLED: 'true'
+      NEXT_PUBLIC_POSTHOG_KEY: 'phc_ci_privacy_test'
+      NEXT_PUBLIC_POSTHOG_HOST: 'https://analytics.invalid.example'
+      NEXT_PUBLIC_APP_VERSION: '12.2.0'
+      NEXT_PUBLIC_ANALYTICS_QA_MODE: 'true'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build application
+        run: npm run build
+
+      - name: Validate privacy architecture statically
+        run: |
+          test "$(grep -R "from 'posthog-js'\|import('posthog-js')" app --include='*.ts' --include='*.tsx' | wc -l)" -eq 1
+          grep -q "autocapture: false" app/lib/analytics/analytics-client.ts
+          grep -q "disable_session_recording: true" app/lib/analytics/analytics-client.ts
+          grep -q "mask_all_text: true" app/lib/analytics/analytics-client.ts
+          grep -q "opt_out_capturing_by_default: true" app/lib/analytics/analytics-client.ts
+          grep -q "never collect your intentions" app/components/V12AnalyticsConsent.tsx
+          ! grep -R "Stripe\|checkout\|Google login\|Apple login" app/components app/lib app/api --include='*.ts' --include='*.tsx'
+
+      - name: Prepare system Chrome
+        run: |
+          npm install --no-save puppeteer-core@24.16.0
+          CHROME_PATH="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)"
+          if [ -z "$CHROME_PATH" ]; then
+            echo "System Chrome was not found"
+            exit 1
+          fi
+          echo "CHROME_PATH=$CHROME_PATH" >> "$GITHUB_ENV"
+          "$CHROME_PATH" --version
+
+      - name: Start application
+        run: |
+          npm run start -- --hostname 127.0.0.1 > /tmp/everlasting-voyage-v12-2.log 2>&1 &
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:3000/voyage >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/everlasting-voyage-v12-2.log
+          exit 1
+
+      - name: Validate consent, events, feedback, legal pages and layouts
+        run: |
+          mkdir -p v12-2-qa
+          cat > v12-2-qa.mjs <<'NODE'
+          import puppeteer from 'puppeteer-core';
+          import fs from 'node:fs';
+
+          const browser = await puppeteer.launch({
+            headless: true,
+            executablePath: process.env.CHROME_PATH,
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+          });
+
+          const forbiddenKeys = /^(intention|thought|note|name|email|url|href|referrer|error_message|message|stack|content|clipboard|device_id|ip|query)$/i;
+          const analyticsRequests = [];
+          const pageErrors = [];
+
+          async function createPage(width = 1440, height = 900) {
+            const page = await browser.newPage();
+            await page.setViewport({ width, height, deviceScaleFactor: 1 });
+            page.on('pageerror', (error) => pageErrors.push(String(error)));
+            await page.setRequestInterception(true);
+            page.on('request', (request) => {
+              if (request.url().includes('analytics.invalid.example')) {
+                analyticsRequests.push({ url: request.url(), method: request.method(), postData: request.postData() ?? '' });
+                request.abort();
+              } else {
+                request.continue();
+              }
+            });
+            return page;
+          }
+
+          const page = await createPage();
+          await page.goto('http://127.0.0.1:3000/voyage', { waitUntil: 'networkidle0' });
+          await page.waitForSelector('.v12Onboarding');
+          if (analyticsRequests.length !== 0) throw new Error('Analytics network activity occurred before consent');
+
+          await page.click('.v12OnboardingActions button:first-child');
+          await page.waitForSelector('.v12AnalyticsConsent');
+          await page.click('.stateChoice.gamma');
+          if (analyticsRequests.length !== 0) throw new Error('State selection initialized analytics before consent');
+          await page.click('.v12AnalyticsConsent > div button:first-child');
+          await page.waitForFunction(() => localStorage.getItem('ev:analytics:consent:v1') === 'denied');
+          await page.click('.stateChoice.alpha');
+          await page.click('.builderActions .primaryButton');
+          await page.waitForSelector('.v10SessionOverlay.alpha:not(.completed)');
+          await page.click('.v10TimerControls .v10PrimaryAction');
+          await page.click('.v10TimerControls .v10TextAction');
+          await page.waitForSelector('.v10Completion');
+          if (analyticsRequests.length !== 0) throw new Error('Denied consent still produced analytics traffic');
+          if (await page.$('.v12CompletionFeedback textarea')) throw new Error('Written feedback field appeared without server destination');
+          await page.click('.v12FeedbackRating button:first-child');
+          await page.waitForSelector('.v12FeedbackThanks');
+
+          await page.evaluate(() => {
+            localStorage.clear();
+            localStorage.setItem('ev:onboarding:v12.2', 'skipped');
+          });
+          analyticsRequests.length = 0;
+          await page.reload({ waitUntil: 'networkidle0' });
+          await page.waitForSelector('.v12AnalyticsConsent');
+          await page.click('.v12AnalyticsConsent .primary');
+          await page.waitForFunction(() => localStorage.getItem('ev:analytics:consent:v1') === 'granted');
+          await new Promise((resolve) => setTimeout(resolve, 350));
+
+          await page.click('.stateChoice.theta');
+          const durationButtons = await page.$$('.durationRow button');
+          if (durationButtons.length > 1) await durationButtons[1].click();
+          await page.click('.builderActions .primaryButton');
+          await page.waitForSelector('.v10SessionOverlay.theta:not(.completed)');
+          await page.click('.v10TimerControls .v10PrimaryAction');
+          await page.type('#v10-thought', 'Private text that must never enter analytics');
+          await page.click('.v10ThoughtCapture button[type="submit"]');
+          const atmosphereToggle = await page.$('.evSessionAtmosphereToggle');
+          if (atmosphereToggle) await atmosphereToggle.click();
+          await page.click('.v10TimerControls .v10TextAction');
+          await page.waitForSelector('.v10Completion');
+          await page.click('.v12FeedbackRating button:nth-child(2)');
+          await page.waitForSelector('.v12FeedbackThanks');
+          for (let attempt = 0; attempt < 20 && analyticsRequests.length === 0; attempt += 1) {
+            await new Promise((resolve) => setTimeout(resolve, 250));
+          }
+
+          const qa = await page.evaluate(() => window.__EV_ANALYTICS_QA__);
+          if (!qa) throw new Error('Analytics QA snapshot was not exposed');
+          const names = qa.lastEvents.map((event) => event.name);
+          for (const required of ['analytics_consent_updated', 'state_selected', 'voyage_started', 'thought_captured', 'voyage_abandoned', 'feedback_submitted']) {
+            if (!names.includes(required)) throw new Error(`Missing analytics event: ${required}`);
+          }
+          for (const event of qa.lastEvents) {
+            for (const [key, value] of Object.entries(event.properties)) {
+              if (forbiddenKeys.test(key)) throw new Error(`Forbidden analytics property key: ${key}`);
+              if (typeof value === 'string' && value.includes('Private text')) {
+                throw new Error(`Private thought leaked through ${event.name}`);
+              }
+            }
+          }
+          if (analyticsRequests.length === 0) throw new Error('Granted consent never initialized the configured provider');
+
+          await page.click('#ev-v12-completion-legal-root .v12LegalLinks button');
+          await page.waitForSelector('.v12PreferencesDialog');
+          await page.click('.v12PreferenceChoices button:first-child');
+          await page.waitForFunction(() => localStorage.getItem('ev:analytics:consent:v1') === 'denied');
+          const anonymousId = await page.evaluate(() => localStorage.getItem('ev:analytics:anonymous-id:v1'));
+          if (anonymousId !== null) throw new Error('Revoking consent did not clear the anonymous identifier');
+
+          const invalidFeedbackStatus = await page.evaluate(async () => {
+            const response = await fetch('/api/beta-feedback', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ voyage_session_id: 'valid-session-1234', rating: 'problem', comment: 'test', intention: 'forbidden' })
+            });
+            return response.status;
+          });
+          if (invalidFeedbackStatus !== 400) throw new Error(`Unexpected-field feedback status: ${invalidFeedbackStatus}`);
+
+          for (const route of ['/privacy', '/terms', '/wellness', '/audio-licenses', '/contact']) {
+            const response = await page.goto(`http://127.0.0.1:3000${route}`, { waitUntil: 'networkidle0' });
+            if (!response?.ok()) throw new Error(`Legal route failed: ${route}`);
+            if (!(await page.$('.v12LegalPage'))) throw new Error(`Legal shell missing: ${route}`);
+          }
+
+          const profiles = [
+            { name: 'wide-desktop', width: 1792, height: 864 },
+            { name: 'desktop', width: 1440, height: 900 },
+            { name: 'tablet', width: 1024, height: 768 },
+            { name: 'narrow', width: 900, height: 700 },
+            { name: 'mobile', width: 390, height: 844 }
+          ];
+          const geometryResults = [];
+
+          for (const profile of profiles) {
+            const visual = await createPage(profile.width, profile.height);
+            await visual.goto('http://127.0.0.1:3000/voyage', { waitUntil: 'networkidle0' });
+            await visual.evaluate(() => {
+              localStorage.setItem('ev:onboarding:v12.2', 'skipped');
+              localStorage.setItem('ev:analytics:consent:v1', 'denied');
+            });
+            await visual.reload({ waitUntil: 'networkidle0' });
+            await visual.click('.stateChoice.alpha');
+            await visual.click('.builderActions .primaryButton');
+            await visual.waitForSelector('.v10SessionOverlay.alpha:not(.completed)');
+            await visual.waitForSelector('#ev-session-atmosphere-root .evSessionAtmosphere');
+            await new Promise((resolve) => setTimeout(resolve, 450));
+
+            const geometry = await visual.evaluate(() => {
+              const rect = (selector) => {
+                const element = document.querySelector(selector);
+                if (!element) throw new Error(`Missing ${selector}`);
+                const value = element.getBoundingClientRect();
+                return { left: value.left, top: value.top, right: value.right, bottom: value.bottom };
+              };
+              return {
+                identity: rect('.v10SessionIdentity'),
+                timer: rect('.v10TimerArea'),
+                capture: rect('.v10ThoughtCapture'),
+                signal: rect('.v10AudioControls'),
+                atmosphere: rect('#ev-session-atmosphere-root .evSessionAtmosphere'),
+                footer: rect('.v10SessionFooter')
+              };
+            });
+
+            const overlap = (a, b) => Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left)) * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+            const issues = [];
+            for (const key of ['identity', 'timer', 'capture', 'signal']) {
+              if (overlap(geometry[key], geometry.atmosphere) > 1) issues.push(`${key} overlaps Atmosphere`);
+            }
+            if (overlap(geometry.atmosphere, geometry.footer) > 1) issues.push('Atmosphere overlaps footer');
+            geometryResults.push({ profile, geometry, issues });
+
+            await visual.screenshot({ path: `v12-2-qa/${profile.name}-session.png`, fullPage: false });
+            await visual.close();
+          }
+
+          const layoutIssues = geometryResults.flatMap((result) => result.issues.map((issue) => `${result.profile.name}: ${issue}`));
+          if (layoutIssues.length) throw new Error(layoutIssues.join(' | '));
+          if (pageErrors.length) throw new Error(`Page errors: ${pageErrors.join(' | ')}`);
+
+          fs.writeFileSync('v12-2-qa/results.json', JSON.stringify({ analyticsRequests: analyticsRequests.length, qa, geometryResults }, null, 2));
+          await page.close();
+          await browser.close();
+          NODE
+          node v12-2-qa.mjs
+          rm v12-2-qa.mjs
+
+      - name: Upload V12.2 QA artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v12-2-private-beta-qa
+          path: v12-2-qa
+          if-no-files-found: warn
+          retention-days: 7

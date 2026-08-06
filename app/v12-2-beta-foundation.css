@@ -1,0 +1,710 @@
+/* V12.2 — privacy-first private beta foundation.
+   This file intentionally does not alter Pomodoro, Atmosphere or technical-footer geometry. */
+
+.v12AnalyticsConsent {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 1200;
+  width: min(390px, calc(100vw - 32px));
+  padding: 20px;
+  border: 1px solid rgba(122, 183, 229, .24);
+  border-radius: 20px;
+  background: rgba(3, 13, 27, .96);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .46), inset 0 1px rgba(255, 255, 255, .03);
+  backdrop-filter: blur(20px);
+  color: #e8f4ff;
+}
+
+.v12AnalyticsConsent > span,
+.v12CompletionFeedback > span,
+.v12PreferencesDialog header span,
+.v12OnboardingCopy > span {
+  display: block;
+  color: rgba(122, 193, 241, .74);
+  font-size: .68rem;
+  font-weight: 760;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.v12AnalyticsConsent > strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 1.02rem;
+  line-height: 1.3;
+}
+
+.v12AnalyticsConsent p {
+  margin: 10px 0 16px;
+  color: rgba(203, 221, 238, .72);
+  font-size: .84rem;
+  line-height: 1.55;
+}
+
+.v12AnalyticsConsent > div {
+  display: grid;
+  grid-template-columns: .78fr 1.22fr;
+  gap: 9px;
+}
+
+.v12AnalyticsConsent button,
+.v12PreferencesDialog button,
+.v12Onboarding button,
+.v12CompletionFeedback button,
+.v12ErrorPage button {
+  min-height: 42px;
+  border: 1px solid rgba(123, 179, 223, .2);
+  border-radius: 12px;
+  background: rgba(8, 25, 44, .78);
+  color: #dceeff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.v12AnalyticsConsent button:hover,
+.v12PreferencesDialog button:hover,
+.v12Onboarding button:hover,
+.v12CompletionFeedback button:hover,
+.v12ErrorPage button:hover {
+  border-color: rgba(119, 199, 255, .46);
+  background: rgba(12, 39, 65, .88);
+}
+
+.v12AnalyticsConsent button.primary,
+.v12Onboarding button.primary,
+.v12FeedbackSubmit,
+.v12ErrorPage button:first-child {
+  border-color: rgba(109, 206, 255, .5);
+  background: linear-gradient(135deg, rgba(30, 108, 162, .9), rgba(60, 76, 176, .82));
+  color: #fff;
+}
+
+.v12ConsentDismiss {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  width: 30px;
+  min-height: 30px !important;
+  padding: 0;
+  border: 0 !important;
+  background: transparent !important;
+  color: rgba(210, 229, 243, .62) !important;
+  font-size: 1.2rem !important;
+}
+
+.v12-onboarding-open .v12AnalyticsConsent {
+  display: none;
+}
+
+.v12ModalBackdrop,
+.v12OnboardingBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1600;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 6, 14, .74);
+  backdrop-filter: blur(14px);
+}
+
+.v12PreferencesDialog,
+.v12Onboarding {
+  width: min(620px, 100%);
+  max-height: min(760px, calc(100dvh - 48px));
+  overflow: auto;
+  border: 1px solid rgba(124, 190, 238, .23);
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(37, 100, 152, .18), transparent 45%),
+    rgba(2, 12, 25, .98);
+  box-shadow: 0 36px 100px rgba(0, 0, 0, .58);
+  color: #e9f5ff;
+}
+
+.v12PreferencesDialog {
+  padding: 26px;
+}
+
+.v12PreferencesDialog header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.v12PreferencesDialog h2,
+.v12Onboarding h2 {
+  margin: 8px 0 0;
+  font-size: clamp(1.75rem, 4vw, 2.55rem);
+  line-height: 1.03;
+  letter-spacing: -.04em;
+}
+
+.v12PreferencesDialog header > button {
+  width: 38px;
+  min-height: 38px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 1.2rem;
+}
+
+.v12PreferencesDialog > p {
+  color: rgba(201, 221, 238, .72);
+  line-height: 1.6;
+}
+
+.v12PreferenceChoices {
+  display: grid;
+  gap: 11px;
+  margin-top: 20px;
+}
+
+.v12PreferenceChoices button {
+  display: grid;
+  gap: 5px;
+  min-height: 78px;
+  padding: 16px 18px;
+  text-align: left;
+}
+
+.v12PreferenceChoices button.selected {
+  border-color: rgba(97, 206, 255, .68);
+  box-shadow: inset 0 0 0 1px rgba(97, 206, 255, .16);
+}
+
+.v12PreferenceChoices span,
+.v12PreferenceNote {
+  color: rgba(196, 218, 236, .65);
+  font-size: .82rem;
+}
+
+.v12Onboarding {
+  padding: 30px;
+}
+
+.v12OnboardingProgress {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 42px;
+}
+
+.v12OnboardingProgress span {
+  height: 3px;
+  border-radius: 10px;
+  background: rgba(131, 181, 218, .18);
+}
+
+.v12OnboardingProgress span.active {
+  background: linear-gradient(90deg, #65c7ff, #8176ff);
+}
+
+.v12OnboardingCopy {
+  min-height: 230px;
+  animation: v12-fade-up .34s ease both;
+}
+
+.v12OnboardingCopy p {
+  max-width: 520px;
+  margin-top: 20px;
+  color: rgba(204, 223, 239, .72);
+  font-size: 1rem;
+  line-height: 1.68;
+}
+
+.v12OnboardingActions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.v12OnboardingActions button {
+  min-width: 120px;
+  padding: 0 20px;
+}
+
+.v12CompletionFeedback {
+  width: min(760px, 100%);
+  margin: 28px auto 34px;
+  padding: 22px;
+  border: 1px solid rgba(122, 185, 232, .18);
+  border-radius: 20px;
+  background: rgba(4, 17, 31, .74);
+  text-align: left;
+}
+
+.v12CompletionFeedback h3 {
+  margin: 7px 0 16px;
+  color: #eaf6ff;
+  font-size: 1.25rem;
+}
+
+.v12FeedbackRating {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.v12FeedbackRating button,
+.v12FeedbackIssues button {
+  padding: 9px 12px;
+}
+
+.v12FeedbackRating button.selected,
+.v12FeedbackIssues button.selected {
+  border-color: rgba(105, 207, 255, .7);
+  background: rgba(27, 82, 120, .68);
+}
+
+.v12FeedbackProblem {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(122, 185, 232, .13);
+}
+
+.v12FeedbackProblem > p {
+  margin: 0 0 10px;
+  color: rgba(216, 232, 245, .78);
+}
+
+.v12FeedbackIssues {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.v12FeedbackProblem label {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+  color: rgba(215, 232, 246, .8);
+}
+
+.v12FeedbackProblem textarea {
+  min-height: 104px;
+  resize: vertical;
+  padding: 13px 14px 28px;
+  border: 1px solid rgba(121, 181, 226, .2);
+  border-radius: 14px;
+  outline: none;
+  background: rgba(0, 8, 18, .7);
+  color: #e9f6ff;
+  font: inherit;
+  line-height: 1.5;
+}
+
+.v12FeedbackProblem textarea:focus {
+  border-color: rgba(105, 207, 255, .6);
+}
+
+.v12FeedbackProblem label small {
+  position: absolute;
+  right: 10px;
+  bottom: 9px;
+  color: rgba(183, 208, 228, .5);
+}
+
+.v12FeedbackSubmit {
+  min-width: 150px;
+  margin-top: 14px;
+  padding: 0 18px;
+}
+
+.v12FeedbackMessage,
+.v12FeedbackThanks {
+  color: rgba(177, 218, 244, .86);
+  line-height: 1.55;
+}
+
+.v12BetaLegalFooter {
+  position: relative;
+  z-index: 2;
+  width: min(1480px, calc(100% - 48px));
+  margin: 70px auto 28px;
+  padding: 24px 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  border-top: 1px solid rgba(113, 164, 211, .13);
+  color: rgba(188, 211, 230, .56);
+}
+
+.v12BetaLegalFooter > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.v12BetaLegalFooter img {
+  width: 28px;
+  height: 18px;
+  object-fit: contain;
+  opacity: .7;
+}
+
+.v12LegalLinks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 9px 17px;
+}
+
+.v12LegalLinks a,
+.v12LegalLinks button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(190, 215, 234, .64);
+  font: inherit;
+  font-size: .76rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.v12LegalLinks a:hover,
+.v12LegalLinks button:hover {
+  color: #dff3ff;
+}
+
+.v12LegalLinks.compact {
+  width: min(760px, 100%);
+  margin: 24px auto 0;
+  padding-top: 18px;
+  justify-content: center;
+  border-top: 1px solid rgba(113, 164, 211, .12);
+}
+
+.v12LegalPage {
+  min-height: 100dvh;
+  width: min(1050px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 60px 0 90px;
+  color: #eaf5ff;
+}
+
+.v12LegalHeader {
+  max-width: 780px;
+  margin-bottom: 46px;
+}
+
+.v12LegalBack {
+  display: inline-block;
+  margin-bottom: 48px;
+  color: rgba(151, 204, 240, .72);
+  text-decoration: none;
+}
+
+.v12LegalHeader > span {
+  color: rgba(110, 193, 242, .74);
+  font-size: .72rem;
+  font-weight: 760;
+  letter-spacing: .17em;
+  text-transform: uppercase;
+}
+
+.v12LegalHeader h1 {
+  margin: 10px 0 18px;
+  font-size: clamp(3rem, 8vw, 6.5rem);
+  line-height: .92;
+  letter-spacing: -.065em;
+}
+
+.v12LegalHeader > p {
+  max-width: 700px;
+  color: rgba(200, 220, 237, .72);
+  font-size: 1.06rem;
+  line-height: 1.72;
+}
+
+.v12LegalNotice {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 10px 13px;
+  border: 1px solid rgba(242, 188, 102, .25);
+  border-radius: 11px;
+  background: rgba(93, 55, 14, .17);
+  color: rgba(255, 220, 162, .82);
+  font-size: .84rem;
+  line-height: 1.5;
+}
+
+.v12LegalContent {
+  display: grid;
+  gap: 18px;
+}
+
+.v12LegalContent > section {
+  padding: 25px 28px;
+  border: 1px solid rgba(113, 164, 211, .14);
+  border-radius: 20px;
+  background: rgba(4, 17, 31, .54);
+}
+
+.v12LegalContent h2 {
+  margin: 0 0 10px;
+  font-size: 1.22rem;
+}
+
+.v12LegalContent p {
+  margin: 8px 0 0;
+  color: rgba(198, 218, 235, .72);
+  line-height: 1.7;
+}
+
+.v12LicenseGrid,
+.v12ContactGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13px;
+  margin-top: 18px;
+}
+
+.v12LicenseGrid article,
+.v12ContactGrid article {
+  padding: 18px;
+  border: 1px solid rgba(117, 174, 218, .14);
+  border-radius: 16px;
+  background: rgba(0, 8, 18, .44);
+}
+
+.v12LicenseGrid article > span {
+  color: rgba(111, 196, 245, .72);
+  font-size: .68rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.v12LicenseGrid h3,
+.v12ContactGrid h3 {
+  margin: 8px 0;
+}
+
+.v12LicenseGrid dl {
+  display: grid;
+  gap: 8px;
+}
+
+.v12LicenseGrid dl div {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 12px;
+  font-size: .82rem;
+}
+
+.v12LicenseGrid dt {
+  color: rgba(160, 191, 216, .58);
+}
+
+.v12LicenseGrid dd {
+  margin: 0;
+  color: rgba(211, 229, 242, .76);
+}
+
+.v12LicenseGrid a,
+.v12SupportEmail {
+  display: inline-block;
+  margin-top: 12px;
+  color: #80cdf7;
+  text-decoration: none;
+}
+
+.v12AnalyticsDebug {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 3000;
+  width: min(420px, calc(100vw - 32px));
+  max-height: 70dvh;
+  overflow: auto;
+  padding: 15px;
+  border: 1px solid rgba(120, 218, 255, .36);
+  border-radius: 14px;
+  background: rgba(0, 8, 16, .96);
+  box-shadow: 0 20px 70px rgba(0, 0, 0, .6);
+  color: #dff5ff;
+  font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.v12AnalyticsDebug header,
+.v12AnalyticsDebug dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.v12AnalyticsDebug header span,
+.v12AnalyticsDebug dt,
+.v12AnalyticsDebug small {
+  color: rgba(172, 211, 232, .55);
+}
+
+.v12AnalyticsDebug dl {
+  display: grid;
+  gap: 5px;
+  margin: 12px 0;
+}
+
+.v12AnalyticsDebug dd {
+  margin: 0;
+}
+
+.v12DebugEvents details {
+  padding: 7px 0;
+  border-top: 1px solid rgba(122, 185, 232, .12);
+}
+
+.v12DebugEvents pre {
+  overflow: auto;
+  white-space: pre-wrap;
+  color: rgba(197, 229, 245, .75);
+}
+
+.v12ErrorPage {
+  min-height: 100dvh;
+  display: grid;
+  place-content: center;
+  gap: 16px;
+  padding: 30px;
+  background:
+    radial-gradient(circle at 50% 32%, rgba(31, 91, 137, .18), transparent 42%),
+    #020a15;
+  color: #eaf5ff;
+  text-align: center;
+}
+
+.v12ErrorPage > span {
+  color: rgba(110, 193, 242, .7);
+  font-size: .72rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.v12ErrorPage h1 {
+  max-width: 760px;
+  margin: 0;
+  font-size: clamp(2.5rem, 7vw, 5rem);
+  line-height: .95;
+  letter-spacing: -.055em;
+}
+
+.v12ErrorPage p {
+  color: rgba(198, 218, 235, .7);
+}
+
+.v12ErrorPage > div {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.v12ErrorPage button {
+  min-width: 130px;
+  padding: 0 18px;
+}
+
+@keyframes v12-fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 760px) {
+  .v12AnalyticsConsent {
+    top: 78px;
+    right: 14px;
+    bottom: auto;
+    width: calc(100vw - 28px);
+    padding: 17px;
+  }
+
+  .v12AnalyticsConsent > div {
+    grid-template-columns: 1fr;
+  }
+
+  .v12OnboardingBackdrop,
+  .v12ModalBackdrop {
+    align-items: end;
+    padding: 0;
+  }
+
+  .v12Onboarding,
+  .v12PreferencesDialog {
+    width: 100%;
+    max-height: 92dvh;
+    padding: 24px 20px calc(24px + env(safe-area-inset-bottom));
+    border-radius: 26px 26px 0 0;
+  }
+
+  .v12OnboardingCopy {
+    min-height: 250px;
+  }
+
+  .v12OnboardingActions button {
+    min-width: 100px;
+  }
+
+  .v12FeedbackRating {
+    grid-template-columns: 1fr;
+  }
+
+  .v12CompletionFeedback {
+    padding: 18px 14px;
+  }
+
+  .v12BetaLegalFooter {
+    width: calc(100% - 28px);
+    margin-top: 46px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .v12LegalLinks {
+    justify-content: flex-start;
+    gap: 11px 16px;
+  }
+
+  .v12LegalPage {
+    width: calc(100% - 28px);
+    padding-top: 34px;
+  }
+
+  .v12LegalBack {
+    margin-bottom: 34px;
+  }
+
+  .v12LegalContent > section {
+    padding: 20px 17px;
+  }
+
+  .v12LicenseGrid,
+  .v12ContactGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .v12LicenseGrid dl div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .v12ErrorPage > div {
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v12OnboardingCopy {
+    animation: none;
+  }
+
+  .v12AnalyticsConsent,
+  .v12PreferencesDialog,
+  .v12Onboarding,
+  .v12CompletionFeedback {
+    scroll-behavior: auto;
+  }
+}
