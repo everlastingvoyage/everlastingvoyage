@@ -1,5 +1,5 @@
-/* V12.1.5 / V12.1.6 / V12.1.7 — Session flow and spacing.
-   Desktop DOM order is enforced by V12DesktopAtmosphereFlow:
+/* V12.1.5 / V12.1.6 — Clean Pomodoro technical footer.
+   The desktop DOM order is enforced by V12DesktopAtmosphereFlow:
    session console -> Atmosphere -> technical footer. */
 
 .v10SessionOverlay:not(.completed) .v10SessionFooter {
@@ -23,45 +23,31 @@
 }
 
 @media (min-width: 1100px) {
-  /* Use normal vertical flow for the four desktop sections. Older grid-area
-     rules can no longer back-place Atmosphere into the console track. */
   .v10SessionOverlay:not(.completed) {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: stretch !important;
-    align-content: initial !important;
+    grid-template-rows: auto auto auto auto !important;
+    align-content: start !important;
   }
 
-  .v10SessionOverlay:not(.completed) > .v10SessionHeader {
-    flex: 0 0 auto !important;
-    width: 100%;
-  }
-
-  /* V10 polish previously forced the console to occupy nearly a full viewport:
-     min-height: calc(100dvh - 178px). Once Atmosphere became a separate DOM
-     section, that inherited height appeared as a large empty band. */
-  .v10SessionOverlay:not(.completed) > .v10SessionMain {
-    flex: 0 0 auto !important;
-    min-height: 0 !important;
-    height: auto !important;
-    align-self: center !important;
-    padding-bottom: 8px !important;
+  .v10SessionOverlay:not(.completed) .v10SessionMain {
     grid-template-areas:
       "identity timer capture"
       "signal signal signal"
       "thoughts thoughts thoughts" !important;
   }
 
-  /* Atmosphere is a complete direct child after the console. */
+  /* Atmosphere is a full direct child of the overlay, never a grid item
+     inside .v10SessionMain where its second row could overflow. */
   .v10SessionOverlay:not(.completed) > #ev-session-atmosphere-root {
     position: static !important;
-    flex: 0 0 auto !important;
-    align-self: center !important;
+    grid-area: auto !important;
+    grid-column: 1 !important;
+    grid-row: auto !important;
+    align-self: start !important;
     display: block !important;
     width: min(1600px, calc(100% - 64px)) !important;
     min-width: 0;
     height: auto !important;
-    margin: 10px auto 0 !important;
+    margin: 18px auto 0 !important;
     overflow: visible !important;
     transform: none !important;
     box-sizing: border-box;
@@ -76,10 +62,12 @@
     box-sizing: border-box;
   }
 
-  /* The footer is the final direct section after the full Atmosphere block. */
+  /* This adjacent-sibling selector only matches the valid DOM structure.
+     The footer cannot occupy the Atmosphere row or begin before it ends. */
   .v10SessionOverlay:not(.completed) > #ev-session-atmosphere-root + .v10SessionFooter {
-    flex: 0 0 auto !important;
-    align-self: center !important;
+    grid-area: auto !important;
+    grid-column: 1 !important;
+    grid-row: auto !important;
     width: min(1600px, calc(100% - 64px)) !important;
     min-height: 0 !important;
     margin: 28px auto 0 !important;
