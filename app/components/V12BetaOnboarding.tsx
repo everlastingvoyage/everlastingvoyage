@@ -8,6 +8,14 @@ import { analyticsStorage, readAnalyticsConsent } from '../lib/analytics/analyti
 const ONBOARDING_KEY = 'ev:onboarding:v12.2';
 const ONBOARDING_IDLE_DELAY_MS = 5000;
 const FOCUSABLE = 'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
+const ACTIVE_VOYAGE_TARGETS = [
+  '#session-builder',
+  '.stateChoice',
+  '.builderActions',
+  '#library',
+  '.signalNode',
+  '.evFrequencyPowerAction'
+].join(', ');
 const steps = [
   {
     eyebrow: '1 · Choose your state',
@@ -41,12 +49,12 @@ export default function V12BetaOnboarding() {
     const status = analyticsStorage.get(ONBOARDING_KEY);
     if (status === 'completed' || status === 'skipped') return;
 
-    let visitorStartedUsingBuilder = false;
+    let visitorStartedUsingVoyage = false;
     let timer = 0;
 
     const recordImplicitSkip = () => {
-      if (visitorStartedUsingBuilder) return;
-      visitorStartedUsingBuilder = true;
+      if (visitorStartedUsingVoyage) return;
+      visitorStartedUsingVoyage = true;
       window.clearTimeout(timer);
       analyticsStorage.set(ONBOARDING_KEY, 'skipped');
       if (readAnalyticsConsent() === 'granted') {
@@ -54,17 +62,18 @@ export default function V12BetaOnboarding() {
       }
     };
 
-    const handleBuilderIntent = (event: Event) => {
+    const handleVoyageIntent = (event: Event) => {
       const target = event.target as Element | null;
-      if (!target?.closest('#session-builder, .stateChoice, .builderActions')) return;
+      if (!target?.closest(ACTIVE_VOYAGE_TARGETS)) return;
       recordImplicitSkip();
     };
 
-    document.addEventListener('pointerdown', handleBuilderIntent, true);
-    document.addEventListener('keydown', handleBuilderIntent, true);
+    document.addEventListener('pointerdown', handleVoyageIntent, true);
+    document.addEventListener('click', handleVoyageIntent, true);
+    document.addEventListener('keydown', handleVoyageIntent, true);
 
     timer = window.setTimeout(() => {
-      if (visitorStartedUsingBuilder) return;
+      if (visitorStartedUsingVoyage) return;
       if (document.querySelector('.v10SessionOverlay') || document.body.classList.contains('v10-session-open')) {
         recordImplicitSkip();
         return;
@@ -75,8 +84,9 @@ export default function V12BetaOnboarding() {
 
     return () => {
       window.clearTimeout(timer);
-      document.removeEventListener('pointerdown', handleBuilderIntent, true);
-      document.removeEventListener('keydown', handleBuilderIntent, true);
+      document.removeEventListener('pointerdown', handleVoyageIntent, true);
+      document.removeEventListener('click', handleVoyageIntent, true);
+      document.removeEventListener('keydown', handleVoyageIntent, true);
     };
   }, [pathname]);
 
