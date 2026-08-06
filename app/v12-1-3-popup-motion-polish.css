@@ -2,7 +2,7 @@
    The visible Chamber modal is the portal-based FrequencyPowerDetails layer.
    Keep motion short and compositor-friendly: opacity + transform only. */
 
-body.ev-product-route .evFrequencyPowerBackdrop {
+html body.ev-product-route.ev-frequency-power-open .evFrequencyPowerBackdrop {
   background: rgba(0, 5, 15, .76) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
@@ -10,7 +10,7 @@ body.ev-product-route .evFrequencyPowerBackdrop {
   will-change: opacity;
 }
 
-body.ev-product-route .evFrequencyPowerCard {
+html body.ev-product-route.ev-frequency-power-open .evFrequencyPowerCard {
   animation: evFrequencyCardQuickIn 180ms cubic-bezier(.2, .82, .24, 1) both !important;
   filter: none !important;
   will-change: transform, opacity;
@@ -19,12 +19,14 @@ body.ev-product-route .evFrequencyPowerCard {
   transform-origin: center center;
 }
 
-body.ev-product-route .evFrequencyPowerBackdrop.closing {
+html body.ev-product-route.ev-frequency-power-closing .evFrequencyPowerBackdrop.closing {
   pointer-events: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
   animation: evFrequencyBackdropQuickOut 140ms ease-in both !important;
 }
 
-body.ev-product-route .evFrequencyPowerBackdrop.closing .evFrequencyPowerCard {
+html body.ev-product-route.ev-frequency-power-closing .evFrequencyPowerBackdrop.closing .evFrequencyPowerCard {
   animation: evFrequencyCardQuickOut 120ms cubic-bezier(.4, 0, .8, .4) both !important;
   filter: none !important;
 }
@@ -62,19 +64,19 @@ body.ev-product-route #library.evFrequencyChamber[data-exit-state]::before {
     transition: none !important;
   }
 
-  body.ev-product-route .evFrequencyPowerBackdrop {
+  html body.ev-product-route.ev-frequency-power-open .evFrequencyPowerBackdrop {
     animation-duration: 140ms !important;
   }
 
-  body.ev-product-route .evFrequencyPowerCard {
+  html body.ev-product-route.ev-frequency-power-open .evFrequencyPowerCard {
     animation-duration: 160ms !important;
   }
 
-  body.ev-product-route .evFrequencyPowerBackdrop.closing {
+  html body.ev-product-route.ev-frequency-power-closing .evFrequencyPowerBackdrop.closing {
     animation-duration: 120ms !important;
   }
 
-  body.ev-product-route .evFrequencyPowerBackdrop.closing .evFrequencyPowerCard {
+  html body.ev-product-route.ev-frequency-power-closing .evFrequencyPowerBackdrop.closing .evFrequencyPowerCard {
     animation-duration: 110ms !important;
   }
 }
@@ -114,10 +116,8 @@ body.ev-product-route #library.evFrequencyChamber[data-exit-state]::before {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  body.ev-product-route .evFrequencyPowerBackdrop,
-  body.ev-product-route .evFrequencyPowerBackdrop.closing,
-  body.ev-product-route .evFrequencyPowerCard,
-  body.ev-product-route .evFrequencyPowerBackdrop.closing .evFrequencyPowerCard {
+  html body.ev-product-route .evFrequencyPowerBackdrop,
+  html body.ev-product-route .evFrequencyPowerCard {
     animation-duration: 1ms !important;
   }
 }
