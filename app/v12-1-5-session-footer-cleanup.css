@@ -23,28 +23,28 @@
 }
 
 @media (min-width: 1100px) {
+  /* Use normal vertical flow for the four desktop sections. Older grid-area
+     rules can no longer back-place Atmosphere into the console track. */
   .v10SessionOverlay:not(.completed) {
-    grid-template-columns: minmax(0, 1fr) !important;
-    grid-template-rows: auto auto auto auto !important;
-    grid-auto-flow: row !important;
-    align-content: start !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    align-content: initial !important;
   }
 
   .v10SessionOverlay:not(.completed) > .v10SessionHeader {
-    grid-column: 1 !important;
-    grid-row: 1 !important;
+    flex: 0 0 auto !important;
+    width: 100%;
   }
 
   /* V10 polish previously forced the console to occupy nearly a full viewport:
      min-height: calc(100dvh - 178px). Once Atmosphere became a separate DOM
-     section, that inherited height appeared as a large empty band. Keep the
-     console content-sized and leave only a small intentional transition gap. */
+     section, that inherited height appeared as a large empty band. */
   .v10SessionOverlay:not(.completed) > .v10SessionMain {
-    grid-column: 1 !important;
-    grid-row: 2 !important;
+    flex: 0 0 auto !important;
     min-height: 0 !important;
     height: auto !important;
-    align-self: start !important;
+    align-self: center !important;
     padding-bottom: 8px !important;
     grid-template-areas:
       "identity timer capture"
@@ -52,14 +52,11 @@
       "thoughts thoughts thoughts" !important;
   }
 
-  /* Atmosphere is a full direct child of the overlay, never a grid item
-     inside .v10SessionMain where its second row could overflow. */
+  /* Atmosphere is a complete direct child after the console. */
   .v10SessionOverlay:not(.completed) > #ev-session-atmosphere-root {
     position: static !important;
-    grid-area: auto !important;
-    grid-column: 1 !important;
-    grid-row: 3 !important;
-    align-self: start !important;
+    flex: 0 0 auto !important;
+    align-self: center !important;
     display: block !important;
     width: min(1600px, calc(100% - 64px)) !important;
     min-width: 0;
@@ -79,12 +76,10 @@
     box-sizing: border-box;
   }
 
-  /* This adjacent-sibling selector only matches the valid DOM structure.
-     The footer cannot occupy the Atmosphere row or begin before it ends. */
+  /* The footer is the final direct section after the full Atmosphere block. */
   .v10SessionOverlay:not(.completed) > #ev-session-atmosphere-root + .v10SessionFooter {
-    grid-area: auto !important;
-    grid-column: 1 !important;
-    grid-row: 4 !important;
+    flex: 0 0 auto !important;
+    align-self: center !important;
     width: min(1600px, calc(100% - 64px)) !important;
     min-height: 0 !important;
     margin: 28px auto 0 !important;
