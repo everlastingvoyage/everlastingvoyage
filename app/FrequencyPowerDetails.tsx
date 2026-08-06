@@ -19,11 +19,11 @@ type PopupPhase = 'idle' | 'open' | 'closing';
 
 function nextPaint() {
   return new Promise<void>((resolve) => {
-    window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve()));
+    window.requestAnimationFrame(() => resolve());
   });
 }
 
-function waitForBackdropTransition(element: HTMLElement | null, timeoutMs = 430) {
+function waitForExitAnimation(element: HTMLElement | null, timeoutMs = 180) {
   return new Promise<void>((resolve) => {
     if (!element) {
       window.setTimeout(resolve, timeoutMs);
@@ -34,15 +34,15 @@ function waitForBackdropTransition(element: HTMLElement | null, timeoutMs = 430)
     const finish = () => {
       if (settled) return;
       settled = true;
-      element.removeEventListener('transitionend', handleTransitionEnd);
+      element.removeEventListener('animationend', handleAnimationEnd);
       window.clearTimeout(fallback);
       resolve();
     };
-    const handleTransitionEnd = (event: TransitionEvent) => {
-      if (event.target === element && event.propertyName === 'opacity') finish();
+    const handleAnimationEnd = (event: AnimationEvent) => {
+      if (event.target === element) finish();
     };
     const fallback = window.setTimeout(finish, timeoutMs);
-    element.addEventListener('transitionend', handleTransitionEnd);
+    element.addEventListener('animationend', handleAnimationEnd);
   });
 }
 
@@ -60,7 +60,6 @@ export default function FrequencyPowerDetails() {
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const triggerRef = useRef<HTMLElement | null>(null);
   const closeRunRef = useRef(0);
-  const cleanupTimerRef = useRef<number | undefined>(undefined);
   const active = activeId ? frequencyCatalog[activeId] : null;
 
   const stopPreview = useCallback(() => {
@@ -112,7 +111,6 @@ export default function FrequencyPowerDetails() {
 
   useEffect(() => () => {
     document.body.classList.remove('ev-frequency-power-open', 'ev-frequency-power-closing');
-    if (cleanupTimerRef.current) window.clearTimeout(cleanupTimerRef.current);
     clearChamberExitState();
   }, [clearChamberExitState]);
 
@@ -126,7 +124,6 @@ export default function FrequencyPowerDetails() {
 
       triggerRef.current = node;
       closeRunRef.current += 1;
-      if (cleanupTimerRef.current) window.clearTimeout(cleanupTimerRef.current);
       clearChamberExitState();
       stopPreview();
       setActiveId(id);
@@ -174,20 +171,20 @@ export default function FrequencyPowerDetails() {
     setPhase('closing');
 
     await nextPaint();
-    await waitForBackdropTransition(backdropRef.current);
+    await waitForExitAnimation(backdropRef.current);
     if (closeRunRef.current !== runId) return;
 
     document.querySelector<HTMLButtonElement>(selector)?.click();
     removeLegacyGhosts();
+    clearChamberExitState();
     setActiveId(null);
+    setPhase('idle');
 
-    cleanupTimerRef.current = window.setTimeout(() => {
-      if (closeRunRef.current !== runId) return;
-      clearChamberExitState();
-      setPhase('idle');
-      triggerRef.current?.focus({ preventScroll: true });
-      triggerRef.current = null;
-    }, 620);
+    const trigger = triggerRef.current;
+    triggerRef.current = null;
+    if (selector === '.signalPopupClose' && trigger) {
+      window.requestAnimationFrame(() => trigger.focus({ preventScroll: true }));
+    }
   }, [active, clearChamberExitState, phase, removeLegacyGhosts, stopPreview]);
 
   const close = useCallback(() => {
