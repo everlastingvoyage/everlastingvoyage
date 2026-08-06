@@ -22,17 +22,30 @@ function sessionIsOpen() {
 }
 
 function scrollToVoyageHero() {
+  const previousRootBehavior = document.documentElement.style.scrollBehavior;
+  const previousBodyBehavior = document.body.style.scrollBehavior;
+
   const performScroll = () => {
-    const hero = document.getElementById('top');
-    if (hero) hero.scrollIntoView({ block: 'start', behavior: 'auto' });
-    else window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    document.documentElement.style.scrollBehavior = 'auto';
+    document.body.style.scrollBehavior = 'auto';
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    document.getElementById('top')?.scrollIntoView({ block: 'start', behavior: 'auto' });
   };
 
-  /* V10SessionUtilities restores the builder's previous scroll position after
-     the legacy close button fires. Run once immediately and once after that
-     restoration so browser Back always lands on the actual Voyage hero. */
-  window.requestAnimationFrame(performScroll);
-  window.setTimeout(performScroll, 220);
+  /* Browser history restoration, V10SessionUtilities and scrollbar removal can
+     each apply their own scroll position on a different frame. Keep the Voyage
+     hero authoritative through the short close sequence, then restore styles. */
+  performScroll();
+  window.requestAnimationFrame(() => {
+    performScroll();
+    window.requestAnimationFrame(performScroll);
+  });
+  [80, 180, 300].forEach((delay) => window.setTimeout(performScroll, delay));
+
+  window.setTimeout(() => {
+    document.documentElement.style.scrollBehavior = previousRootBehavior;
+    document.body.style.scrollBehavior = previousBodyBehavior;
+  }, 340);
 }
 
 export default function V12SessionHistoryNavigation() {
@@ -42,6 +55,9 @@ export default function V12SessionHistoryNavigation() {
 
   useEffect(() => {
     if (!enabled) return;
+
+    const previousScrollRestoration = window.history.scrollRestoration;
+    window.history.scrollRestoration = 'manual';
 
     const pushSessionEntry = () => {
       if (hasSessionMarker(window.history.state)) return;
@@ -96,7 +112,7 @@ export default function V12SessionHistoryNavigation() {
       closeSessionFromHistory();
       window.setTimeout(() => {
         handlingPopStateRef.current = false;
-      }, 260);
+      }, 360);
     };
 
     const handleVisibleClose = (event: MouseEvent) => {
@@ -118,6 +134,7 @@ export default function V12SessionHistoryNavigation() {
     document.addEventListener('click', handleVisibleClose, true);
 
     return () => {
+      window.history.scrollRestoration = previousScrollRestoration;
       window.removeEventListener('click', handleOpenIntent, true);
       window.removeEventListener('popstate', handlePopState);
       document.removeEventListener('click', handleVisibleClose, true);
