@@ -57,6 +57,7 @@ import V11SessionExitGuard from './V11SessionExitGuard';
 import V11CompletionSaveSpace from './V11CompletionSaveSpace';
 import V12SessionBrandFooter from './V12SessionBrandFooter';
 import V12SessionHistoryNavigation from './V12SessionHistoryNavigation';
+import V12DesktopAtmosphereFlow from './V12DesktopAtmosphereFlow';
 
 export const metadata: Metadata = {
   title: 'Everlasting Voyage — Pure Frequencies & Focus Sessions',
@@ -93,6 +94,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <V10ProductFlow />
         <V11AmbientMixer />
         <V11SessionAtmosphere />
+        <V12DesktopAtmosphereFlow />
         <V12SessionBrandFooter />
         <V11SessionExitGuard />
         <V11ContinueVoyageBehavior />
