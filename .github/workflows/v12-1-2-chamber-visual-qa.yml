@@ -56,7 +56,7 @@ jobs:
       - name: Capture Chamber screenshots and computed styles
         run: |
           mkdir -p visual-qa
-          cat > /tmp/capture-chamber.mjs <<'EOF'
+          cat > capture-chamber.mjs <<'EOF'
           import puppeteer from 'puppeteer-core';
           import fs from 'node:fs';
 
@@ -116,7 +116,8 @@ jobs:
 
           await browser.close();
           EOF
-          node /tmp/capture-chamber.mjs
+          node capture-chamber.mjs
+          rm capture-chamber.mjs
 
       - name: Upload visual QA artifact
         uses: actions/upload-artifact@v4
