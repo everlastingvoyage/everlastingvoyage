@@ -1,0 +1,123 @@
+/* V12.1.3 — Frequency Power Popup Motion
+   The visible Chamber modal is the portal-based FrequencyPowerDetails layer.
+   Keep motion short and compositor-friendly: opacity + transform only. */
+
+html body.ev-product-route.ev-frequency-power-open .evFrequencyPowerBackdrop {
+  background: rgba(0, 5, 15, .76) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  animation: evFrequencyBackdropQuickIn 160ms ease-out both !important;
+  will-change: opacity;
+}
+
+html body.ev-product-route.ev-frequency-power-open .evFrequencyPowerCard {
+  animation: evFrequencyCardQuickIn 180ms cubic-bezier(.2, .82, .24, 1) both !important;
+  filter: none !important;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform-origin: center center;
+}
+
+html body.ev-product-route.ev-frequency-power-closing .evFrequencyPowerBackdrop.closing {
+  pointer-events: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  animation: evFrequencyBackdropQuickOut 140ms ease-in both !important;
+}
+
+html body.ev-product-route.ev-frequency-power-closing .evFrequencyPowerBackdrop.closing .evFrequencyPowerCard {
+  animation: evFrequencyCardQuickOut 120ms cubic-bezier(.4, 0, .8, .4) both !important;
+  filter: none !important;
+}
+
+/* The legacy popup remains the bridge to the original React state, but its
+   visual effects must never run behind the portal modal. */
+body.ev-product-route #library.evFrequencyChamber .signalPopupOverlay,
+body.ev-product-route #library.evFrequencyChamber .signalPopupExitGhost {
+  animation: none !important;
+  filter: none !important;
+}
+
+body.ev-product-route #library.evFrequencyChamber .signalTransitionWave {
+  display: none !important;
+  animation: none !important;
+}
+
+body.ev-product-route #library.evFrequencyChamber .signalStage[data-enter-state],
+body.ev-product-route #library.evFrequencyChamber .signalStage[data-exit-state] {
+  animation: none !important;
+  filter: none !important;
+}
+
+body.ev-product-route #library.evFrequencyChamber[data-exit-state]::before {
+  animation: none !important;
+}
+
+/* V10.12 previously kept the mobile Chamber visual layer transitioning for
+   520 ms after close. V12.1.3 leaves the Chamber perfectly still. */
+@media (max-width: 760px) {
+  #library[data-performance-mode='mobile'][data-popup-phase='closing'] .evChamberVisualLayer,
+  #library[data-performance-mode='mobile'][data-exit-state] .evChamberVisualLayer {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  html body.ev-product-route.ev-frequency-power-open .evFrequencyPowerBackdrop {
+    animation-duration: 140ms !important;
+  }
+
+  html body.ev-product-route.ev-frequency-power-open .evFrequencyPowerCard {
+    animation-duration: 160ms !important;
+  }
+
+  html body.ev-product-route.ev-frequency-power-closing .evFrequencyPowerBackdrop.closing {
+    animation-duration: 120ms !important;
+  }
+
+  html body.ev-product-route.ev-frequency-power-closing .evFrequencyPowerBackdrop.closing .evFrequencyPowerCard {
+    animation-duration: 110ms !important;
+  }
+}
+
+@keyframes evFrequencyBackdropQuickIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes evFrequencyBackdropQuickOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes evFrequencyCardQuickIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes evFrequencyCardQuickOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(5px) scale(.99);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body.ev-product-route .evFrequencyPowerBackdrop,
+  html body.ev-product-route .evFrequencyPowerCard {
+    animation-duration: 1ms !important;
+  }
+}

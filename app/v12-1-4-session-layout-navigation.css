@@ -1,0 +1,176 @@
+/* V12.1.4 — Pomodoro layout stability and history navigation support.
+   The 821–1099px range is common on scaled desktop displays and browser zoom.
+   It previously inherited competing tablet and desktop rules, allowing the
+   identity copy and timer controls to occupy the same visual space. */
+
+@media (min-width: 821px) and (max-width: 1099px) {
+  body.v10-session-open {
+    overflow: hidden;
+  }
+
+  .v10SessionOverlay:not(.completed) {
+    grid-template-rows: auto auto auto !important;
+    align-content: start !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  .v10SessionOverlay:not(.completed) .v10SessionHeader {
+    position: sticky !important;
+    top: 0;
+    min-height: 68px;
+    padding: 16px 24px !important;
+    background: linear-gradient(
+      180deg,
+      rgba(2, 8, 17, .97),
+      rgba(2, 8, 17, .76) 72%,
+      rgba(2, 8, 17, 0)
+    ) !important;
+  }
+
+  .v10SessionOverlay:not(.completed) .v10SessionMain {
+    width: min(980px, calc(100% - 48px)) !important;
+    min-height: auto !important;
+    margin: 0 auto !important;
+    padding: 28px 0 42px !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, .9fr) minmax(300px, 1.1fr) !important;
+    align-items: center !important;
+    align-content: start !important;
+    gap: 36px 52px !important;
+  }
+
+  .v10SessionOverlay:not(.completed) .v10SessionIdentity {
+    min-width: 0 !important;
+    max-width: none !important;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    padding: 0 8px 0 0 !important;
+  }
+
+  .v10SessionOverlay:not(.completed) .v10SessionIdentity .v10SessionEyebrow,
+  .v10SessionOverlay:not(.completed) .v10SessionIdentity h2,
+  .v10SessionOverlay:not(.completed) .v10SessionIdentity p {
+    position: relative !important;
+    inset: auto !important;
+    max-width: 100% !important;
+    transform: none !important;
+  }
+
+  .v10SessionOverlay:not(.completed) .v10SessionIdentity h2 {
+    font-size: clamp(3.25rem, 7vw, 4.8rem) !important;
+    line-height: .94 !important;
+  }
+
+  .v10SessionOverlay:not(.completed) .v10SessionIdentity p {
+    margin: 22px 0 0 !important;
+    padding: 0 !important;
+    font-size: clamp(1rem, 1.8vw, 1.15rem) !important;
+    line-height: 1.55 !important;
+    overflow-wrap: anywhere;
+  }
+
+  .v10SessionOverlay:not(.completed) .v10TimerArea {
+    min-width: 0 !important;
+    width: 100%;
+    justify-self: center;
+    position: relative;
+    z-index: 2;
+    gap: 20px !important;
+  }
+
+  .v10SessionOverlay:not(.completed) .v10ProgressRing {
+    width: min(37vw, 330px) !important;
+    min-width: 270px !important;
+    max-width: 330px !important;
+  }
+
+  .v10SessionOverlay:not(.completed) .v10TimerDisplay {
+    font-size: clamp(4.5rem, 10vw, 6.3rem) !important;
+  }
+
+  .v10SessionOverlay:not(.completed) .v10TimerControls {
+    width: 100%;
+    max-width: 420px;
+    position: static !important;
+    inset: auto !important;
+    transform: none !important;
+    gap: 10px !important;
+  }
+
+  .v10SessionOverlay:not(.completed) .v10TimerControls > button {
+    position: static !important;
+    inset: auto !important;
+    transform: none;
+  }
+
+  .v10SessionOverlay:not(.completed) .v10SessionTools {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0;
+    display: grid !important;
+    grid-template-columns: minmax(270px, .78fr) minmax(0, 1.22fr) !important;
+    justify-self: stretch !important;
+    gap: 18px !important;
+  }
+
+  .v10SessionOverlay:not(.completed) #ev-session-atmosphere-root,
+  .v10SessionOverlay:not(.completed) .v10ThoughtList {
+    grid-column: 1 / -1 !important;
+    min-width: 0;
+  }
+
+  .v10SessionOverlay:not(.completed) .v10SessionFooter {
+    position: static !important;
+    width: min(980px, calc(100% - 48px));
+    margin: 0 auto;
+    padding: 0 0 28px !important;
+  }
+}
+
+/* Short scaled desktop viewports need a tighter first screen but must remain
+   scrollable. This prevents a large timer from pressing copy into controls. */
+@media (min-width: 821px) and (max-width: 1099px) and (max-height: 720px) {
+  .v10SessionOverlay:not(.completed) .v10SessionMain {
+    padding-top: 14px !important;
+    gap: 24px 44px !important;
+  }
+
+  .v10SessionOverlay:not(.completed) .v10ProgressRing {
+    width: min(34vw, 290px) !important;
+    min-width: 250px !important;
+  }
+
+  .v10SessionOverlay:not(.completed) .v10SessionIdentity h2 {
+    font-size: clamp(3rem, 6.3vw, 4.2rem) !important;
+  }
+
+  .v10SessionOverlay:not(.completed) .v10SessionIdentity p {
+    margin-top: 16px !important;
+  }
+}
+
+/* At the upper mobile/tablet edge, keep every text block in normal flow.
+   This protects desktop browsers zoomed past the 820px breakpoint. */
+@media (min-width: 761px) and (max-width: 820px) {
+  .v10SessionOverlay:not(.completed) .v10SessionIdentity,
+  .v10SessionOverlay:not(.completed) .v10TimerArea,
+  .v10SessionOverlay:not(.completed) .v10TimerControls,
+  .v10SessionOverlay:not(.completed) .v10TimerControls > button {
+    position: relative !important;
+    inset: auto !important;
+    transform: none !important;
+  }
+
+  .v10SessionOverlay:not(.completed) .v10SessionIdentity {
+    overflow: visible !important;
+  }
+
+  .v10SessionOverlay:not(.completed) .v10SessionIdentity p {
+    max-width: min(100%, 34rem) !important;
+    overflow-wrap: anywhere;
+  }
+}
