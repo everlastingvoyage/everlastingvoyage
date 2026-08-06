@@ -1,7 +1,8 @@
 /* V12.1.2 — Complete Chamber Rectangle Removal
    Root cause: blurred aura layers were clipped by the rectangular signalStage.
    The stage is now visually empty; the only ambient light is a full-section
-   radial glow mounted outside the stage. */
+   radial glow mounted outside the stage.
+   Production redeploy marker after the temporary Vercel build-rate window. */
 
 body.ev-product-route #library.evFrequencyChamber {
   position: relative !important;
