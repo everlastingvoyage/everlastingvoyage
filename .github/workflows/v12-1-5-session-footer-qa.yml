@@ -5,6 +5,7 @@ on:
     branches:
       - v12-1-5-session-footer-cleanup
       - v12-1-7-compact-session-spacing
+      - v12-1-8-restore-stable-session-flow
   pull_request:
     branches:
       - main
@@ -53,7 +54,7 @@ jobs:
           cat /tmp/everlasting-voyage.log
           exit 1
 
-      - name: Validate session flow and footer position
+      - name: Validate full session flow and footer position
         run: |
           mkdir -p session-footer-qa
           cat > session-footer-qa.mjs <<'EOF'
@@ -112,19 +113,27 @@ jobs:
               };
 
               const sessionMain = document.querySelector('.v10SessionMain');
+              const identity = document.querySelector('.v10SessionIdentity');
+              const timer = document.querySelector('.v10TimerArea');
+              const capture = document.querySelector('.v10ThoughtCapture');
               const signal = document.querySelector('.v10AudioControls');
               const atmosphereRoot = document.querySelector('#ev-session-atmosphere-root');
               const atmosphere = document.querySelector('#ev-session-atmosphere-root .evSessionAtmosphere');
               const footer = document.querySelector('.v10SessionFooter');
               const brand = document.querySelector('.v10SessionFooter .v12SessionFooterBrand');
               const spans = Array.from(document.querySelectorAll('.v10SessionFooter > span'));
-              if (!sessionMain || !signal || !atmosphereRoot || !atmosphere || !footer || !brand || spans.length !== 2) {
+              if (!sessionMain || !identity || !timer || !capture || !signal || !atmosphereRoot || !atmosphere || !footer || !brand || spans.length !== 2) {
                 throw new Error('Required Pomodoro flow elements are missing');
               }
 
               return {
                 sessionMain: toRect(sessionMain),
-                signal: toRect(signal),
+                consolePanels: [
+                  { name: 'Identity', rect: toRect(identity) },
+                  { name: 'Timer', rect: toRect(timer) },
+                  { name: 'Capture', rect: toRect(capture) },
+                  { name: 'Pure Signal', rect: toRect(signal) }
+                ],
                 atmosphereRoot: toRect(atmosphereRoot),
                 atmosphere: toRect(atmosphere),
                 footer: toRect(footer),
@@ -134,7 +143,6 @@ jobs:
                   rect: toRect(span),
                   position: getComputedStyle(span).position
                 })),
-                mainMinHeight: getComputedStyle(sessionMain).minHeight,
                 footerDisplay: getComputedStyle(footer).display,
                 footerPosition: getComputedStyle(footer).position
               };
@@ -147,13 +155,20 @@ jobs:
             const footerGap = geometry.footer.top - geometry.atmosphere.bottom;
             if (footerGap < 12) issues.push(`Footer gap is only ${footerGap}px`);
 
-            const signalGap = geometry.atmosphere.top - geometry.signal.bottom;
+            const consoleBottom = Math.max(...geometry.consolePanels.map((panel) => panel.rect.bottom));
+            const consoleGap = geometry.atmosphere.top - consoleBottom;
             if (profile.width >= 1100) {
-              if (signalGap < 8) issues.push(`Signal/Atmosphere gap is only ${signalGap}px`);
-              if (signalGap > 64) issues.push(`Signal/Atmosphere dead space is ${signalGap}px`);
-              if (geometry.mainMinHeight !== '0px') issues.push(`Desktop session main min-height is ${geometry.mainMinHeight}`);
-              if (geometry.atmosphereRoot.top < geometry.sessionMain.bottom - 1) {
-                issues.push('Atmosphere begins before the session console ends');
+              if (consoleGap < 8) issues.push(`Console/Atmosphere gap is only ${consoleGap}px`);
+              if (geometry.atmosphereRoot.top < consoleBottom - 1) {
+                issues.push('Atmosphere begins before the visible Pomodoro console ends');
+              }
+            }
+
+            for (const panel of geometry.consolePanels) {
+              const overlap = overlapArea(panel.rect, geometry.atmosphere);
+              if (overlap > 1) issues.push(`${panel.name} overlaps Atmosphere by ${overlap}`);
+              if (profile.width >= 1100 && panel.rect.bottom > geometry.sessionMain.bottom + 1) {
+                issues.push(`${panel.name} overflows the session main container`);
               }
             }
 
@@ -173,14 +188,14 @@ jobs:
               issues.push('Brand is not separated from technical guidance');
             }
 
-            await page.evaluate(() => document.querySelector('.v10AudioControls')?.scrollIntoView({ block: 'start' }));
+            await page.evaluate(() => window.scrollTo(0, 0));
             await new Promise((resolve) => setTimeout(resolve, 200));
             await page.screenshot({
-              path: `session-footer-qa/${profile.name}-session-flow.png`,
+              path: `session-footer-qa/${profile.name}-session-top.png`,
               fullPage: false
             });
 
-            results.push({ profile, geometry, signalGap, footerGap, issues });
+            results.push({ profile, geometry, consoleGap, footerGap, issues });
             await page.close();
           }
 
@@ -199,7 +214,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v12-1-7-session-flow-qa
+          name: v12-1-8-session-flow-qa
           path: session-footer-qa
           if-no-files-found: warn
           retention-days: 7
