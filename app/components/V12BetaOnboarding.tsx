@@ -6,7 +6,7 @@ import { analyticsClient } from '../lib/analytics/analytics-client';
 import { analyticsStorage, readAnalyticsConsent } from '../lib/analytics/analytics-consent';
 
 const ONBOARDING_KEY = 'ev:onboarding:v12.2';
-const ONBOARDING_IDLE_DELAY_MS = 2200;
+const ONBOARDING_IDLE_DELAY_MS = 5000;
 const FOCUSABLE = 'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
 const steps = [
   {
