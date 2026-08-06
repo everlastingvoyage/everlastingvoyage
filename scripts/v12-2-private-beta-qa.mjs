@@ -46,6 +46,8 @@ async function waitForRunning(page) {
 
 async function endRunningSession(page) {
   await page.click('.v10TimerControls .v10TextAction');
+  await page.waitForSelector('.v11ExitConfirmDialog');
+  await page.click('.v11ExitConfirmActions .secondary');
   await page.waitForSelector('.v10SessionOverlay.completed .v10Completion');
 }
 
