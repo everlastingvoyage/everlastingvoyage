@@ -66,54 +66,97 @@ jobs:
           });
 
           const states = ['alpha', 'gamma', 'theta', 'delta', 'abundance'];
-          const testProfiles = [
+          const profiles = [
             { name: 'desktop', width: 1440, height: 900, iterations: 2 },
             { name: 'mobile', width: 390, height: 844, iterations: 1 }
           ];
-          const allResults = [];
+          const results = [];
           const pageErrors = [];
 
-          const waitForMotion = async (page) => {
-            await page.evaluate(async () => {
-              const backdrop = document.querySelector('.evFrequencyPowerBackdrop');
+          const openPopup = (page, state) => page.evaluate((activeState) => new Promise((resolve, reject) => {
+            const node = document.querySelector(`#library .signalNode.${activeState}`);
+            if (!(node instanceof HTMLElement)) {
+              reject(new Error(`Missing signal node: ${activeState}`));
+              return;
+            }
+
+            const startedAt = performance.now();
+            const timeout = window.setTimeout(() => {
+              observer.disconnect();
+              reject(new Error(`Popup open timed out: ${activeState}`));
+            }, 1500);
+            const observer = new MutationObserver(() => {
+              const backdrop = document.querySelector(`.evFrequencyPowerBackdrop.${activeState}:not(.closing)`);
               const card = document.querySelector('.evFrequencyPowerCard');
-              if (!backdrop || !card) throw new Error('Frequency Power popup did not mount');
-              await Promise.all(
+              if (!backdrop || !card) return;
+
+              observer.disconnect();
+              window.clearTimeout(timeout);
+              Promise.all(
                 [...backdrop.getAnimations(), ...card.getAnimations()].map((animation) =>
                   animation.finished.catch(() => undefined)
                 )
-              );
+              ).then(() => resolve(Math.round(performance.now() - startedAt)));
             });
-          };
 
-          const openPopup = async (page, state) => {
-            await page.evaluate(() => document.querySelector('#library')?.scrollIntoView({ block: 'center' }));
-            const startedAt = await page.evaluate((activeState) => {
-              const node = document.querySelector(`#library .signalNode.${activeState}`);
-              if (!(node instanceof HTMLElement)) throw new Error(`Missing signal node: ${activeState}`);
-              const start = performance.now();
-              node.click();
-              return start;
-            }, state);
-            await page.waitForSelector(`.evFrequencyPowerBackdrop.${state}:not(.closing)`, { timeout: 3000 });
-            await waitForMotion(page);
-            return page.evaluate((start) => Math.round(performance.now() - start), startedAt);
-          };
+            observer.observe(document.body, { childList: true, subtree: true });
+            node.click();
+          }), state);
 
-          const closeWithButton = async (page) => {
-            const startedAt = await page.evaluate(() => {
+          const closePopup = (page, method) => page.evaluate((closeMethod) => new Promise((resolve, reject) => {
+            const backdrop = document.querySelector('.evFrequencyPowerBackdrop');
+            if (!(backdrop instanceof HTMLElement)) {
+              reject(new Error('Popup backdrop is missing'));
+              return;
+            }
+
+            const startedAt = performance.now();
+            const timeout = window.setTimeout(() => {
+              observer.disconnect();
+              reject(new Error(`Popup close timed out: ${closeMethod}`));
+            }, 1200);
+            const observer = new MutationObserver(() => {
+              if (document.querySelector('.evFrequencyPowerBackdrop')) return;
+              observer.disconnect();
+              window.clearTimeout(timeout);
+              window.requestAnimationFrame(() => resolve(Math.round(performance.now() - startedAt)));
+            });
+
+            observer.observe(document.body, { childList: true, subtree: true });
+
+            if (closeMethod === 'button') {
               const button = document.querySelector('.evFrequencyPowerTop button[aria-label="Close frequency details"]');
-              if (!(button instanceof HTMLButtonElement)) throw new Error('Close button is missing');
-              const start = performance.now();
+              if (!(button instanceof HTMLButtonElement)) {
+                observer.disconnect();
+                window.clearTimeout(timeout);
+                reject(new Error('Close button is missing'));
+                return;
+              }
               button.click();
-              return start;
-            });
-            await page.waitForSelector('.evFrequencyPowerBackdrop.closing', { timeout: 1000 });
-            await page.waitForSelector('.evFrequencyPowerBackdrop', { hidden: true, timeout: 1500 });
-            return page.evaluate((start) => Math.round(performance.now() - start), startedAt);
-          };
+              return;
+            }
 
-          const readMotionState = (page) => page.evaluate(() => {
+            if (closeMethod === 'escape') {
+              window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+              return;
+            }
+
+            if (closeMethod === 'outside') {
+              backdrop.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+              return;
+            }
+
+            const action = document.querySelector('.evFrequencyPowerAction');
+            if (!(action instanceof HTMLButtonElement)) {
+              observer.disconnect();
+              window.clearTimeout(timeout);
+              reject(new Error('Use state button is missing'));
+              return;
+            }
+            action.click();
+          }), method);
+
+          const readState = (page) => page.evaluate(() => {
             const backdrop = document.querySelector('.evFrequencyPowerBackdrop');
             const card = document.querySelector('.evFrequencyPowerCard');
             const stage = document.querySelector('#library .signalStage');
@@ -123,6 +166,7 @@ jobs:
             const backdropStyle = getComputedStyle(backdrop);
             const cardStyle = getComputedStyle(card);
             const stageStyle = getComputedStyle(stage);
+            const legacy = document.querySelector('#library .signalPopupOverlay:not(.signalPopupExitGhost)');
             return {
               backdropAnimationName: backdropStyle.animationName,
               backdropAnimationDuration: backdropStyle.animationDuration,
@@ -134,14 +178,19 @@ jobs:
               stageFilter: stageStyle.filter,
               waveDisplay: wave ? getComputedStyle(wave).display : 'not-mounted',
               portalCount: document.querySelectorAll('.evFrequencyPowerBackdrop').length,
-              legacyPopupOpacity: (() => {
-                const legacy = document.querySelector('#library .signalPopupOverlay:not(.signalPopupExitGhost)');
-                return legacy ? getComputedStyle(legacy).opacity : 'not-mounted';
-              })()
+              legacyPopupOpacity: legacy ? getComputedStyle(legacy).opacity : 'not-mounted'
             };
           });
 
-          for (const profile of testProfiles) {
+          const readCleanup = (page) => page.evaluate(() => ({
+            portals: document.querySelectorAll('.evFrequencyPowerBackdrop').length,
+            liveLegacy: document.querySelectorAll('#library .signalPopupOverlay:not(.signalPopupExitGhost)').length,
+            exitGhosts: document.querySelectorAll('#library .signalPopupExitGhost').length,
+            openClass: document.body.classList.contains('ev-frequency-power-open'),
+            closingClass: document.body.classList.contains('ev-frequency-power-closing')
+          }));
+
+          for (const profile of profiles) {
             const page = await browser.newPage();
             await page.setViewport({ width: profile.width, height: profile.height, deviceScaleFactor: 1 });
             page.on('pageerror', (error) => pageErrors.push(`${profile.name}: ${String(error)}`));
@@ -153,9 +202,8 @@ jobs:
 
             for (const state of states) {
               for (let iteration = 0; iteration < profile.iterations; iteration += 1) {
-                console.log(`${profile.name}: opening ${state} ${iteration + 1}`);
                 const openedInMs = await openPopup(page, state);
-                const styles = await readMotionState(page);
+                const styles = await readState(page);
 
                 if (iteration === 0) {
                   await page.screenshot({
@@ -164,18 +212,14 @@ jobs:
                   });
                 }
 
-                console.log(`${profile.name}: closing ${state} ${iteration + 1}`);
-                const closedInMs = await closeWithButton(page);
-                await page.waitForFunction(() => !document.body.classList.contains('ev-frequency-power-open'));
+                const closedInMs = await closePopup(page, 'button');
+                await page.waitForFunction(() =>
+                  !document.body.classList.contains('ev-frequency-power-open') &&
+                  !document.body.classList.contains('ev-frequency-power-closing')
+                );
+                const cleanup = await readCleanup(page);
 
-                const cleanup = await page.evaluate(() => ({
-                  portals: document.querySelectorAll('.evFrequencyPowerBackdrop').length,
-                  liveLegacy: document.querySelectorAll('#library .signalPopupOverlay:not(.signalPopupExitGhost)').length,
-                  exitGhosts: document.querySelectorAll('#library .signalPopupExitGhost').length,
-                  closingClass: document.body.classList.contains('ev-frequency-power-closing')
-                }));
-
-                allResults.push({
+                results.push({
                   profile: profile.name,
                   state,
                   iteration: iteration + 1,
@@ -184,86 +228,55 @@ jobs:
                   cleanup,
                   ...styles
                 });
-
-                /* The next loop starts immediately; this detects the removed 620 ms lock. */
               }
             }
 
             await openPopup(page, 'alpha');
-            const escapeStartedAt = await page.evaluate(() => performance.now());
-            await page.keyboard.press('Escape');
-            await page.waitForSelector('.evFrequencyPowerBackdrop', { hidden: true, timeout: 1500 });
-            allResults.push({
-              profile: profile.name,
-              interaction: 'escape',
-              closedInMs: await page.evaluate((start) => Math.round(performance.now() - start), escapeStartedAt)
-            });
+            results.push({ profile: profile.name, interaction: 'escape', closedInMs: await closePopup(page, 'escape') });
 
             await openPopup(page, 'gamma');
-            const outsideStartedAt = await page.evaluate(() => {
-              const backdrop = document.querySelector('.evFrequencyPowerBackdrop');
-              if (!(backdrop instanceof HTMLElement)) throw new Error('Backdrop is missing');
-              const start = performance.now();
-              backdrop.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
-              return start;
-            });
-            await page.waitForSelector('.evFrequencyPowerBackdrop', { hidden: true, timeout: 1500 });
-            allResults.push({
-              profile: profile.name,
-              interaction: 'outside-click',
-              closedInMs: await page.evaluate((start) => Math.round(performance.now() - start), outsideStartedAt)
-            });
+            results.push({ profile: profile.name, interaction: 'outside-click', closedInMs: await closePopup(page, 'outside') });
 
             await openPopup(page, 'theta');
-            const actionStartedAt = await page.evaluate(() => {
-              const button = document.querySelector('.evFrequencyPowerAction');
-              if (!(button instanceof HTMLButtonElement)) throw new Error('Use state button is missing');
-              const start = performance.now();
-              button.click();
-              return start;
-            });
-            await page.waitForSelector('.evFrequencyPowerBackdrop', { hidden: true, timeout: 1500 });
+            const useStateCloseMs = await closePopup(page, 'use-state');
             await page.waitForFunction(() => document.querySelector('.stateChoice.theta')?.classList.contains('active'));
-            allResults.push({
-              profile: profile.name,
-              interaction: 'use-state',
-              closedInMs: await page.evaluate((start) => Math.round(performance.now() - start), actionStartedAt)
-            });
+            results.push({ profile: profile.name, interaction: 'use-state', closedInMs: useStateCloseMs });
 
             await page.close();
           }
 
-          const measuredCycles = allResults.filter((item) => item.state);
-          const standardClosures = allResults.filter((item) => item.state || ['escape', 'outside-click'].includes(item.interaction));
-          const useStateClosures = allResults.filter((item) => item.interaction === 'use-state');
+          const cycles = results.filter((item) => item.state);
+          const standardClosures = results.filter((item) => item.state || ['escape', 'outside-click'].includes(item.interaction));
+          const useStateClosures = results.filter((item) => item.interaction === 'use-state');
           const summary = {
             pageErrors,
-            allResults,
-            maxOpenMs: Math.max(...measuredCycles.map((item) => item.openedInMs)),
+            results,
+            maxOpenMs: Math.max(...cycles.map((item) => item.openedInMs)),
             maxStandardCloseMs: Math.max(...standardClosures.map((item) => item.closedInMs)),
             maxUseStateCloseMs: Math.max(...useStateClosures.map((item) => item.closedInMs))
           };
           fs.writeFileSync('popup-motion-qa/results.json', JSON.stringify(summary, null, 2));
 
-          const invalidCleanup = measuredCycles.some((item) =>
+          const invalidCleanup = cycles.some((item) =>
             item.cleanup.portals !== 0 ||
             item.cleanup.liveLegacy !== 0 ||
             item.cleanup.exitGhosts !== 0 ||
+            item.cleanup.openClass ||
             item.cleanup.closingClass
           );
 
           if (pageErrors.length) throw new Error(`Page errors: ${pageErrors.join(' | ')}`);
           if (invalidCleanup) throw new Error('Popup state was not completely cleaned after close');
-          if (measuredCycles.some((item) => item.portalCount !== 1)) throw new Error('Duplicate portal detected');
-          if (measuredCycles.some((item) => item.cardFilter !== 'none')) throw new Error('Card blur/filter is still active');
-          if (measuredCycles.some((item) => !['none', ''].includes(item.backdropFilter))) throw new Error('Backdrop blur is still active');
-          if (measuredCycles.some((item) => item.stageAnimationName !== 'none')) throw new Error('Full-stage animation is still active');
-          if (measuredCycles.some((item) => item.stageFilter !== 'none')) throw new Error('Full-stage filter is still active');
-          if (measuredCycles.some((item) => !['none', 'not-mounted'].includes(item.waveDisplay))) throw new Error('Transition wave is still visible');
-          if (measuredCycles.some((item) => !['0', 'not-mounted'].includes(item.legacyPopupOpacity))) throw new Error('Legacy popup became visible');
+          if (cycles.some((item) => item.portalCount !== 1)) throw new Error('Duplicate portal detected');
+          if (cycles.some((item) => item.cardFilter !== 'none')) throw new Error('Card blur/filter is still active');
+          if (cycles.some((item) => !['none', ''].includes(item.backdropFilter))) throw new Error('Backdrop blur is still active');
+          if (cycles.some((item) => item.stageAnimationName !== 'none')) throw new Error('Full-stage animation is still active');
+          if (cycles.some((item) => item.stageFilter !== 'none')) throw new Error('Full-stage filter is still active');
+          if (cycles.some((item) => !['none', 'not-mounted'].includes(item.waveDisplay))) throw new Error('Transition wave is still visible');
+          if (cycles.some((item) => !['0', 'not-mounted'].includes(item.legacyPopupOpacity))) throw new Error('Legacy popup became visible');
           if (summary.maxOpenMs > 400) throw new Error(`Popup opening exceeded target: ${summary.maxOpenMs} ms`);
           if (summary.maxStandardCloseMs > 350) throw new Error(`Popup closing exceeded target: ${summary.maxStandardCloseMs} ms`);
-          if (summary.maxUseStateCloseMs > 650) throw new Error(`Use-state close exceeded target: ${summary.maxUseStateCloseMs} ms`);
+          if (summary.maxUseStateCloseMs > 500) throw new Error(`Use-state close exceeded target: ${summary.maxUseStateCloseMs} ms`);
 
           await browser.close();
           EOF
