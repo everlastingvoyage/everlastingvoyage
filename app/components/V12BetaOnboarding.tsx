@@ -6,6 +6,7 @@ import { analyticsClient } from '../lib/analytics/analytics-client';
 import { analyticsStorage, readAnalyticsConsent } from '../lib/analytics/analytics-consent';
 
 const ONBOARDING_KEY = 'ev:onboarding:v12.2';
+const ONBOARDING_IDLE_DELAY_MS = 2200;
 const FOCUSABLE = 'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
 const steps = [
   {
@@ -36,13 +37,47 @@ export default function V12BetaOnboarding() {
       setOpen(false);
       return;
     }
+
     const status = analyticsStorage.get(ONBOARDING_KEY);
     if (status === 'completed' || status === 'skipped') return;
-    const timer = window.setTimeout(() => {
+
+    let visitorStartedUsingBuilder = false;
+    let timer = 0;
+
+    const recordImplicitSkip = () => {
+      if (visitorStartedUsingBuilder) return;
+      visitorStartedUsingBuilder = true;
+      window.clearTimeout(timer);
+      analyticsStorage.set(ONBOARDING_KEY, 'skipped');
+      if (readAnalyticsConsent() === 'granted') {
+        analyticsClient.capture('onboarding_skipped');
+      }
+    };
+
+    const handleBuilderIntent = (event: Event) => {
+      const target = event.target as Element | null;
+      if (!target?.closest('#session-builder, .stateChoice, .builderActions')) return;
+      recordImplicitSkip();
+    };
+
+    document.addEventListener('pointerdown', handleBuilderIntent, true);
+    document.addEventListener('keydown', handleBuilderIntent, true);
+
+    timer = window.setTimeout(() => {
+      if (visitorStartedUsingBuilder) return;
+      if (document.querySelector('.v10SessionOverlay') || document.body.classList.contains('v10-session-open')) {
+        recordImplicitSkip();
+        return;
+      }
       setOpen(true);
       if (readAnalyticsConsent() === 'granted') analyticsClient.capture('onboarding_started');
-    }, 220);
-    return () => window.clearTimeout(timer);
+    }, ONBOARDING_IDLE_DELAY_MS);
+
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener('pointerdown', handleBuilderIntent, true);
+      document.removeEventListener('keydown', handleBuilderIntent, true);
+    };
   }, [pathname]);
 
   useEffect(() => {
