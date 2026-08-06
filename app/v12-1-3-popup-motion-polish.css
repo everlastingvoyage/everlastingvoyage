@@ -1,13 +1,17 @@
-/* V12.1.3 — Chamber Popup Motion Polish
-   Keep popup interaction immediate and GPU-friendly. The previous motion
-   animated blur, brightness and a large transition wave across the full stage,
-   which made Safari and lower-power devices feel delayed. */
+/* V12.1.3 — Frequency Power Popup Motion
+   The visible Chamber modal is the portal-based FrequencyPowerDetails layer.
+   Keep motion short and compositor-friendly: opacity + transform only. */
 
-/* Opening: a short fade with a very small rise/scale. */
-body.ev-product-route #library.evFrequencyChamber
-  .signalPopupOverlay:not(.signalPopupExitGhost) {
-  z-index: 6 !important;
-  animation: evPopupQuickIn 180ms cubic-bezier(.2, .82, .24, 1) both !important;
+.evFrequencyPowerBackdrop {
+  background: rgba(0, 5, 15, .76) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  animation: evFrequencyBackdropQuickIn 160ms ease-out both !important;
+  will-change: opacity;
+}
+
+.evFrequencyPowerCard {
+  animation: evFrequencyCardQuickIn 180ms cubic-bezier(.2, .82, .24, 1) both !important;
   filter: none !important;
   will-change: transform, opacity;
   backface-visibility: hidden;
@@ -15,19 +19,24 @@ body.ev-product-route #library.evFrequencyChamber
   transform-origin: center center;
 }
 
-/* Closing: the existing ghost remains only long enough for a clean fade. */
-body.ev-product-route #library.evFrequencyChamber .signalPopupExitGhost {
-  z-index: 6 !important;
+.evFrequencyPowerBackdrop.closing {
   pointer-events: none !important;
-  animation: evPopupQuickOut 140ms cubic-bezier(.4, 0, .8, .4) forwards !important;
-  filter: none !important;
-  will-change: transform, opacity;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
+  animation: evFrequencyBackdropQuickOut 140ms ease-in both !important;
 }
 
-/* Remove the expensive full-stage effects. The Chamber background and glow
-   stay visually unchanged while the popup opens or closes. */
+.evFrequencyPowerBackdrop.closing .evFrequencyPowerCard {
+  animation: evFrequencyCardQuickOut 120ms cubic-bezier(.4, 0, .8, .4) both !important;
+  filter: none !important;
+}
+
+/* The legacy popup remains the bridge to the original React state, but its
+   visual effects must never run behind the portal modal. */
+body.ev-product-route #library.evFrequencyChamber .signalPopupOverlay,
+body.ev-product-route #library.evFrequencyChamber .signalPopupExitGhost {
+  animation: none !important;
+  filter: none !important;
+}
+
 body.ev-product-route #library.evFrequencyChamber .signalTransitionWave {
   display: none !important;
   animation: none !important;
@@ -43,44 +52,72 @@ body.ev-product-route #library.evFrequencyChamber[data-exit-state]::before {
   animation: none !important;
 }
 
-@keyframes evPopupQuickIn {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -48.5%) scale(.975);
-  }
-
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-}
-
-@keyframes evPopupQuickOut {
-  from {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-
-  to {
-    opacity: 0;
-    transform: translate(-50%, -49%) scale(.985);
-  }
-}
-
+/* V10.12 previously kept the mobile Chamber visual layer transitioning for
+   520 ms after close. V12.1.3 leaves the Chamber perfectly still. */
 @media (max-width: 760px) {
-  body.ev-product-route #library.evFrequencyChamber
-    .signalPopupOverlay:not(.signalPopupExitGhost) {
+  #library[data-performance-mode='mobile'][data-popup-phase='closing'] .evChamberVisualLayer,
+  #library[data-performance-mode='mobile'][data-exit-state] .evChamberVisualLayer {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .evFrequencyPowerBackdrop {
+    animation-duration: 140ms !important;
+  }
+
+  .evFrequencyPowerCard {
     animation-duration: 160ms !important;
   }
 
-  body.ev-product-route #library.evFrequencyChamber .signalPopupExitGhost {
+  .evFrequencyPowerBackdrop.closing {
     animation-duration: 120ms !important;
+  }
+
+  .evFrequencyPowerBackdrop.closing .evFrequencyPowerCard {
+    animation-duration: 110ms !important;
+  }
+}
+
+@keyframes evFrequencyBackdropQuickIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes evFrequencyBackdropQuickOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes evFrequencyCardQuickIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes evFrequencyCardQuickOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(5px) scale(.99);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  body.ev-product-route #library.evFrequencyChamber .signalPopupOverlay,
-  body.ev-product-route #library.evFrequencyChamber .signalPopupExitGhost {
+  .evFrequencyPowerBackdrop,
+  .evFrequencyPowerBackdrop.closing,
+  .evFrequencyPowerCard,
+  .evFrequencyPowerBackdrop.closing .evFrequencyPowerCard {
     animation-duration: 1ms !important;
   }
 }
