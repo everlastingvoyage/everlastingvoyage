@@ -1,5 +1,5 @@
-/* V12.1.5 / V12.1.6 — Clean Pomodoro technical footer.
-   The desktop DOM order is enforced by V12DesktopAtmosphereFlow:
+/* V12.1.5 / V12.1.6 / V12.1.7 — Session flow and spacing.
+   Desktop DOM order is enforced by V12DesktopAtmosphereFlow:
    session console -> Atmosphere -> technical footer. */
 
 .v10SessionOverlay:not(.completed) .v10SessionFooter {
@@ -28,7 +28,15 @@
     align-content: start !important;
   }
 
+  /* V10 polish previously forced the console to occupy nearly a full viewport:
+     min-height: calc(100dvh - 178px). Once Atmosphere became a separate DOM
+     section, that inherited height appeared as a large empty band. Keep the
+     console content-sized and leave only a small intentional transition gap. */
   .v10SessionOverlay:not(.completed) .v10SessionMain {
+    min-height: 0 !important;
+    height: auto !important;
+    align-self: start !important;
+    padding-bottom: 8px !important;
     grid-template-areas:
       "identity timer capture"
       "signal signal signal"
@@ -47,7 +55,7 @@
     width: min(1600px, calc(100% - 64px)) !important;
     min-width: 0;
     height: auto !important;
-    margin: 18px auto 0 !important;
+    margin: 10px auto 0 !important;
     overflow: visible !important;
     transform: none !important;
     box-sizing: border-box;
