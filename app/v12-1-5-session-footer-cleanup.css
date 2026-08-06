@@ -1,17 +1,21 @@
-/* V12.1.5 — Clean Pomodoro technical footer.
-   Keeps Atmosphere and signal guidance in normal overlay flow instead of
-   allowing the technical footer to sit over desktop sound cards. */
+/* V12.1.5 / V12.1.6 — Clean Pomodoro technical footer.
+   The desktop DOM order is enforced by V12DesktopAtmosphereFlow:
+   session console -> Atmosphere -> technical footer. */
 
 .v10SessionOverlay:not(.completed) .v10SessionFooter {
-  position: relative !important;
+  position: static !important;
   inset: auto !important;
+  float: none !important;
+  clear: both !important;
+  transform: none !important;
   z-index: 2;
-  clear: both;
   align-self: start;
   isolation: isolate;
+  box-sizing: border-box;
 }
 
-.v10SessionOverlay:not(.completed) .v10SessionFooter > span {
+.v10SessionOverlay:not(.completed) .v10SessionFooter > span,
+.v10SessionOverlay:not(.completed) .v10SessionFooter .v12SessionFooterBrand {
   position: static !important;
   inset: auto !important;
   transform: none !important;
@@ -21,6 +25,7 @@
 @media (min-width: 1100px) {
   .v10SessionOverlay:not(.completed) {
     grid-template-rows: auto auto auto auto !important;
+    align-content: start !important;
   }
 
   .v10SessionOverlay:not(.completed) .v10SessionMain {
@@ -30,30 +35,41 @@
       "thoughts thoughts thoughts" !important;
   }
 
+  /* Atmosphere is a full direct child of the overlay, never a grid item
+     inside .v10SessionMain where its second row could overflow. */
   .v10SessionOverlay:not(.completed) > #ev-session-atmosphere-root {
+    position: static !important;
     grid-area: auto !important;
     grid-column: 1 !important;
     grid-row: auto !important;
     align-self: start !important;
+    display: block !important;
     width: min(1600px, calc(100% - 64px)) !important;
     min-width: 0;
+    height: auto !important;
     margin: 18px auto 0 !important;
+    overflow: visible !important;
+    transform: none !important;
+    box-sizing: border-box;
   }
 
-  .v10SessionOverlay:not(.completed) .v10SessionFooter {
+  .v10SessionOverlay:not(.completed) > #ev-session-atmosphere-root > .evSessionAtmosphere {
+    position: relative !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    box-sizing: border-box;
+  }
+
+  /* This adjacent-sibling selector only matches the valid DOM structure.
+     The footer cannot occupy the Atmosphere row or begin before it ends. */
+  .v10SessionOverlay:not(.completed) > #ev-session-atmosphere-root + .v10SessionFooter {
+    grid-area: auto !important;
+    grid-column: 1 !important;
+    grid-row: auto !important;
     width: min(1600px, calc(100% - 64px)) !important;
-  }
-}
-
-@media (min-width: 1700px) {
-  .v10SessionOverlay:not(.completed) > #ev-session-atmosphere-root,
-  .v10SessionOverlay:not(.completed) .v10SessionFooter {
-    width: min(1660px, calc(100% - 112px)) !important;
-  }
-}
-
-@media (min-width: 761px) {
-  .v10SessionOverlay:not(.completed) .v10SessionFooter {
+    min-height: 0 !important;
     margin: 28px auto 0 !important;
     padding: 18px 0 34px !important;
     display: grid !important;
@@ -62,10 +78,12 @@
     justify-content: stretch !important;
     gap: 10px 14px !important;
     border-top: 1px solid rgba(113, 164, 211, 0.14);
+    background: transparent !important;
     text-align: center;
+    overflow: visible !important;
   }
 
-  .v10SessionOverlay:not(.completed) .v10SessionFooter > span {
+  .v10SessionOverlay:not(.completed) > #ev-session-atmosphere-root + .v10SessionFooter > span {
     min-width: 0;
     min-height: 44px;
     display: flex;
@@ -81,7 +99,7 @@
     overflow-wrap: anywhere;
   }
 
-  .v10SessionOverlay:not(.completed) .v10SessionFooter .v12SessionFooterBrand {
+  .v10SessionOverlay:not(.completed) > #ev-session-atmosphere-root + .v10SessionFooter .v12SessionFooterBrand {
     grid-column: 1 / -1;
     justify-self: center;
     width: fit-content !important;
@@ -91,10 +109,40 @@
   }
 }
 
+@media (min-width: 1700px) {
+  .v10SessionOverlay:not(.completed) > #ev-session-atmosphere-root,
+  .v10SessionOverlay:not(.completed) > #ev-session-atmosphere-root + .v10SessionFooter {
+    width: min(1660px, calc(100% - 112px)) !important;
+  }
+}
+
 @media (min-width: 761px) and (max-width: 1099px) {
   .v10SessionOverlay:not(.completed) .v10SessionFooter {
     width: min(980px, calc(100% - 48px)) !important;
-    margin-top: 30px !important;
+    margin: 30px auto 0 !important;
+    padding: 18px 0 34px !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 14px !important;
+    border-top: 1px solid rgba(113, 164, 211, 0.14);
+    text-align: center;
+  }
+
+  .v10SessionOverlay:not(.completed) .v10SessionFooter > span {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 14px;
+    border: 1px solid rgba(118, 175, 220, 0.14);
+    border-radius: 14px;
+    background: rgba(3, 14, 28, 0.78);
+  }
+
+  .v10SessionOverlay:not(.completed) .v10SessionFooter .v12SessionFooterBrand {
+    grid-column: 1 / -1;
+    justify-self: center;
+    margin-top: 8px !important;
   }
 }
 
@@ -110,7 +158,8 @@
 
 @media (max-width: 760px) {
   .v10SessionOverlay:not(.completed) .v10SessionFooter {
-    margin-top: 22px !important;
+    width: min(100% - 28px, 620px) !important;
+    margin: 22px auto 0 !important;
     gap: 9px !important;
   }
 

@@ -14,31 +14,49 @@ export default function V12DesktopAtmosphereFlow() {
     const desktopQuery = window.matchMedia(DESKTOP_SESSION_QUERY);
     let scheduledFrame: number | null = null;
 
-    const placeAtmosphere = () => {
+    const placeSessionSections = () => {
       scheduledFrame = null;
 
       const overlay = document.querySelector<HTMLElement>('.v10SessionOverlay:not(.completed)');
       const root = overlay?.querySelector<HTMLElement>('#ev-session-atmosphere-root');
       const sessionMain = overlay?.querySelector<HTMLElement>('.v10SessionMain');
       const audioControls = overlay?.querySelector<HTMLElement>('.v10AudioControls');
-      if (!overlay || !root || !sessionMain || !audioControls) return;
+      const footer = overlay?.querySelector<HTMLElement>('.v10SessionFooter');
+      if (!overlay || !root || !sessionMain || !audioControls || !footer) return;
 
       if (desktopQuery.matches) {
-        const alreadyPlaced = root.parentElement === overlay && root.previousElementSibling === sessionMain;
-        if (!alreadyPlaced) sessionMain.insertAdjacentElement('afterend', root);
-        root.dataset.flowPlacement = 'overlay';
+        // Desktop uses three explicit, consecutive overlay sections:
+        // session console -> Atmosphere -> technical footer.
+        // Move the actual DOM nodes instead of relying on grid overflow or margins.
+        if (root.parentElement !== overlay || root.previousElementSibling !== sessionMain) {
+          sessionMain.insertAdjacentElement('afterend', root);
+        }
+        if (footer.parentElement !== overlay || footer.previousElementSibling !== root) {
+          root.insertAdjacentElement('afterend', footer);
+        }
+
+        root.dataset.flowPlacement = 'overlay-after-main';
+        footer.dataset.flowPlacement = 'overlay-after-atmosphere';
         return;
       }
 
+      // Tablet/mobile keep Atmosphere inside the tools column, while the
+      // technical footer remains a direct overlay section after the main panel.
       const tools = audioControls.parentElement;
-      const alreadyPlaced = root.parentElement === tools && root.previousElementSibling === audioControls;
-      if (!alreadyPlaced) audioControls.insertAdjacentElement('afterend', root);
-      root.dataset.flowPlacement = 'tools';
+      if (tools && (root.parentElement !== tools || root.previousElementSibling !== audioControls)) {
+        audioControls.insertAdjacentElement('afterend', root);
+      }
+      if (footer.parentElement !== overlay || footer.previousElementSibling !== sessionMain) {
+        sessionMain.insertAdjacentElement('afterend', footer);
+      }
+
+      root.dataset.flowPlacement = 'tools-after-signal';
+      footer.dataset.flowPlacement = 'overlay-after-main';
     };
 
     const schedulePlacement = () => {
       if (scheduledFrame !== null) return;
-      scheduledFrame = window.requestAnimationFrame(placeAtmosphere);
+      scheduledFrame = window.requestAnimationFrame(placeSessionSections);
     };
 
     const observer = new MutationObserver(schedulePlacement);
