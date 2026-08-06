@@ -74,6 +74,9 @@ jobs:
       - name: Validate consent, events, feedback, legal pages and layouts
         run: node scripts/v12-2-private-beta-qa.mjs
 
+      - name: Validate onboarding and confirmed lifecycle behavior
+        run: node scripts/v12-2-onboarding-feedback-qa.mjs
+
       - name: Record dependency audit
         if: always()
         run: npm audit --omit=dev --json > v12-2-qa/npm-audit.json || true
