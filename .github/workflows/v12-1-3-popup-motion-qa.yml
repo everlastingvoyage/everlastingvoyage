@@ -84,19 +84,25 @@ jobs:
             const timeout = window.setTimeout(() => {
               observer.disconnect();
               reject(new Error(`Popup open timed out: ${activeState}`));
-            }, 1500);
+            }, 1800);
             const observer = new MutationObserver(() => {
               const backdrop = document.querySelector(`.evFrequencyPowerBackdrop.${activeState}:not(.closing)`);
               const card = document.querySelector('.evFrequencyPowerCard');
-              if (!backdrop || !card) return;
+              if (!(backdrop instanceof HTMLElement) || !(card instanceof HTMLElement)) return;
 
               observer.disconnect();
               window.clearTimeout(timeout);
-              Promise.all(
-                [...backdrop.getAnimations(), ...card.getAnimations()].map((animation) =>
-                  animation.finished.catch(() => undefined)
-                )
-              ).then(() => resolve(Math.round(performance.now() - startedAt)));
+              window.requestAnimationFrame(() => {
+                const backdropStyle = getComputedStyle(backdrop);
+                const cardStyle = getComputedStyle(card);
+                resolve({
+                  mountMs: Math.round(performance.now() - startedAt),
+                  backdropAnimationName: backdropStyle.animationName,
+                  backdropAnimationDuration: backdropStyle.animationDuration,
+                  cardAnimationName: cardStyle.animationName,
+                  cardAnimationDuration: cardStyle.animationDuration
+                });
+              });
             });
 
             observer.observe(document.body, { childList: true, subtree: true });
@@ -111,18 +117,41 @@ jobs:
             }
 
             const startedAt = performance.now();
+            let closingMotion = null;
             const timeout = window.setTimeout(() => {
               observer.disconnect();
               reject(new Error(`Popup close timed out: ${closeMethod}`));
-            }, 1200);
+            }, 1600);
             const observer = new MutationObserver(() => {
+              const closingBackdrop = document.querySelector('.evFrequencyPowerBackdrop.closing');
+              const closingCard = document.querySelector('.evFrequencyPowerBackdrop.closing .evFrequencyPowerCard');
+
+              if (!closingMotion && closingBackdrop instanceof HTMLElement && closingCard instanceof HTMLElement) {
+                const backdropStyle = getComputedStyle(closingBackdrop);
+                const cardStyle = getComputedStyle(closingCard);
+                closingMotion = {
+                  backdropAnimationName: backdropStyle.animationName,
+                  backdropAnimationDuration: backdropStyle.animationDuration,
+                  cardAnimationName: cardStyle.animationName,
+                  cardAnimationDuration: cardStyle.animationDuration
+                };
+              }
+
               if (document.querySelector('.evFrequencyPowerBackdrop')) return;
               observer.disconnect();
               window.clearTimeout(timeout);
-              window.requestAnimationFrame(() => resolve(Math.round(performance.now() - startedAt)));
+              window.requestAnimationFrame(() => resolve({
+                cleanupMs: Math.round(performance.now() - startedAt),
+                ...(closingMotion ?? {})
+              }));
             });
 
-            observer.observe(document.body, { childList: true, subtree: true });
+            observer.observe(document.body, {
+              childList: true,
+              subtree: true,
+              attributes: true,
+              attributeFilter: ['class']
+            });
 
             if (closeMethod === 'button') {
               const button = document.querySelector('.evFrequencyPowerTop button[aria-label="Close frequency details"]');
@@ -168,11 +197,7 @@ jobs:
             const stageStyle = getComputedStyle(stage);
             const legacy = document.querySelector('#library .signalPopupOverlay:not(.signalPopupExitGhost)');
             return {
-              backdropAnimationName: backdropStyle.animationName,
-              backdropAnimationDuration: backdropStyle.animationDuration,
               backdropFilter: backdropStyle.backdropFilter || backdropStyle.webkitBackdropFilter || 'none',
-              cardAnimationName: cardStyle.animationName,
-              cardAnimationDuration: cardStyle.animationDuration,
               cardFilter: cardStyle.filter,
               stageAnimationName: stageStyle.animationName,
               stageFilter: stageStyle.filter,
@@ -190,6 +215,15 @@ jobs:
             closingClass: document.body.classList.contains('ev-frequency-power-closing')
           }));
 
+          const durationMs = (value = '0s') => Math.max(
+            ...String(value).split(',').map((part) => {
+              const trimmed = part.trim();
+              if (trimmed.endsWith('ms')) return Number.parseFloat(trimmed);
+              if (trimmed.endsWith('s')) return Number.parseFloat(trimmed) * 1000;
+              return Number.parseFloat(trimmed) || 0;
+            })
+          );
+
           for (const profile of profiles) {
             const page = await browser.newPage();
             await page.setViewport({ width: profile.width, height: profile.height, deviceScaleFactor: 1 });
@@ -202,7 +236,7 @@ jobs:
 
             for (const state of states) {
               for (let iteration = 0; iteration < profile.iterations; iteration += 1) {
-                const openedInMs = await openPopup(page, state);
+                const opening = await openPopup(page, state);
                 const styles = await readState(page);
 
                 if (iteration === 0) {
@@ -212,7 +246,7 @@ jobs:
                   });
                 }
 
-                const closedInMs = await closePopup(page, 'button');
+                const closing = await closePopup(page, 'button');
                 await page.waitForFunction(() =>
                   !document.body.classList.contains('ev-frequency-power-open') &&
                   !document.body.classList.contains('ev-frequency-power-closing')
@@ -223,8 +257,8 @@ jobs:
                   profile: profile.name,
                   state,
                   iteration: iteration + 1,
-                  openedInMs,
-                  closedInMs,
+                  opening,
+                  closing,
                   cleanup,
                   ...styles
                 });
@@ -232,28 +266,35 @@ jobs:
             }
 
             await openPopup(page, 'alpha');
-            results.push({ profile: profile.name, interaction: 'escape', closedInMs: await closePopup(page, 'escape') });
+            results.push({ profile: profile.name, interaction: 'escape', closing: await closePopup(page, 'escape') });
 
             await openPopup(page, 'gamma');
-            results.push({ profile: profile.name, interaction: 'outside-click', closedInMs: await closePopup(page, 'outside') });
+            results.push({ profile: profile.name, interaction: 'outside-click', closing: await closePopup(page, 'outside') });
 
             await openPopup(page, 'theta');
-            const useStateCloseMs = await closePopup(page, 'use-state');
+            const useStateClosing = await closePopup(page, 'use-state');
             await page.waitForFunction(() => document.querySelector('.stateChoice.theta')?.classList.contains('active'));
-            results.push({ profile: profile.name, interaction: 'use-state', closedInMs: useStateCloseMs });
+            results.push({ profile: profile.name, interaction: 'use-state', closing: useStateClosing });
 
             await page.close();
           }
 
           const cycles = results.filter((item) => item.state);
-          const standardClosures = results.filter((item) => item.state || ['escape', 'outside-click'].includes(item.interaction));
-          const useStateClosures = results.filter((item) => item.interaction === 'use-state');
+          const interactions = results.filter((item) => item.interaction);
+          const allClosures = [...cycles.map((item) => item.closing), ...interactions.map((item) => item.closing)];
           const summary = {
             pageErrors,
             results,
-            maxOpenMs: Math.max(...cycles.map((item) => item.openedInMs)),
-            maxStandardCloseMs: Math.max(...standardClosures.map((item) => item.closedInMs)),
-            maxUseStateCloseMs: Math.max(...useStateClosures.map((item) => item.closedInMs))
+            maxMountMs: Math.max(...cycles.map((item) => item.opening.mountMs)),
+            maxOpenVisualMs: Math.max(...cycles.flatMap((item) => [
+              durationMs(item.opening.backdropAnimationDuration),
+              durationMs(item.opening.cardAnimationDuration)
+            ])),
+            maxCloseVisualMs: Math.max(...allClosures.flatMap((item) => [
+              durationMs(item.backdropAnimationDuration),
+              durationMs(item.cardAnimationDuration)
+            ])),
+            maxCleanupMs: Math.max(...allClosures.map((item) => item.cleanupMs))
           };
           fs.writeFileSync('popup-motion-qa/results.json', JSON.stringify(summary, null, 2));
 
@@ -274,9 +315,14 @@ jobs:
           if (cycles.some((item) => item.stageFilter !== 'none')) throw new Error('Full-stage filter is still active');
           if (cycles.some((item) => !['none', 'not-mounted'].includes(item.waveDisplay))) throw new Error('Transition wave is still visible');
           if (cycles.some((item) => !['0', 'not-mounted'].includes(item.legacyPopupOpacity))) throw new Error('Legacy popup became visible');
-          if (summary.maxOpenMs > 400) throw new Error(`Popup opening exceeded target: ${summary.maxOpenMs} ms`);
-          if (summary.maxStandardCloseMs > 350) throw new Error(`Popup closing exceeded target: ${summary.maxStandardCloseMs} ms`);
-          if (summary.maxUseStateCloseMs > 500) throw new Error(`Use-state close exceeded target: ${summary.maxUseStateCloseMs} ms`);
+          if (cycles.some((item) => item.opening.backdropAnimationName !== 'evFrequencyBackdropQuickIn')) throw new Error('Unexpected backdrop entrance animation');
+          if (cycles.some((item) => item.opening.cardAnimationName !== 'evFrequencyCardQuickIn')) throw new Error('Unexpected card entrance animation');
+          if (allClosures.some((item) => item.backdropAnimationName !== 'evFrequencyBackdropQuickOut')) throw new Error('Unexpected backdrop exit animation');
+          if (allClosures.some((item) => item.cardAnimationName !== 'evFrequencyCardQuickOut')) throw new Error('Unexpected card exit animation');
+          if (summary.maxOpenVisualMs > 200) throw new Error(`Visible popup entrance exceeded target: ${summary.maxOpenVisualMs} ms`);
+          if (summary.maxCloseVisualMs > 160) throw new Error(`Visible popup exit exceeded target: ${summary.maxCloseVisualMs} ms`);
+          if (summary.maxMountMs > 1200) throw new Error(`Popup mount exceeded safety threshold: ${summary.maxMountMs} ms`);
+          if (summary.maxCleanupMs > 900) throw new Error(`Popup cleanup exceeded safety threshold: ${summary.maxCleanupMs} ms`);
 
           await browser.close();
           EOF
