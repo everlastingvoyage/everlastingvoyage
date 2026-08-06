@@ -33,6 +33,7 @@ type StateId = 'alpha' | 'gamma' | 'theta' | 'delta' | 'abundance';
 type ExitMethod = 'end_session' | 'browser_back' | 'page_hidden' | 'navigation' | 'unknown';
 
 const STATE_IDS: StateId[] = ['alpha', 'gamma', 'theta', 'delta', 'abundance'];
+const COMPLETION_SURFACE_SELECTOR = '.v10SessionOverlay, .v10Completion';
 
 function selectedState(): StateId {
   const active = document.querySelector<HTMLElement>('.stateChoice.active');
@@ -82,6 +83,19 @@ function atmosphereCountFromSavedCard(card: Element | null): number {
   return Number.parseInt(text ?? '0', 10) || 0;
 }
 
+function nodeContainsCompletionSurface(node: Node): boolean {
+  if (!(node instanceof Element)) return false;
+  return node.matches(COMPLETION_SURFACE_SELECTOR) || Boolean(node.querySelector(COMPLETION_SURFACE_SELECTOR));
+}
+
+function mutationAffectsCompletion(mutation: MutationRecord): boolean {
+  if (mutation.type === 'attributes') {
+    return mutation.target instanceof Element && mutation.target.matches('.v10SessionOverlay');
+  }
+
+  return [...mutation.addedNodes, ...mutation.removedNodes].some(nodeContainsCompletionSurface);
+}
+
 export default function V12AnalyticsBridge() {
   const pathname = usePathname();
   const pendingSavedRestoreRef = useRef(false);
@@ -93,6 +107,7 @@ export default function V12AnalyticsBridge() {
     let previousMix = readAmbientMix().layers;
     let previousRuntime = readAmbientRuntime().layers;
     let completionElement: HTMLElement | null = null;
+    let completionFrame: number | null = null;
 
     const captureAbandonment = (exitMethod: ExitMethod) => {
       const active = markVoyageAbandoned();
@@ -243,7 +258,13 @@ export default function V12AnalyticsBridge() {
       if (!nextCompletion) completionElement = null;
     };
 
-    const observer = new MutationObserver(() => window.requestAnimationFrame(syncCompletion));
+    const observer = new MutationObserver((mutations) => {
+      if (!mutations.some(mutationAffectsCompletion) || completionFrame !== null) return;
+      completionFrame = window.requestAnimationFrame(() => {
+        completionFrame = null;
+        syncCompletion();
+      });
+    });
     observer.observe(document.body, {
       childList: true,
       subtree: true,
@@ -305,6 +326,7 @@ export default function V12AnalyticsBridge() {
 
     return () => {
       observer.disconnect();
+      if (completionFrame !== null) window.cancelAnimationFrame(completionFrame);
       unsubscribeMix();
       unsubscribeRuntime();
       unsubscribeCommands();
