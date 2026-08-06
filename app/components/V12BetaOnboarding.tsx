@@ -1,0 +1,172 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import { analyticsClient } from '../lib/analytics/analytics-client';
+import { analyticsStorage, readAnalyticsConsent } from '../lib/analytics/analytics-consent';
+
+const ONBOARDING_KEY = 'ev:onboarding:v12.2';
+const ONBOARDING_IDLE_DELAY_MS = 5000;
+const FOCUSABLE = 'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
+const ACTIVE_VOYAGE_TARGETS = [
+  '#session-builder',
+  '.stateChoice',
+  '.builderActions',
+  '#library',
+  '.signalNode',
+  '.evFrequencyPowerAction'
+].join(', ');
+const steps = [
+  {
+    eyebrow: '1 · Choose your state',
+    title: 'Select how you want to feel or focus.',
+    copy: 'Move between Alpha, Gamma, Theta, Delta and Pure Tone without committing to a session yet.'
+  },
+  {
+    eyebrow: '2 · Set your time',
+    title: 'Choose a session length that fits your moment.',
+    copy: 'Add an intention only when it helps. It remains local and is never included in analytics.'
+  },
+  {
+    eyebrow: '3 · Enter the voyage',
+    title: 'Add atmosphere whenever you like.',
+    copy: 'Begin with the pure signal, then layer rain, noise or field recordings without restarting the timer.'
+  }
+] as const;
+
+export default function V12BetaOnboarding() {
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+  const [step, setStep] = useState(0);
+  const dialogRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (pathname !== '/voyage') {
+      setOpen(false);
+      return;
+    }
+
+    const status = analyticsStorage.get(ONBOARDING_KEY);
+    if (status === 'completed' || status === 'skipped') return;
+
+    let visitorStartedUsingVoyage = false;
+    let timer = 0;
+
+    const recordImplicitSkip = () => {
+      if (visitorStartedUsingVoyage) return;
+      visitorStartedUsingVoyage = true;
+      window.clearTimeout(timer);
+      analyticsStorage.set(ONBOARDING_KEY, 'skipped');
+      if (readAnalyticsConsent() === 'granted') {
+        analyticsClient.capture('onboarding_skipped');
+      }
+    };
+
+    const handleVoyageIntent = (event: Event) => {
+      const target = event.target as Element | null;
+      if (!target?.closest(ACTIVE_VOYAGE_TARGETS)) return;
+      recordImplicitSkip();
+    };
+
+    document.addEventListener('pointerdown', handleVoyageIntent, true);
+    document.addEventListener('click', handleVoyageIntent, true);
+    document.addEventListener('keydown', handleVoyageIntent, true);
+
+    timer = window.setTimeout(() => {
+      if (visitorStartedUsingVoyage) return;
+      if (document.querySelector('.v10SessionOverlay') || document.body.classList.contains('v10-session-open')) {
+        recordImplicitSkip();
+        return;
+      }
+      setOpen(true);
+      if (readAnalyticsConsent() === 'granted') analyticsClient.capture('onboarding_started');
+    }, ONBOARDING_IDLE_DELAY_MS);
+
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener('pointerdown', handleVoyageIntent, true);
+      document.removeEventListener('click', handleVoyageIntent, true);
+      document.removeEventListener('keydown', handleVoyageIntent, true);
+    };
+  }, [pathname]);
+
+  useEffect(() => {
+    document.body.classList.toggle('v12-onboarding-open', open);
+    if (!open) return () => document.body.classList.remove('v12-onboarding-open');
+
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const dialog = dialogRef.current;
+    dialog?.querySelector<HTMLElement>(FOCUSABLE)?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        finish('skipped');
+        return;
+      }
+      if (event.key !== 'Tab' || !dialog) return;
+      const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE));
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.classList.remove('v12-onboarding-open');
+      previousFocus?.focus();
+    };
+  // finish is intentionally stable for this modal lifecycle.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  const finish = (result: 'completed' | 'skipped') => {
+    analyticsStorage.set(ONBOARDING_KEY, result);
+    if (readAnalyticsConsent() === 'granted') {
+      analyticsClient.capture(result === 'completed' ? 'onboarding_completed' : 'onboarding_skipped');
+    }
+    setOpen(false);
+    if (result === 'completed') {
+      window.setTimeout(() => document.getElementById('session-builder')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+    }
+  };
+
+  if (!open || pathname !== '/voyage') return null;
+  const current = steps[step];
+
+  return (
+    <div className="v12OnboardingBackdrop" role="presentation">
+      <section
+        className="v12Onboarding"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="v12-onboarding-title"
+        ref={dialogRef}
+      >
+        <div className="v12OnboardingProgress" aria-label={`Step ${step + 1} of ${steps.length}`}>
+          {steps.map((_, index) => <span key={index} className={index <= step ? 'active' : ''} />)}
+        </div>
+        <div className="v12OnboardingCopy" key={step}>
+          <span>{current.eyebrow}</span>
+          <h2 id="v12-onboarding-title">{current.title}</h2>
+          <p>{current.copy}</p>
+        </div>
+        <div className="v12OnboardingActions">
+          <button type="button" onClick={() => finish('skipped')}>Skip</button>
+          {step < steps.length - 1 ? (
+            <button type="button" className="primary" onClick={() => setStep((value) => value + 1)}>Next</button>
+          ) : (
+            <button type="button" className="primary" onClick={() => finish('completed')}>Enter the voyage</button>
+          )}
+        </div>
+      </section>
+    </div>
+  );
+}

@@ -36,6 +36,7 @@ import './v12-1-2-chamber-rectangle-removal.css';
 import './v12-1-3-popup-motion-polish.css';
 import './v12-1-4-session-layout-navigation.css';
 import './v12-1-5-session-footer-cleanup.css';
+import './v12-2-beta-foundation.css';
 import HumanoidSwap from './HumanoidSwap';
 import SignalChamberPolish from './SignalChamberPolish';
 import SignalChamberBlend from './SignalChamberBlend';
@@ -58,6 +59,7 @@ import V11CompletionSaveSpace from './V11CompletionSaveSpace';
 import V12SessionBrandFooter from './V12SessionBrandFooter';
 import V12SessionHistoryNavigation from './V12SessionHistoryNavigation';
 import V12DesktopAtmosphereFlow from './V12DesktopAtmosphereFlow';
+import V12BetaFoundation from './components/V12BetaFoundation';
 
 export const metadata: Metadata = {
   title: 'Everlasting Voyage — Pure Frequencies & Focus Sessions',
@@ -76,6 +78,10 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const textFeedbackEnabled = Boolean(
+    process.env.BETA_FEEDBACK_ENDPOINT && process.env.BETA_FEEDBACK_SECRET
+  );
+
   return (
     <html lang="en">
       <body>
@@ -102,6 +108,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <V10SessionUtilities />
         <V11CompletionSaveSpace />
         <V10CompletionFlow />
+        <V12BetaFoundation textFeedbackEnabled={textFeedbackEnabled} />
       </body>
     </html>
   );

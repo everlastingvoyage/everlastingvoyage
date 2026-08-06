@@ -1,0 +1,91 @@
+name: V12.2 Private Beta QA
+
+on:
+  push:
+    branches:
+      - v12-2-private-beta-foundation
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  private-beta-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      NEXT_PUBLIC_BETA_ANALYTICS_ENABLED: 'true'
+      NEXT_PUBLIC_POSTHOG_KEY: 'phc_ci_privacy_test'
+      NEXT_PUBLIC_POSTHOG_HOST: 'https://analytics.invalid.example'
+      NEXT_PUBLIC_APP_VERSION: '12.2.0'
+      NEXT_PUBLIC_ANALYTICS_QA_MODE: 'true'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build application
+        run: npm run build
+
+      - name: Validate privacy architecture statically
+        run: |
+          test "$(grep -R "from 'posthog-js'\|import('posthog-js')" app --include='*.ts' --include='*.tsx' | wc -l)" -eq 1
+          grep -q "autocapture: false" app/lib/analytics/analytics-client.ts
+          grep -q "capture_pageview: false" app/lib/analytics/analytics-client.ts
+          grep -q "disable_session_recording: true" app/lib/analytics/analytics-client.ts
+          grep -q "capture_heatmaps: false" app/lib/analytics/analytics-client.ts
+          grep -q "mask_all_text: true" app/lib/analytics/analytics-client.ts
+          grep -q "mask_all_element_attributes: true" app/lib/analytics/analytics-client.ts
+          grep -q "opt_out_capturing_by_default: true" app/lib/analytics/analytics-client.ts
+          grep -q "never collect your intentions" app/components/V12AnalyticsConsent.tsx
+          ! grep -R "Stripe\|checkout\|Google login\|Apple login" app/components app/lib app/api --include='*.ts' --include='*.tsx'
+
+      - name: Prepare system Chrome
+        run: |
+          npm install --no-save puppeteer-core@24.16.0
+          CHROME_PATH="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)"
+          if [ -z "$CHROME_PATH" ]; then
+            echo "System Chrome was not found"
+            exit 1
+          fi
+          echo "CHROME_PATH=$CHROME_PATH" >> "$GITHUB_ENV"
+          "$CHROME_PATH" --version
+
+      - name: Start application
+        run: |
+          npm run start -- --hostname 127.0.0.1 > /tmp/everlasting-voyage-v12-2.log 2>&1 &
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:3000/voyage >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/everlasting-voyage-v12-2.log
+          exit 1
+
+      - name: Validate consent, events, feedback, legal pages and layouts
+        run: node scripts/v12-2-private-beta-qa.mjs
+
+      - name: Validate onboarding and confirmed lifecycle behavior
+        run: node scripts/v12-2-onboarding-feedback-qa.mjs
+
+      - name: Record dependency audit
+        if: always()
+        run: npm audit --omit=dev --json > v12-2-qa/npm-audit.json || true
+
+      - name: Upload V12.2 QA artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v12-2-private-beta-qa
+          path: v12-2-qa
+          if-no-files-found: warn
+          retention-days: 7
