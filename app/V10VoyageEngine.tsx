@@ -2,6 +2,12 @@
 
 import type { FormEvent } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  getPremiumAudioRecipe,
+  getPremiumRecipeTechnical,
+  startPremiumAudioRecipe,
+  type PremiumAudioHandle
+} from './premium-audio-engine';
 
 type ThemeId = 'alpha' | 'gamma' | 'theta' | 'delta' | 'abundance';
 type SoundProfile = 'clean' | 'focus' | 'futuristic' | 'meditative' | 'sleep' | 'ritual';
@@ -288,6 +294,7 @@ export default function V10VoyageEngine() {
   const masterGainRef = useRef<GainNode | null>(null);
   const sourceRefs = useRef<AudioScheduledSourceNode[]>([]);
   const nodeRefs = useRef<AudioNode[]>([]);
+  const premiumAudioHandleRef = useRef<PremiumAudioHandle | null>(null);
   const completionPlayedRef = useRef(false);
 
   const resolvedSignalId = config.signalId && isSignalId(config.signalId) ? config.signalId : config.stateId;
@@ -315,6 +322,8 @@ export default function V10VoyageEngine() {
   }, []);
 
   const stopAudio = useCallback((fadeSeconds = 0.35) => {
+    premiumAudioHandleRef.current?.stop(fadeSeconds);
+    premiumAudioHandleRef.current = null;
     const context = audioContextRef.current;
     const gain = masterGainRef.current;
     const sources = sourceRefs.current;
@@ -355,6 +364,16 @@ export default function V10VoyageEngine() {
     masterGain.gain.exponentialRampToValueAtTime(targetVolume, now + 0.8);
     masterGain.connect(context.destination);
     masterGainRef.current = masterGain;
+
+    // V12.5: redesigned non-Ritual Premium experiences share Preview/full Voyage recipes.
+    // Approved Manifestation & Ritual remains on the exact legacy implementation below.
+    const premiumRecipe = signal.premium && signal.soundProfile !== 'ritual' ? getPremiumAudioRecipe(signal.id) : null;
+    if (premiumRecipe) {
+      premiumAudioHandleRef.current = await startPremiumAudioRecipe(context, masterGain, signal.id, { mode: 'immersive', preview: false });
+      sourceRefs.current = [];
+      nodeRefs.current = [masterGain];
+      return;
+    }
 
     const sources: AudioScheduledSourceNode[] = [];
     const nodes: AudioNode[] = [masterGain];
@@ -746,7 +765,7 @@ export default function V10VoyageEngine() {
           {status === 'completed' ? (
             <main className="v10Completion">
               <p className="v10SessionEyebrow">Voyage complete</p>
-              <h2>The signal is quiet.</h2>
+              <h2>The frequency is quiet.</h2>
               <p className="v10CompletionSummary">{sessionSummary}</p>
               {config.intention && (
                 <div className="v10CompletionIntention"><span>Your intention</span><strong>{config.intention}</strong></div>
@@ -782,7 +801,7 @@ export default function V10VoyageEngine() {
               <section className="v10TimerArea">
                 <div className="v10ProgressRing" style={{ '--session-progress': `${progress * 360}deg` } as React.CSSProperties}>
                   <div className="v10TimerDisplay">{formatTime(remainingSeconds)}</div>
-                  <span>{status === 'running' ? 'Signal active' : status === 'paused' ? 'Voyage paused' : 'Ready to begin'}</span>
+                  <span>{status === 'running' ? 'Frequency active' : status === 'paused' ? 'Voyage paused' : 'Ready to begin'}</span>
                 </div>
                 <div className="v10TimerControls">
                   {status === 'running' ? (
@@ -797,7 +816,7 @@ export default function V10VoyageEngine() {
 
               <section className="v10SessionTools">
                 <div className="v10AudioControls">
-                  <div><span className={`v10AudioIndicator ${status === 'running' ? 'active' : ''}`} /><strong>{status === 'running' ? 'Pure signal playing' : 'Pure signal ready'}</strong></div>
+                  <div><span className={`v10AudioIndicator ${status === 'running' ? 'active' : ''}`} /><strong>{status === 'running' ? (signal.premium ? 'Immersive frequency playing' : 'Pure frequency playing') : (signal.premium ? 'Immersive frequency ready' : 'Pure frequency ready')}</strong></div>
                   <label>
                     <span>Volume</span>
                     <input type="range" min="0.04" max="0.42" step="0.01" value={volume} onChange={(event) => setVolume(Number(event.target.value))} aria-label="Session volume" />
@@ -821,7 +840,7 @@ export default function V10VoyageEngine() {
           )}
 
           <footer className="v10SessionFooter">
-            <span>{signal.technical}</span>
+            <span>{getPremiumRecipeTechnical(signal.id) ?? signal.technical}</span>
             <span>{signal.note} · Keep volume moderate</span>
           </footer>
         </div>
