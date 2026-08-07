@@ -32,6 +32,85 @@ type PremiumCategory = {
   icon: string;
 };
 
+type CheckoutConfig = {
+  displayPriceUsd: string;
+  chargeCadCents: number | null;
+  chargePriceCad: string | null;
+  chargeCurrency: 'CAD';
+  founderEndsAt: string;
+  founderEndsLabel: string;
+  founderAvailable: boolean;
+  applicationId: string;
+  locationId: string;
+  environment: 'sandbox' | 'production';
+  checkoutReady: boolean;
+  entitlementStorageKey: string;
+  pendingAttemptStorageKey: string;
+};
+
+type EntitlementSummary = {
+  entitlement: 'founder-premium';
+  founder: true;
+  provider: 'square';
+  purchasedAt: string;
+  amount: number;
+  currency: 'CAD';
+};
+
+type PremiumApiResponse = {
+  ok?: boolean;
+  valid?: boolean;
+  recovered?: boolean;
+  status?: string;
+  code?: string;
+  error?: string;
+  message?: string;
+  confirmedNotCharged?: boolean;
+  recoverable?: boolean;
+  entitlementToken?: string;
+  attemptToken?: string;
+  entitlement?: EntitlementSummary;
+  receiptUrl?: string | null;
+  chargePriceCad?: string | null;
+  displayPriceUsd?: string;
+};
+
+type SquareTokenResult = {
+  status: string;
+  token?: string;
+  errors?: Array<{ message?: string; detail?: string }>;
+};
+
+type SquareVerificationDetails = {
+  amount: string;
+  currencyCode: 'CAD';
+  intent: 'CHARGE';
+  customerInitiated: true;
+  sellerKeyedIn: false;
+  billingContact: Record<string, never>;
+};
+
+type SquareCard = {
+  attach(selector: string): Promise<void>;
+  tokenize(details: SquareVerificationDetails): Promise<SquareTokenResult>;
+  destroy(): Promise<boolean>;
+};
+
+type SquarePayments = {
+  card(): Promise<SquareCard>;
+  setLocale?(locale: string): Promise<unknown>;
+};
+
+type SquareGlobal = {
+  payments(applicationId: string, locationId: string): SquarePayments;
+};
+
+declare global {
+  interface Window {
+    Square?: SquareGlobal;
+  }
+}
+
 const premiumCategories: PremiumCategory[] = [
   { id: 'study', title: 'Study & Memory', subtitle: 'Learn. Read. Retain.', icon: '⌁' },
   { id: 'work', title: 'Deep Work', subtitle: 'Lock in. Create. Execute.', icon: '⚡' },
@@ -41,31 +120,31 @@ const premiumCategories: PremiumCategory[] = [
 ];
 
 const premiumSignals: PremiumSignal[] = [
-  { id: 'alpha-10', category: 'study', family: 'Alpha', hz: 10, label: 'Calm Focus', purpose: 'Study, reading and steady concentration.', description: 'The free Alpha flagship for calm, sustained concentration.', premium: false, pure: false, soundProfile: 'clean', freeStateId: 'alpha', leftHz: 180, rightHz: 190 },
+  { id: 'alpha', category: 'study', family: 'Alpha', hz: 10, label: 'Calm Focus', purpose: 'Study, reading and steady concentration.', description: 'The free Alpha flagship for calm, sustained concentration.', premium: false, pure: false, soundProfile: 'clean', freeStateId: 'alpha', leftHz: 180, rightHz: 190 },
   { id: 'alpha-8', category: 'study', family: 'Alpha', hz: 8, label: 'Relaxed Study', purpose: 'A slower Alpha experience for relaxed reading and study.', description: 'Clean binaural signal with a restrained, distraction-free presentation.', premium: true, pure: false, soundProfile: 'clean', leftHz: 180, rightHz: 188 },
   { id: 'alpha-12', category: 'study', family: 'Alpha', hz: 12, label: 'Active Learning', purpose: 'A brighter Alpha experience for active learning and review.', description: 'Clean binaural signal designed to remain simple and precise.', premium: true, pure: false, soundProfile: 'clean', leftHz: 180, rightHz: 192 },
   { id: 'smr-14', category: 'study', family: 'SMR', hz: 14, label: 'Steady Attention', purpose: 'A steady-attention signal with an extremely subtle support layer.', description: 'Minimal binaural signal with a quiet tonal bed beneath the main signal.', premium: true, pure: false, soundProfile: 'focus', leftHz: 180, rightHz: 194 },
   { id: 'beta-18', category: 'study', family: 'Beta', hz: 18, label: 'Mental Drive', purpose: 'A more active focus experience for demanding study blocks.', description: 'Binaural focus signal with a restrained modern texture.', premium: true, pure: false, soundProfile: 'focus', leftHz: 180, rightHz: 198 },
 
-  { id: 'gamma-40', category: 'work', family: 'Gamma', hz: 40, label: 'Deep Focus', purpose: 'Demanding work, research and high-attention sessions.', description: 'The free Gamma flagship for demanding focus sessions.', premium: false, pure: false, soundProfile: 'clean', freeStateId: 'gamma', leftHz: 220, rightHz: 260 },
+  { id: 'gamma', category: 'work', family: 'Gamma', hz: 40, label: 'Deep Focus', purpose: 'Demanding work, research and high-attention sessions.', description: 'The free Gamma flagship for demanding focus sessions.', premium: false, pure: false, soundProfile: 'clean', freeStateId: 'gamma', leftHz: 220, rightHz: 260 },
   { id: 'beta-15', category: 'work', family: 'Beta', hz: 15, label: 'Focus Mode', purpose: 'A clean, minimal signal for focused execution.', description: 'Minimal binaural presentation with no distracting sound bed.', premium: true, pure: false, soundProfile: 'clean', leftHz: 200, rightHz: 215 },
   { id: 'beta-20', category: 'work', family: 'Beta', hz: 20, label: 'High Attention', purpose: 'An active focus signal with a subtle futuristic pulse.', description: 'Binaural signal supported by a quiet digital pulse and spacious texture.', premium: true, pure: false, soundProfile: 'futuristic', leftHz: 200, rightHz: 220 },
   { id: 'gamma-30', category: 'work', family: 'Gamma', hz: 30, label: 'Creative Flow', purpose: 'A futuristic Gamma experience for creative production.', description: 'Binaural signal with a low synthetic pad and gentle stereo movement.', premium: true, pure: false, soundProfile: 'futuristic', leftHz: 200, rightHz: 230 },
   { id: 'gamma-35', category: 'work', family: 'Gamma', hz: 35, label: 'Deep Execution', purpose: 'A deeper sci-fi productivity atmosphere for concentrated execution.', description: 'Binaural signal with a subtle technological soundscape kept beneath the core tone.', premium: true, pure: false, soundProfile: 'futuristic', leftHz: 200, rightHz: 235 },
 
-  { id: 'theta-4', category: 'meditation', family: 'Theta', hz: 4, label: 'Creative Flow', purpose: 'Writing, reflection, meditation and ideation.', description: 'The free Theta flagship for reflective and meditative sessions.', premium: false, pure: false, soundProfile: 'clean', freeStateId: 'theta', leftHz: 95, rightHz: 99 },
+  { id: 'theta', category: 'meditation', family: 'Theta', hz: 4, label: 'Creative Flow', purpose: 'Writing, reflection, meditation and ideation.', description: 'The free Theta flagship for reflective and meditative sessions.', premium: false, pure: false, soundProfile: 'clean', freeStateId: 'theta', leftHz: 95, rightHz: 99 },
   { id: 'theta-5', category: 'meditation', family: 'Theta', hz: 5, label: 'Inner Stillness', purpose: 'A soft inward signal with a quiet atmospheric pad.', description: 'Binaural signal supported by a warm, spacious tonal bed.', premium: true, pure: false, soundProfile: 'meditative', leftHz: 95, rightHz: 100 },
   { id: 'theta-6', category: 'meditation', family: 'Theta', hz: 6, label: 'Deep Meditation', purpose: 'A spacious meditative experience with slow harmonic movement.', description: 'Binaural signal with soft harmonics and a wide, calm atmosphere.', premium: true, pure: false, soundProfile: 'meditative', leftHz: 95, rightHz: 101 },
   { id: 'theta-7', category: 'meditation', family: 'Theta', hz: 7, label: 'Mindful Awareness', purpose: 'A gentle Theta signal with light airy movement.', description: 'Binaural signal with a quiet, breathable ambient texture.', premium: true, pure: false, soundProfile: 'meditative', leftHz: 95, rightHz: 102 },
   { id: 'alpha-9', category: 'meditation', family: 'Alpha', hz: 9, label: 'Calm Presence', purpose: 'A mostly clean Alpha experience for calm presence.', description: 'Simple binaural presentation with minimal added texture.', premium: true, pure: false, soundProfile: 'clean', leftHz: 180, rightHz: 189 },
 
-  { id: 'delta-2', category: 'sleep', family: 'Delta', hz: 2, label: 'Deep Rest', purpose: 'Wind-down rituals, recovery and sleep preparation.', description: 'The free Delta flagship for quiet nighttime sessions.', premium: false, pure: false, soundProfile: 'clean', freeStateId: 'delta', leftHz: 70, rightHz: 72 },
+  { id: 'delta', category: 'sleep', family: 'Delta', hz: 2, label: 'Deep Rest', purpose: 'Wind-down rituals, recovery and sleep preparation.', description: 'The free Delta flagship for quiet nighttime sessions.', premium: false, pure: false, soundProfile: 'clean', freeStateId: 'delta', leftHz: 70, rightHz: 72 },
   { id: 'delta-1', category: 'sleep', family: 'Delta', hz: 1, label: 'Deep Rest', purpose: 'A very slow Delta signal with a deep warm ambience.', description: 'Binaural signal with a soft low atmosphere and no sudden movement.', premium: true, pure: false, soundProfile: 'sleep', leftHz: 70, rightHz: 71 },
   { id: 'delta-1-5', category: 'sleep', family: 'Delta', hz: 1.5, label: 'Night Drift', purpose: 'A clean low-frequency difference for quiet nighttime listening.', description: 'A deliberately simple binaural signal with no added effects.', premium: true, pure: false, soundProfile: 'clean', leftHz: 70, rightHz: 71.5 },
   { id: 'delta-2-5', category: 'sleep', family: 'Delta', hz: 2.5, label: 'Slow Descent', purpose: 'A slow Delta signal supported by a dark filtered-noise bed.', description: 'Binaural signal with a soft brown-noise-style texture underneath.', premium: true, pure: false, soundProfile: 'sleep', leftHz: 70, rightHz: 72.5 },
   { id: 'delta-3', category: 'sleep', family: 'Delta', hz: 3, label: 'Sleep Preparation', purpose: 'A gentle nighttime signal with a soft dark atmosphere.', description: 'Binaural signal with a warm low pad intended to stay unobtrusive.', premium: true, pure: false, soundProfile: 'sleep', leftHz: 70, rightHz: 73 },
 
-  { id: 'pure-888', category: 'ritual', family: 'Pure Tone', hz: 888, label: 'Abundance', purpose: 'Visualization, intention and ceremonial sessions.', description: 'The free 888 Hz pure-tone flagship, presented cleanly.', premium: false, pure: true, soundProfile: 'clean', freeStateId: 'abundance', pureHz: 888 },
+  { id: 'abundance', category: 'ritual', family: 'Pure Tone', hz: 888, label: 'Abundance', purpose: 'Visualization, intention and ceremonial sessions.', description: 'The free 888 Hz pure-tone flagship, presented cleanly.', premium: false, pure: true, soundProfile: 'clean', freeStateId: 'abundance', pureHz: 888 },
   { id: 'pure-222', category: 'ritual', family: 'Pure Tone', hz: 222, label: 'Alignment', purpose: 'A warm ritual listening space for intention and visualization.', description: 'Pure tone with a soft shimmer, distant airy chime and gentle pad.', premium: true, pure: true, soundProfile: 'ritual', pureHz: 222 },
   { id: 'pure-444', category: 'ritual', family: 'Pure Tone', hz: 444, label: 'Grounded Intention', purpose: 'A grounded ceremonial listening experience.', description: 'Pure tone with a dark low drone, subtle metallic shimmer and slow pulse.', premium: true, pure: true, soundProfile: 'ritual', pureHz: 444 },
   { id: 'pure-528', category: 'ritual', family: 'Pure Tone', hz: 528, label: 'Renewal', purpose: 'A warm, expansive ritual listening experience.', description: 'Pure tone with a luminous pad, soft harmonic swell and sparse chime accents.', premium: true, pure: true, soundProfile: 'ritual', pureHz: 528 },
@@ -75,8 +154,9 @@ const premiumSignals: PremiumSignal[] = [
 const premiumSignalCount = premiumSignals.filter((signal) => signal.premium).length;
 const totalSignalCount = premiumSignals.length;
 const premiumCollectionCount = premiumCategories.length;
-const founderPriceLabel = 'CA$9.99';
 const previewDurationSeconds = 24;
+const FALLBACK_ENTITLEMENT_KEY = 'ev-premium-entitlement';
+const FALLBACK_PENDING_KEY = 'ev-premium-pending-attempt';
 
 function createNoiseBuffer(context: AudioContext, seconds = 2) {
   const frameCount = Math.max(1, Math.floor(context.sampleRate * seconds));
@@ -86,10 +166,92 @@ function createNoiseBuffer(context: AudioContext, seconds = 2) {
   return buffer;
 }
 
+function formatCadCents(cents: number | null) {
+  return cents ? `CA$${(cents / 100).toFixed(2)} CAD` : 'CAD charge not configured';
+}
+
+async function premiumPost(payload: Record<string, unknown>): Promise<PremiumApiResponse> {
+  const response = await fetch('/api/premium', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    cache: 'no-store',
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json().catch(() => ({ ok: false, error: 'Invalid server response.' })) as PremiumApiResponse;
+  if (!response.ok && !data.error) data.error = 'The request could not be completed.';
+  return data;
+}
+
+function squareCspContent(environment: 'sandbox' | 'production') {
+  if (environment === 'production') {
+    return [
+      "default-src 'self'",
+      "script-src 'self' https://web.squarecdn.com",
+      "frame-src 'self' https://web.squarecdn.com",
+      "connect-src 'self' https://web.squarecdn.com https://pci-connect.squareup.com https://o160250.ingest.sentry.io",
+      "style-src 'self' 'unsafe-inline' https://web.squarecdn.com",
+      "font-src 'self' data: https://square-fonts-production-f.squarecdn.com https://d1g145x70srn7h.cloudfront.net",
+      "img-src 'self' data: blob: https:",
+      "media-src 'self' blob: https:",
+      "object-src 'none'",
+      "base-uri 'self'"
+    ].join('; ');
+  }
+  return [
+    "default-src 'self'",
+    "script-src 'self' https://sandbox.web.squarecdn.com",
+    "frame-src 'self' https://sandbox.web.squarecdn.com",
+    "connect-src 'self' https://sandbox.web.squarecdn.com https://pci-connect.squareupsandbox.com https://o160250.ingest.sentry.io",
+    "style-src 'self' 'unsafe-inline' https://sandbox.web.squarecdn.com",
+    "font-src 'self' data: https://square-fonts-production-f.squarecdn.com https://d1g145x70srn7h.cloudfront.net",
+    "img-src 'self' data: blob: https:",
+    "media-src 'self' blob: https:",
+    "object-src 'none'",
+    "base-uri 'self'"
+  ].join('; ');
+}
+
+function ensureSquareCsp(environment: 'sandbox' | 'production') {
+  let meta = document.querySelector<HTMLMetaElement>('meta[data-ev-square-csp]');
+  if (!meta) {
+    meta = document.createElement('meta');
+    meta.httpEquiv = 'Content-Security-Policy';
+    meta.dataset.evSquareCsp = 'true';
+    document.head.appendChild(meta);
+  }
+  meta.content = squareCspContent(environment);
+}
+
+function loadSquareScript(environment: 'sandbox' | 'production') {
+  return new Promise<void>((resolve, reject) => {
+    if (window.Square) {
+      resolve();
+      return;
+    }
+    const src = environment === 'production'
+      ? 'https://web.squarecdn.com/v1/square.js'
+      : 'https://sandbox.web.squarecdn.com/v1/square.js';
+    const existing = document.querySelector<HTMLScriptElement>('script[data-ev-square-sdk]');
+    if (existing) {
+      existing.addEventListener('load', () => resolve(), { once: true });
+      existing.addEventListener('error', () => reject(new Error('Square SDK could not load.')), { once: true });
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = src;
+    script.async = true;
+    script.dataset.evSquareSdk = environment;
+    script.addEventListener('load', () => resolve(), { once: true });
+    script.addEventListener('error', () => reject(new Error('Square SDK could not load.')), { once: true });
+    document.head.appendChild(script);
+  });
+}
+
 export default function V10ProductFlow() {
   const pathname = usePathname();
   const active = pathname === '/voyage';
   const [premiumMount, setPremiumMount] = useState<HTMLElement | null>(null);
+  const [builderPremiumMount, setBuilderPremiumMount] = useState<HTMLElement | null>(null);
   const [aboutMount, setAboutMount] = useState<HTMLElement | null>(null);
   const [footerMount, setFooterMount] = useState<HTMLElement | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<PremiumCategoryId>('study');
@@ -97,14 +259,33 @@ export default function V10ProductFlow() {
   const [previewing, setPreviewing] = useState(false);
   const [previewSeconds, setPreviewSeconds] = useState(previewDurationSeconds);
   const [previewMessage, setPreviewMessage] = useState('');
+  const [checkoutConfig, setCheckoutConfig] = useState<CheckoutConfig | null>(null);
+  const [premiumState, setPremiumState] = useState<'checking' | 'free' | 'premium'>('checking');
+  const [selectedPremiumSignal, setSelectedPremiumSignal] = useState<PremiumSignal | null>(null);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [checkoutStatus, setCheckoutStatus] = useState<'form' | 'processing' | 'success' | 'recovery' | 'restore'>('form');
+  const [checkoutMessage, setCheckoutMessage] = useState('');
+  const [recoveryCode, setRecoveryCode] = useState('');
+  const [restoreCode, setRestoreCode] = useState('');
+  const [receiptUrl, setReceiptUrl] = useState('');
+  const [cardReady, setCardReady] = useState(false);
+  const [copyLabel, setCopyLabel] = useState('Copy recovery code');
   const audioCleanupRef = useRef<(() => void) | null>(null);
   const previewTimerRef = useRef<number | null>(null);
   const previewTickRef = useRef<number | null>(null);
+  const squareCardRef = useRef<SquareCard | null>(null);
+  const checkoutTargetRef = useRef<PremiumSignal | null>(null);
 
   const categorySignals = useMemo(
     () => premiumSignals.filter((signal) => signal.category === selectedCategory),
     [selectedCategory]
   );
+
+  const entitlementKey = checkoutConfig?.entitlementStorageKey || FALLBACK_ENTITLEMENT_KEY;
+  const pendingKey = checkoutConfig?.pendingAttemptStorageKey || FALLBACK_PENDING_KEY;
+  const founderPriceLabel = checkoutConfig?.displayPriceUsd || 'US$9.99';
+  const founderOfferOpen = checkoutConfig?.founderAvailable !== false;
+  const founderChargeLabel = checkoutConfig?.chargePriceCad || formatCadCents(checkoutConfig?.chargeCadCents ?? null);
 
   const stopPreview = useCallback(() => {
     audioCleanupRef.current?.();
@@ -122,15 +303,12 @@ export default function V10ProductFlow() {
       setPreviewMessage('End or close the active Voyage before previewing another signal.');
       return;
     }
-
     stopPreview();
     setPreviewMessage('');
-
     try {
       const AudioContextClass = window.AudioContext ||
         (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
       if (!AudioContextClass) throw new Error('Web Audio unavailable');
-
       const context = new AudioContextClass();
       if (context.state === 'suspended') await context.resume();
       const now = context.currentTime;
@@ -149,13 +327,13 @@ export default function V10ProductFlow() {
 
       if (signal.pure && signal.pureHz) {
         const oscillator = registerSource(context.createOscillator());
+        const signalGain = context.createGain();
         oscillator.type = 'sine';
         oscillator.frequency.setValueAtTime(signal.pureHz, now);
-        const signalGain = context.createGain();
         signalGain.gain.value = 0.72;
-        nodes.push(signalGain);
         oscillator.connect(signalGain);
         signalGain.connect(master);
+        nodes.push(signalGain);
         oscillator.start(now);
       } else if (signal.leftHz && signal.rightHz) {
         const merger = context.createChannelMerger(2);
@@ -167,7 +345,6 @@ export default function V10ProductFlow() {
         rightGain.connect(merger, 0, 1);
         merger.connect(master);
         nodes.push(merger, leftGain, rightGain);
-
         const left = registerSource(context.createOscillator());
         const right = registerSource(context.createOscillator());
         left.type = 'sine';
@@ -191,7 +368,6 @@ export default function V10ProductFlow() {
         nodes.push(gain);
         oscillator.start(now);
       };
-
       const addFilteredNoise = (cutoff: number, gainValue: number, filterType: BiquadFilterType = 'lowpass') => {
         const noise = registerSource(context.createBufferSource());
         const filter = context.createBiquadFilter();
@@ -209,43 +385,39 @@ export default function V10ProductFlow() {
         noise.start(now);
       };
 
-      if (signal.soundProfile === 'focus') addPad(110, 0.035, 'sine');
-
+      if (signal.soundProfile === 'focus') addPad(110, 0.035);
       if (signal.soundProfile === 'futuristic') {
         addPad(55, 0.026, 'triangle');
         addFilteredNoise(720, 0.018, 'bandpass');
         const pulse = registerSource(context.createOscillator());
         const pulseGain = context.createGain();
         const pulseDepth = context.createGain();
+        const bed = registerSource(context.createOscillator());
         pulse.type = 'sine';
         pulse.frequency.value = 0.17;
         pulseDepth.gain.value = 0.012;
         pulseGain.gain.value = 0.018;
-        pulse.connect(pulseDepth);
-        pulseDepth.connect(pulseGain.gain);
-        const bed = registerSource(context.createOscillator());
         bed.type = 'sine';
         bed.frequency.value = 165;
+        pulse.connect(pulseDepth);
+        pulseDepth.connect(pulseGain.gain);
         bed.connect(pulseGain);
         pulseGain.connect(master);
         nodes.push(pulseGain, pulseDepth);
         pulse.start(now);
         bed.start(now);
       }
-
       if (signal.soundProfile === 'meditative') {
-        addPad(110, 0.028, 'sine');
-        addPad(220, 0.012, 'sine');
+        addPad(110, 0.028);
+        addPad(220, 0.012);
       }
-
       if (signal.soundProfile === 'sleep') {
-        addPad(55, 0.026, 'sine');
+        addPad(55, 0.026);
         addFilteredNoise(420, 0.022, 'lowpass');
       }
-
       if (signal.soundProfile === 'ritual') {
         const base = signal.pureHz ? Math.max(74, signal.pureHz / 4) : 111;
-        addPad(base, 0.03, 'sine');
+        addPad(base, 0.03);
         addPad(base * 1.5, 0.012, 'triangle');
         [3.2, 10.2, 17.2].forEach((offset, index) => {
           const chime = registerSource(context.createOscillator());
@@ -269,20 +441,13 @@ export default function V10ProductFlow() {
           master.gain.cancelScheduledValues(stopAt);
           master.gain.setValueAtTime(Math.max(0.0001, master.gain.value), stopAt);
           master.gain.exponentialRampToValueAtTime(0.0001, stopAt + 0.18);
-        } catch {
-          // Audio may already be closing.
-        }
+        } catch { /* audio may already be closing */ }
         window.setTimeout(() => {
-          sources.forEach((source) => {
-            try { source.stop(); } catch { /* already stopped */ }
-          });
-          nodes.forEach((node) => {
-            try { node.disconnect(); } catch { /* already disconnected */ }
-          });
+          sources.forEach((source) => { try { source.stop(); } catch { /* stopped */ } });
+          nodes.forEach((node) => { try { node.disconnect(); } catch { /* disconnected */ } });
           context.close().catch(() => undefined);
         }, 220);
       };
-
       setPreviewing(true);
       setPreviewSeconds(previewDurationSeconds);
       previewTickRef.current = window.setInterval(() => setPreviewSeconds((current) => Math.max(0, current - 1)), 1000);
@@ -299,13 +464,33 @@ export default function V10ProductFlow() {
     setPreviewMessage('');
   }, [stopPreview]);
 
+  const clearPremiumSelection = useCallback(() => {
+    setSelectedPremiumSignal(null);
+    delete document.body.dataset.evPremiumSignal;
+    document.body.classList.remove('ev-premium-builder-selected');
+  }, []);
+
+  const usePremiumSignal = useCallback((signal: PremiumSignal) => {
+    if (!signal.premium || premiumState !== 'premium') return;
+    stopPreview();
+    setPreviewSignal(null);
+    setSelectedPremiumSignal(signal);
+    document.body.dataset.evPremiumSignal = signal.id;
+    document.body.classList.add('ev-premium-builder-selected');
+    document.getElementById('session-builder')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [premiumState, stopPreview]);
+
   const openSignal = (signal: PremiumSignal) => {
     stopPreview();
     setPreviewMessage('');
     if (!signal.premium && signal.freeStateId) {
-      const button = document.querySelector<HTMLButtonElement>(`.stateChoice.${signal.freeStateId}`);
-      button?.click();
+      clearPremiumSelection();
+      document.querySelector<HTMLButtonElement>(`.stateChoice.${signal.freeStateId}`)?.click();
       document.getElementById('session-builder')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    if (premiumState === 'premium') {
+      usePremiumSignal(signal);
       return;
     }
     setPreviewSignal(signal);
@@ -313,15 +498,242 @@ export default function V10ProductFlow() {
 
   const explorePremium = () => document.getElementById('ev-premium-library')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-  const startCheckout = () => {
-    const checkoutUrl = process.env.NEXT_PUBLIC_EVERLASTING_FOUNDER_CHECKOUT_URL;
-    if (checkoutUrl) {
-      window.location.assign(checkoutUrl);
+  const destroySquareCard = useCallback(async () => {
+    const card = squareCardRef.current;
+    squareCardRef.current = null;
+    setCardReady(false);
+    if (card) {
+      try { await card.destroy(); } catch { /* already destroyed */ }
+    }
+  }, []);
+
+  const closeCheckout = useCallback(() => {
+    if (checkoutStatus === 'processing') return;
+    destroySquareCard();
+    setCheckoutOpen(false);
+    setCheckoutStatus('form');
+    setCheckoutMessage('');
+    setRestoreCode('');
+  }, [checkoutStatus, destroySquareCard]);
+
+  const applyEntitlement = useCallback((data: PremiumApiResponse, showSuccess = false) => {
+    if (!data.entitlementToken) return false;
+    localStorage.setItem(entitlementKey, data.entitlementToken);
+    localStorage.removeItem(pendingKey);
+    setRecoveryCode(data.entitlementToken);
+    setPremiumState('premium');
+    setReceiptUrl(data.receiptUrl || '');
+    if (showSuccess) {
+      setCheckoutOpen(true);
+      setCheckoutStatus('success');
+      setCheckoutMessage('');
+    }
+    return true;
+  }, [entitlementKey, pendingKey]);
+
+  const recoverPendingAttempt = useCallback(async (attemptToken: string, showUi: boolean) => {
+    if (showUi) {
+      setCheckoutOpen(true);
+      setCheckoutStatus('recovery');
+      setCheckoutMessage('Checking the last Square payment before allowing another charge…');
+    }
+    try {
+      const data = await premiumPost({ action: 'recover', attemptToken });
+      if (data.recovered && data.entitlementToken) {
+        applyEntitlement(data, showUi);
+        return 'completed' as const;
+      }
+      if (data.confirmedNotCharged || data.status === 'failed' || data.status === 'canceled') {
+        localStorage.removeItem(pendingKey);
+        if (showUi) {
+          setCheckoutMessage(data.message || 'Square confirms the previous payment was not completed. You can start a new checkout.');
+        }
+        return 'safe' as const;
+      }
+      if (showUi) setCheckoutMessage(data.message || data.error || 'The previous payment is not confirmed yet. Check again before trying another payment.');
+      return 'unknown' as const;
+    } catch {
+      if (showUi) setCheckoutMessage('Payment recovery is temporarily unavailable. Do not submit another payment until the status is confirmed.');
+      return 'unknown' as const;
+    }
+  }, [applyEntitlement, pendingKey]);
+
+  const startCheckout = useCallback(async (target?: PremiumSignal | null) => {
+    if (document.body.classList.contains('v10-session-open')) {
+      setPreviewMessage('End or close the active Voyage before opening checkout.');
       return;
     }
-    setPreviewMessage('Founder checkout is being connected for launch. Premium previews are already available.');
-    explorePremium();
-  };
+    stopPreview();
+    if (target?.premium) checkoutTargetRef.current = target;
+    setPreviewSignal(null);
+    setCheckoutMessage('');
+
+    const pending = localStorage.getItem(pendingKey) || '';
+    if (pending) {
+      const outcome = await recoverPendingAttempt(pending, true);
+      if (outcome !== 'safe') return;
+      setCheckoutMessage('');
+    }
+
+    setCheckoutOpen(true);
+    setCheckoutStatus('form');
+  }, [pendingKey, recoverPendingAttempt, stopPreview]);
+
+  const restorePremium = useCallback(async () => {
+    const token = restoreCode.trim();
+    if (!token) {
+      setCheckoutMessage('Paste your Founder Recovery Code first.');
+      return;
+    }
+    setCheckoutMessage('Validating Founder access…');
+    try {
+      const data = await premiumPost({ action: 'restore', token });
+      if (data.valid && data.entitlementToken) {
+        applyEntitlement(data, true);
+        return;
+      }
+      setCheckoutMessage('That recovery code is not valid. Check that the complete code was copied.');
+    } catch {
+      setCheckoutMessage('Founder access could not be restored right now. Try again shortly.');
+    }
+  }, [applyEntitlement, restoreCode]);
+
+  const processPayment = useCallback(async () => {
+    if (!squareCardRef.current || !checkoutConfig?.chargeCadCents || !checkoutConfig.checkoutReady) {
+      setCheckoutMessage('Square checkout is not ready yet.');
+      return;
+    }
+    if (checkoutStatus === 'processing') return;
+    setCheckoutStatus('processing');
+    setCheckoutMessage('Securing your Founder payment…');
+
+    try {
+      const verificationDetails: SquareVerificationDetails = {
+        amount: (checkoutConfig.chargeCadCents / 100).toFixed(2),
+        currencyCode: 'CAD',
+        intent: 'CHARGE',
+        customerInitiated: true,
+        sellerKeyedIn: false,
+        billingContact: {}
+      };
+      const tokenResult = await squareCardRef.current.tokenize(verificationDetails);
+      if (tokenResult.status !== 'OK' || !tokenResult.token) {
+        setCheckoutStatus('form');
+        setCheckoutMessage(tokenResult.errors?.[0]?.message || 'Check the card details and try again.');
+        return;
+      }
+
+      const begin = await premiumPost({ action: 'begin-purchase' });
+      if (!begin.ok || !begin.attemptToken) {
+        setCheckoutStatus('form');
+        setCheckoutMessage(begin.error || 'Founder checkout could not start.');
+        return;
+      }
+      localStorage.setItem(pendingKey, begin.attemptToken);
+
+      const result = await premiumPost({ action: 'purchase', sourceId: tokenResult.token, attemptToken: begin.attemptToken });
+      if (result.ok && result.status === 'completed' && result.entitlementToken) {
+        applyEntitlement(result, true);
+        await destroySquareCard();
+        return;
+      }
+      if (result.confirmedNotCharged) {
+        localStorage.removeItem(pendingKey);
+        setCheckoutStatus('form');
+        setCheckoutMessage(result.error || 'The payment was not completed. You can safely try again.');
+        return;
+      }
+      setCheckoutStatus('recovery');
+      setCheckoutMessage(result.error || 'We could not confirm the final payment state. Check this payment before trying again.');
+    } catch {
+      setCheckoutStatus('recovery');
+      setCheckoutMessage('We could not confirm the payment response. Check this payment before trying again.');
+    }
+  }, [applyEntitlement, checkoutConfig, checkoutStatus, destroySquareCard, pendingKey]);
+
+  const copyRecoveryCode = useCallback(async () => {
+    if (!recoveryCode) return;
+    try {
+      await navigator.clipboard.writeText(recoveryCode);
+      setCopyLabel('Copied ✓');
+      window.setTimeout(() => setCopyLabel('Copy recovery code'), 1800);
+    } catch {
+      setCopyLabel('Select and copy the code');
+    }
+  }, [recoveryCode]);
+
+  useEffect(() => {
+    if (!active) return;
+    let cancelled = false;
+    const boot = async () => {
+      try {
+        const response = await fetch('/api/premium', { cache: 'no-store' });
+        const config = await response.json() as CheckoutConfig;
+        if (cancelled) return;
+        setCheckoutConfig(config);
+        ensureSquareCsp(config.environment);
+        const savedToken = localStorage.getItem(config.entitlementStorageKey || FALLBACK_ENTITLEMENT_KEY) || '';
+        const validation = await premiumPost({ action: 'validate', token: savedToken });
+        if (cancelled) return;
+        if (validation.valid && validation.entitlementToken) {
+          localStorage.setItem(config.entitlementStorageKey || FALLBACK_ENTITLEMENT_KEY, validation.entitlementToken);
+          setRecoveryCode(validation.entitlementToken);
+          setPremiumState('premium');
+          return;
+        }
+        if (savedToken) localStorage.removeItem(config.entitlementStorageKey || FALLBACK_ENTITLEMENT_KEY);
+        setPremiumState('free');
+        const pending = localStorage.getItem(config.pendingAttemptStorageKey || FALLBACK_PENDING_KEY) || '';
+        if (pending) await recoverPendingAttempt(pending, false);
+      } catch {
+        if (!cancelled) setPremiumState('free');
+      }
+    };
+    boot();
+    return () => { cancelled = true; };
+  }, [active, recoverPendingAttempt]);
+
+  useEffect(() => {
+    if (!checkoutOpen || premiumState === 'premium' || checkoutStatus === 'success' || checkoutStatus === 'restore' || checkoutStatus === 'recovery') {
+      destroySquareCard();
+      return;
+    }
+    if (checkoutStatus === 'processing') return;
+    if (checkoutStatus !== 'form') return;
+    if (squareCardRef.current) {
+      setCardReady(true);
+      return;
+    }
+    if (!checkoutConfig?.checkoutReady || !checkoutConfig.applicationId || !checkoutConfig.locationId || !checkoutConfig.chargeCadCents) return;
+    let cancelled = false;
+    const initialize = async () => {
+      try {
+        if (!window.isSecureContext) throw new Error('Secure checkout requires HTTPS.');
+        ensureSquareCsp(checkoutConfig.environment);
+        await loadSquareScript(checkoutConfig.environment);
+        if (cancelled || !window.Square) return;
+        const payments = window.Square.payments(checkoutConfig.applicationId, checkoutConfig.locationId);
+        if (payments.setLocale) await payments.setLocale('en-CA');
+        const card = await payments.card();
+        if (cancelled) {
+          await card.destroy();
+          return;
+        }
+        await card.attach('#ev-square-card');
+        squareCardRef.current = card;
+        setCardReady(true);
+        setCheckoutMessage('');
+      } catch (error) {
+        setCardReady(false);
+        setCheckoutMessage(error instanceof Error ? error.message : 'Secure Square checkout could not load.');
+      }
+    };
+    const timer = window.setTimeout(initialize, 30);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [checkoutConfig, checkoutOpen, checkoutStatus, destroySquareCard, premiumState]);
 
   useEffect(() => {
     document.body.classList.toggle('ev-product-route', active);
@@ -329,12 +741,20 @@ export default function V10ProductFlow() {
 
     const hero = document.querySelector<HTMLElement>('.heroSection');
     const join = document.querySelector<HTMLElement>('.joinSection');
+    const builder = document.getElementById('session-builder');
     if (!join) return;
+    join.hidden = true;
 
     const premiumRoot = document.createElement('div');
     premiumRoot.id = 'ev-premium-root';
     if (hero) hero.insertAdjacentElement('afterend', premiumRoot);
     else join.insertAdjacentElement('beforebegin', premiumRoot);
+
+    const premiumBuilderRoot = document.createElement('div');
+    premiumBuilderRoot.id = 'ev-premium-builder-root';
+    const selectedSummary = builder?.querySelector('.selectedSummary');
+    if (selectedSummary) selectedSummary.insertAdjacentElement('beforebegin', premiumBuilderRoot);
+    else builder?.appendChild(premiumBuilderRoot);
 
     const aboutRoot = document.createElement('div');
     aboutRoot.id = 'ev-about-root';
@@ -345,27 +765,52 @@ export default function V10ProductFlow() {
     join.insertAdjacentElement('afterend', footerRoot);
 
     setPremiumMount(premiumRoot);
+    setBuilderPremiumMount(premiumBuilderRoot);
     setAboutMount(aboutRoot);
     setFooterMount(footerRoot);
 
-    const handleVoyageStart = (event: MouseEvent) => {
+    const handlePageClick = (event: MouseEvent) => {
       const target = event.target as Element | null;
       if (target?.closest('.builderActions .primaryButton')) stopPreview();
+      if (target?.closest('.stateChoice')) clearPremiumSelection();
     };
-    document.addEventListener('click', handleVoyageStart, true);
+    const handleAccessRequired = (event: Event) => {
+      const signalId = (event as CustomEvent<{ signalId?: string }>).detail?.signalId || '';
+      const signal = premiumSignals.find((item) => item.id === signalId && item.premium) || null;
+      startCheckout(signal);
+    };
+    document.addEventListener('click', handlePageClick, true);
+    window.addEventListener('ev:premium-access-required', handleAccessRequired);
 
     return () => {
-      document.removeEventListener('click', handleVoyageStart, true);
-      document.body.classList.remove('ev-product-route');
+      document.removeEventListener('click', handlePageClick, true);
+      window.removeEventListener('ev:premium-access-required', handleAccessRequired);
+      document.body.classList.remove('ev-product-route', 'ev-premium-builder-selected');
+      delete document.body.dataset.evPremiumSignal;
       stopPreview();
+      destroySquareCard();
       premiumRoot.remove();
+      premiumBuilderRoot.remove();
       aboutRoot.remove();
       footerRoot.remove();
+      join.hidden = false;
       setPremiumMount(null);
+      setBuilderPremiumMount(null);
       setAboutMount(null);
       setFooterMount(null);
     };
-  }, [active, stopPreview]);
+  }, [active, clearPremiumSelection, destroySquareCard, startCheckout, stopPreview]);
+
+  useEffect(() => {
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        if (checkoutOpen) closeCheckout();
+        else if (previewSignal) closePreview();
+      }
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [checkoutOpen, closeCheckout, closePreview, previewSignal]);
 
   useEffect(() => () => stopPreview(), [stopPreview]);
 
@@ -373,30 +818,42 @@ export default function V10ProductFlow() {
 
   return (
     <>
+      {builderPremiumMount && selectedPremiumSignal && createPortal(
+        <div className={`evPremiumBuilderSelection ${selectedPremiumSignal.soundProfile}`} role="status">
+          <div>
+            <span>Premium signal selected · Founding Member</span>
+            <strong>{selectedPremiumSignal.family} · {selectedPremiumSignal.hz} Hz</strong>
+            <p>{selectedPremiumSignal.label} — {selectedPremiumSignal.purpose}</p>
+          </div>
+          <button type="button" onClick={clearPremiumSelection}>Use a free signal instead</button>
+        </div>, builderPremiumMount
+      )}
+
       {premiumMount && createPortal(
         <>
           <section className="evPremiumLaunch section" aria-labelledby="ev-premium-title">
-            <article className="evPremiumShowcase">
+            <article className={`evPremiumShowcase ${premiumState === 'premium' ? 'activeMember' : ''}`}>
               <div className="evPremiumGlow evPremiumGlowOne" aria-hidden="true" />
               <div className="evPremiumGlow evPremiumGlowTwo" aria-hidden="true" />
               <div className="evPremiumShowcaseCopy">
                 <div className="evPremiumKickerRow">
                   <span className="evPremiumKicker">Everlasting Premium</span>
-                  <span className="evFounderBadge">Founding access</span>
+                  <span className="evFounderBadge">{premiumState === 'premium' ? 'Founding Member' : 'Founder access · through Aug 31'}</span>
                 </div>
-                <h2 id="ev-premium-title">Your Voyage is unlimited. Premium lets you go deeper.</h2>
-                <p>Unlock {premiumSignalCount} additional signals across Study, Deep Work, Meditation, Sleep and Manifestation — including exclusive immersive sound experiences.</p>
+                <h2 id="ev-premium-title">{premiumState === 'premium' ? 'Premium is active. Your full signal library is open.' : 'Your Voyage is unlimited. Premium lets you go deeper.'}</h2>
+                <p>{premiumState === 'premium' ? `All ${premiumSignalCount} Premium signals are ready for full Voyages across five collections.` : `Unlock ${premiumSignalCount} additional signals across Study, Deep Work, Meditation, Sleep and Manifestation — including exclusive immersive sound experiences.`}</p>
                 <div className="evPremiumBenefitRow" aria-label="Premium benefits">
                   <span>{premiumSignalCount} premium signals</span><span>{premiumCollectionCount} collections</span><span>Exclusive soundscapes</span><span>Unlimited Voyages</span><span>No ads</span>
                 </div>
               </div>
               <div className="evPremiumOffer">
-                <span className="evPremiumOfferLabel">Founding member access</span>
-                <strong>{founderPriceLabel}</strong>
-                <small>One time · No subscription</small>
-                <button type="button" className="evPremiumPrimary" onClick={startCheckout}>Unlock Premium</button>
-                <button type="button" className="evPremiumSecondary" onClick={explorePremium}>Explore premium signals</button>
-                <p>The core Everlasting Voyage experience remains free.</p>
+                <span className="evPremiumOfferLabel">{premiumState === 'premium' ? 'Premium active' : founderOfferOpen ? 'Founding Member' : 'Founder access ended'}</span>
+                {premiumState === 'premium' ? (
+                  <><strong>Lifetime</strong><small>Founding Member Premium</small><button type="button" className="evPremiumPrimary" onClick={explorePremium}>Choose a Premium signal</button><button type="button" className="evPremiumSecondary" onClick={() => { setCheckoutOpen(true); setCheckoutStatus('restore'); }}>Recovery code</button></>
+                ) : (
+                  <><strong>{founderPriceLabel}</strong><small>One time · Lifetime Premium</small><span className="evCadCharge">{checkoutConfig?.chargePriceCad ? `Charged as ${checkoutConfig.chargePriceCad} through Square` : 'Final CAD charge is shown before payment'}</span><button type="button" className="evPremiumPrimary" onClick={() => startCheckout(null)} disabled={premiumState === 'checking' || !founderOfferOpen}>{premiumState === 'checking' ? 'Checking access…' : founderOfferOpen ? 'Unlock Premium' : 'Founder offer ended'}</button><button type="button" className="evPremiumSecondary" onClick={explorePremium}>Explore premium signals</button><button type="button" className="evRestoreInline" onClick={() => { setCheckoutOpen(true); setCheckoutStatus('restore'); setCheckoutMessage(''); }}>Restore Founder access</button></>
+                )}
+                <p>The five core signals and unlimited free Voyages remain free.</p>
               </div>
             </article>
           </section>
@@ -414,12 +871,15 @@ export default function V10ProductFlow() {
               ))}
             </div>
             <div className="evPremiumSignalGrid" role="tabpanel">
-              {categorySignals.map((signal) => (
-                <button key={signal.id} type="button" className={`evPremiumSignalCard ${signal.premium ? 'premium' : 'free'} ${signal.soundProfile}`} onClick={() => openSignal(signal)}>
-                  <span className="evSignalCardTopline"><span>{signal.premium ? 'Premium' : 'Free flagship'}</span><i aria-hidden="true">{signal.premium ? '◇' : '✓'}</i></span>
-                  <strong>{signal.family}</strong><b>{signal.hz} Hz</b><span className="evSignalPurpose">{signal.label}</span><small>{signal.purpose}</small><span className="evSignalAction">{signal.premium ? 'Preview signal →' : 'Use free signal →'}</span>
-                </button>
-              ))}
+              {categorySignals.map((signal) => {
+                const unlocked = signal.premium && premiumState === 'premium';
+                return (
+                  <button key={signal.id} type="button" className={`evPremiumSignalCard ${signal.premium ? 'premium' : 'free'} ${signal.soundProfile} ${unlocked ? 'unlocked' : ''}`} onClick={() => openSignal(signal)}>
+                    <span className="evSignalCardTopline"><span>{signal.premium ? (unlocked ? 'Premium active' : 'Premium') : 'Free flagship'}</span><i aria-hidden="true">{signal.premium ? (unlocked ? '✓' : '◇') : '✓'}</i></span>
+                    <strong>{signal.family}</strong><b>{signal.hz} Hz</b><span className="evSignalPurpose">{signal.label}</span><small>{signal.purpose}</small><span className="evSignalAction">{signal.premium ? (unlocked ? 'Use this signal →' : 'Preview signal →') : 'Use free signal →'}</span>
+                  </button>
+                );
+              })}
             </div>
             <div className="evPremiumLibraryNote"><span>Premium is an expansion, not a gate.</span><p>Unlimited free Voyages remain available with the five original signals.</p></div>
           </section>
@@ -437,7 +897,7 @@ export default function V10ProductFlow() {
       {footerMount && createPortal(
         <footer className="evProductFooter">
           <a href="/" className="evFooterBrand" aria-label="Everlasting Voyage entrance"><img src="/brand-infinity.png" alt="" /><img src="/brand-wordmark.png" alt="Everlasting Voyage" /></a>
-          <nav aria-label="Footer navigation"><a href="#session-builder">Build a voyage</a><a href="#ev-premium-library">Premium</a><a href="#library">Frequencies</a><a href="#about">About</a><a href="#join">Early access</a></nav>
+          <nav aria-label="Footer navigation"><a href="#session-builder">Build a voyage</a><a href="#ev-premium-library">Premium</a><a href="#library">Frequencies</a><a href="#about">About</a></nav>
           <p>© 2026 Everlasting Voyage. Pure signals, clearly presented.</p>
         </footer>, footerMount
       )}
@@ -454,14 +914,274 @@ export default function V10ProductFlow() {
               <small>{previewSignal.pure ? `Pure ${previewSignal.pureHz} Hz tone` : `Left ${previewSignal.leftHz} Hz · Right ${previewSignal.rightHz} Hz · ${previewSignal.hz} Hz difference`}</small>
             </div>
             {previewMessage ? <p className="evPremiumMessage" role="status">{previewMessage}</p> : null}
-            <div className="evPremiumModalOffer"><div><span>Founding access</span><strong>{founderPriceLabel}</strong><small>One time</small></div><button type="button" className="evPremiumPrimary" onClick={startCheckout}>Unlock Premium</button></div>
+            <div className="evPremiumModalOffer"><div><span>Founding Member</span><strong>{founderPriceLabel}</strong><small>One time · Lifetime</small></div><button type="button" className="evPremiumPrimary" onClick={() => startCheckout(previewSignal)} disabled={!founderOfferOpen}>{founderOfferOpen ? 'Unlock Premium' : 'Founder access ended'}</button></div>
             <button type="button" className="evContinueFree" onClick={closePreview}>Continue with the free library</button>
           </article>
         </div>, document.body
       )}
 
+      {checkoutOpen && createPortal(
+        <div className="evPremiumModalBackdrop evCheckoutBackdrop" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) closeCheckout(); }}>
+          <article className="evCheckoutModal" role="dialog" aria-modal="true" aria-labelledby="ev-checkout-title">
+            <button type="button" className="evPremiumModalClose" onClick={closeCheckout} aria-label="Close checkout" disabled={checkoutStatus === 'processing'}>×</button>
+
+            {checkoutStatus === 'success' ? (
+              <div className="evPremiumSuccess">
+                <span className="evSuccessMark" aria-hidden="true">∞</span>
+                <p className="evCheckoutEyebrow">Founding Member · Premium active</p>
+                <h2 id="ev-checkout-title">Premium unlocked.</h2>
+                <h3>Your library just got deeper.</h3>
+                <div className="evSuccessBenefits"><span>20 Premium signals</span><span>5 collections</span><span>Lifetime Founder Premium</span><span>No ads</span></div>
+                <div className="evRecoveryBox">
+                  <strong>Founder Recovery Code</strong>
+                  <p>Save this code. It restores Premium on another browser or device. Treat it like a private access key.</p>
+                  <textarea readOnly value={recoveryCode} aria-label="Founder Recovery Code" onFocus={(event) => event.currentTarget.select()} />
+                  <button type="button" className="evPremiumSecondary" onClick={copyRecoveryCode}>{copyLabel}</button>
+                </div>
+                <div className="evCheckoutActions">
+                  <button type="button" className="evPremiumPrimary" onClick={() => {
+                    const target = checkoutTargetRef.current;
+                    setCheckoutOpen(false);
+                    if (target) usePremiumSignal(target);
+                    else explorePremium();
+                  }}>Enter the Voyage →</button>
+                  <button type="button" className="evPremiumSecondary" onClick={() => { setCheckoutOpen(false); explorePremium(); }}>Explore Premium Signals</button>
+                </div>
+                {receiptUrl ? <a className="evReceiptLink" href={receiptUrl} target="_blank" rel="noreferrer">View Square receipt ↗</a> : null}
+              </div>
+            ) : checkoutStatus === 'restore' ? (
+              <div className="evRestorePanel">
+                <p className="evCheckoutEyebrow">Restore purchase</p>
+                <h2 id="ev-checkout-title">Restore Founder Premium.</h2>
+                <p>Paste the complete Founder Recovery Code from your original purchase. No account is required.</p>
+                <textarea value={restoreCode} onChange={(event) => setRestoreCode(event.target.value)} placeholder="EVF1.…" aria-label="Founder Recovery Code" autoCapitalize="off" autoCorrect="off" spellCheck={false} />
+                {checkoutMessage ? <p className="evCheckoutMessage" role="status">{checkoutMessage}</p> : null}
+                <button type="button" className="evPremiumPrimary" onClick={restorePremium}>Restore Premium</button>
+                <button type="button" className="evContinueFree" onClick={() => { setCheckoutStatus('form'); setCheckoutMessage(''); }}>Back to Founder checkout</button>
+              </div>
+            ) : checkoutStatus === 'recovery' ? (
+              <div className="evRestorePanel">
+                <p className="evCheckoutEyebrow">Payment safety check</p>
+                <h2 id="ev-checkout-title">We will not charge twice.</h2>
+                <p>Square is being checked for the previous payment attempt before another checkout is allowed.</p>
+                <p className="evCheckoutMessage" role="status">{checkoutMessage}</p>
+                <button type="button" className="evPremiumPrimary" onClick={async () => {
+                  const pending = localStorage.getItem(pendingKey) || '';
+                  if (!pending) { setCheckoutStatus('form'); setCheckoutMessage(''); return; }
+                  const outcome = await recoverPendingAttempt(pending, true);
+                  if (outcome === 'safe') { setCheckoutStatus('form'); setCheckoutMessage(''); }
+                }}>Check payment again</button>
+                <button type="button" className="evContinueFree" onClick={closeCheckout}>Close safely</button>
+              </div>
+            ) : (
+              <div className="evCheckoutForm">
+                <p className="evCheckoutEyebrow">Everlasting Voyage Premium</p>
+                <h2 id="ev-checkout-title">Founding Member</h2>
+                <div className="evCheckoutPrice"><strong>{founderPriceLabel}</strong><span>one time · lifetime Premium</span></div>
+                <div className="evCheckoutCurrency">
+                  <span>Square charge</span><strong>{founderChargeLabel}</strong>
+                  <small>{checkoutConfig?.chargePriceCad ? 'Your card will be charged this exact amount in Canadian dollars.' : 'Payment is disabled until the exact CAD charge is configured.'}</small>
+                </div>
+                <div className="evCheckoutBenefits"><span>20 Premium signals</span><span>5 collections</span><span>Premium soundscapes</span><span>Unlimited Voyages</span><span>No ads</span></div>
+
+                {!checkoutConfig ? (
+                  <div className="evCheckoutNotReady"><strong>Loading secure checkout…</strong><p>Everlasting Voyage is checking the Square payment configuration.</p></div>
+                ) : !checkoutConfig.founderAvailable ? (
+                  <p className="evCheckoutMessage">Founding Member access has ended.</p>
+                ) : !checkoutConfig.checkoutReady ? (
+                  <div className="evCheckoutNotReady"><strong>Secure checkout is being configured.</strong><p>No card can be charged until the Square Sandbox credentials, entitlement secret, and exact CAD amount are configured on the server.</p></div>
+                ) : (
+                  <>
+                    <div className="evSquareSecureLabel"><span>Secure card payment</span><strong>Square</strong></div>
+                    <div id="ev-square-card" className={`evSquareCard ${cardReady ? 'ready' : ''}`} aria-label="Secure Square card form" />
+                  </>
+                )}
+
+                {checkoutMessage ? <p className="evCheckoutMessage" role="status">{checkoutMessage}</p> : null}
+                <button type="button" className="evPremiumPrimary evPayButton" disabled={!cardReady || checkoutStatus === 'processing' || !checkoutConfig?.checkoutReady} onClick={processPayment}>{checkoutStatus === 'processing' ? 'Processing…' : `Pay ${founderChargeLabel} securely`}</button>
+                <p className="evCheckoutFinePrint">Founder access is available through {checkoutConfig?.founderEndsLabel || 'August 31, 2026'}. The free Everlasting Voyage experience remains available regardless of purchase.</p>
+                <button type="button" className="evRestoreInline" onClick={() => { setCheckoutStatus('restore'); setCheckoutMessage(''); }}>Already a Founder? Restore access</button>
+              </div>
+            )}
+          </article>
+        </div>, document.body
+      )}
+
       <style>{`
-        .evPremiumLaunch{padding-top:18px!important;padding-bottom:34px!important}.evPremiumShowcase{position:relative;overflow:hidden;display:grid;grid-template-columns:minmax(0,1.55fr) minmax(260px,.65fr);gap:30px;align-items:stretch;padding:clamp(26px,4vw,48px);border:1px solid rgba(116,192,255,.17);border-radius:30px;background:linear-gradient(135deg,rgba(4,17,39,.94),rgba(5,10,31,.92) 54%,rgba(18,8,43,.9));box-shadow:0 30px 90px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.035)}.evPremiumGlow{position:absolute;width:320px;height:320px;border-radius:50%;filter:blur(80px);opacity:.18;pointer-events:none}.evPremiumGlowOne{top:-180px;left:16%;background:#27b8ff}.evPremiumGlowTwo{right:-130px;bottom:-210px;background:#8658ff}.evPremiumShowcaseCopy,.evPremiumOffer{position:relative;z-index:1}.evPremiumKickerRow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:20px}.evPremiumKicker,.evFounderBadge{display:inline-flex;align-items:center;min-height:28px;padding:0 11px;border-radius:999px;font-size:10px;line-height:1;font-weight:800;letter-spacing:.14em;text-transform:uppercase}.evPremiumKicker{color:#9ce8ff;border:1px solid rgba(93,201,255,.28);background:rgba(29,128,194,.1)}.evFounderBadge{color:#d9c9ff;border:1px solid rgba(166,126,255,.25);background:rgba(119,74,213,.1)}.evPremiumShowcase h2,.evPremiumLibraryHeader h2{margin:0;color:#f3f8ff;font-size:clamp(30px,4.2vw,58px);line-height:.98;letter-spacing:-.045em;max-width:900px}.evPremiumShowcaseCopy>p{max-width:780px;margin:22px 0 0;color:rgba(220,235,249,.7);font-size:clamp(15px,1.5vw,18px);line-height:1.65}.evPremiumBenefitRow{display:flex;flex-wrap:wrap;gap:9px;margin-top:26px}.evPremiumBenefitRow span{padding:9px 12px;border-radius:999px;border:1px solid rgba(139,197,255,.12);color:rgba(222,239,255,.8);background:rgba(255,255,255,.025);font-size:11px;font-weight:700;letter-spacing:.04em}.evPremiumOffer{display:flex;flex-direction:column;justify-content:center;align-items:stretch;padding:24px;border-radius:24px;border:1px solid rgba(160,202,255,.14);background:linear-gradient(180deg,rgba(20,40,72,.42),rgba(8,12,29,.5))}.evPremiumOfferLabel{color:rgba(201,226,248,.63);font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase}.evPremiumOffer>strong{margin-top:9px;color:#fff;font-size:34px;letter-spacing:-.04em}.evPremiumOffer>small{color:rgba(220,232,246,.58);margin:2px 0 20px}.evPremiumPrimary,.evPremiumSecondary,.evPreviewButton{border:0;cursor:pointer;font:inherit}.evPremiumPrimary{min-height:48px;padding:0 18px;border-radius:14px;color:#03101c;background:linear-gradient(135deg,#95e7ff,#67b7ff 56%,#9f8cff);box-shadow:0 12px 34px rgba(72,167,255,.18);font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.evPremiumSecondary{margin-top:9px;min-height:42px;border-radius:13px;color:#cfeaff;border:1px solid rgba(130,200,255,.14);background:rgba(255,255,255,.025);font-size:11px;font-weight:800}.evPremiumOffer>p{margin:15px 0 0;text-align:center;color:rgba(210,228,244,.5);font-size:10px;line-height:1.5}.evPremiumLibrary{padding-top:38px!important}.evPremiumLibraryHeader{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(250px,.7fr);gap:28px;align-items:end;margin-bottom:26px}.evPremiumLibraryHeader h2{font-size:clamp(30px,3.8vw,50px)}.evPremiumLibraryHeader>p{margin:0;color:rgba(216,232,248,.6);line-height:1.7}.evPremiumCategoryTabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin-bottom:14px;overflow:auto;scrollbar-width:none}.evPremiumCategoryTabs::-webkit-scrollbar{display:none}.evPremiumCategoryTabs button{min-width:150px;min-height:96px;padding:15px;text-align:left;border:1px solid rgba(115,181,236,.1);border-radius:17px;color:rgba(213,231,247,.63);background:rgba(5,15,32,.5);cursor:pointer;transition:border-color .2s ease,background .2s ease,transform .2s ease}.evPremiumCategoryTabs button:hover{transform:translateY(-2px);border-color:rgba(113,196,255,.2)}.evPremiumCategoryTabs button.active{color:#ebf8ff;border-color:rgba(96,197,255,.34);background:linear-gradient(145deg,rgba(25,91,137,.23),rgba(36,29,91,.22));box-shadow:inset 0 0 30px rgba(73,168,255,.04)}.evPremiumCategoryTabs button>span{display:block;color:#83ddff;font-size:18px}.evPremiumCategoryTabs strong{display:block;margin-top:7px;font-size:12px}.evPremiumCategoryTabs small{display:block;margin-top:4px;color:rgba(203,225,243,.44);font-size:9px;line-height:1.35}.evPremiumSignalGrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}.evPremiumSignalCard{position:relative;min-height:250px;padding:19px;overflow:hidden;text-align:left;border-radius:20px;border:1px solid rgba(112,179,235,.11);color:#dff2ff;background:linear-gradient(155deg,rgba(7,24,47,.83),rgba(3,10,23,.95));cursor:pointer;transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}.evPremiumSignalCard:hover{transform:translateY(-3px);border-color:rgba(102,198,255,.25);box-shadow:0 20px 42px rgba(0,0,0,.22)}.evPremiumSignalCard.premium:after{content:'';position:absolute;width:130px;height:130px;top:-70px;right:-55px;border-radius:50%;background:#6d5cff;filter:blur(55px);opacity:.16}.evPremiumSignalCard.futuristic:after{background:#16c8ff;opacity:.2}.evPremiumSignalCard.ritual:after{background:#9f72ff;opacity:.23}.evPremiumSignalCard.sleep:after{background:#3560ff;opacity:.13}.evPremiumSignalCard.free{border-color:rgba(93,211,255,.19)}.evSignalCardTopline{position:relative;z-index:1;display:flex;justify-content:space-between;gap:8px;align-items:center;color:rgba(181,216,243,.48);font-size:8px;font-weight:900;letter-spacing:.13em;text-transform:uppercase}.evSignalCardTopline i{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;color:#a7e8ff;border:1px solid rgba(117,207,255,.17);font-style:normal}.evPremiumSignalCard>strong{position:relative;z-index:1;display:block;margin-top:22px;color:rgba(214,236,252,.72);font-size:11px;letter-spacing:.08em;text-transform:uppercase}.evPremiumSignalCard>b{position:relative;z-index:1;display:block;margin-top:2px;color:#f4fbff;font-size:clamp(27px,2.3vw,35px);letter-spacing:-.045em}.evSignalPurpose{position:relative;z-index:1;display:block;margin-top:9px;color:#9fdfff;font-size:12px;font-weight:800}.evPremiumSignalCard>small{position:relative;z-index:1;display:block;margin-top:7px;color:rgba(211,230,245,.48);line-height:1.5;font-size:9px}.evSignalAction{position:absolute;z-index:1;left:19px;bottom:18px;color:rgba(184,226,255,.72);font-size:9px;font-weight:800;letter-spacing:.05em}.evPremiumLibraryNote{display:flex;justify-content:space-between;gap:20px;align-items:center;margin-top:14px;padding:16px 18px;border:1px solid rgba(116,180,231,.08);border-radius:15px;background:rgba(255,255,255,.018)}.evPremiumLibraryNote span{color:#bfeaff;font-size:11px;font-weight:800}.evPremiumLibraryNote p{margin:0;color:rgba(210,228,243,.45);font-size:10px}.evPremiumModalBackdrop{position:fixed;inset:0;z-index:1700;display:grid;place-items:center;padding:18px;background:rgba(0,4,13,.74);backdrop-filter:blur(15px)}.evPremiumModal{position:relative;width:min(560px,100%);max-height:min(760px,calc(100dvh - 36px));overflow:auto;padding:clamp(24px,4vw,38px);border-radius:27px;border:1px solid rgba(116,197,255,.2);color:#eef9ff;background:radial-gradient(circle at 80% -10%,rgba(77,94,255,.18),transparent 35%),linear-gradient(150deg,rgba(7,24,48,.99),rgba(3,8,20,.99));box-shadow:0 34px 110px rgba(0,0,0,.56)}.evPremiumModal.ritual{background:radial-gradient(circle at 80% -10%,rgba(150,93,255,.22),transparent 38%),linear-gradient(150deg,rgba(17,16,47,.99),rgba(4,7,19,.99))}.evPremiumModal.futuristic{background:radial-gradient(circle at 80% -10%,rgba(24,194,255,.2),transparent 38%),linear-gradient(150deg,rgba(5,28,48,.99),rgba(3,8,20,.99))}.evPremiumModalClose{position:absolute;top:16px;right:16px;width:38px;height:38px;border-radius:50%;border:1px solid rgba(136,202,255,.13);color:#dff6ff;background:rgba(255,255,255,.035);cursor:pointer;font-size:22px}.evPremiumModalMeta{display:flex;flex-wrap:wrap;gap:8px;padding-right:44px}.evPremiumModalMeta span{padding:7px 9px;border-radius:999px;border:1px solid rgba(130,201,255,.14);color:rgba(189,226,251,.62);background:rgba(255,255,255,.025);font-size:8px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}.evPremiumModal h2{margin:27px 0 0;font-size:clamp(36px,7vw,60px);line-height:.95;letter-spacing:-.05em}.evPremiumModal h2 strong{color:#94e4ff;font-weight:inherit}.evPremiumModal h3{margin:12px 0 0;color:#cbefff;font-size:16px}.evPremiumModal>p{color:rgba(213,232,247,.6);line-height:1.65}.evPremiumSoundProfile{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-top:22px;padding:14px 15px;border-radius:14px;border:1px solid rgba(115,190,246,.1);background:rgba(255,255,255,.022)}.evPremiumSoundProfile span{color:rgba(202,225,244,.45);font-size:9px;text-transform:uppercase;letter-spacing:.11em}.evPremiumSoundProfile strong{color:#cdefff;font-size:11px}.evPremiumPreviewControls{margin-top:12px;padding:16px;border-radius:15px;border:1px solid rgba(104,194,255,.12);background:rgba(14,48,78,.14)}.evPreviewButton{width:100%;min-height:48px;border-radius:13px;color:#e5f8ff;border:1px solid rgba(106,204,255,.24);background:linear-gradient(135deg,rgba(48,141,202,.2),rgba(93,77,191,.18));font-size:11px;font-weight:900;letter-spacing:.07em;text-transform:uppercase}.evPreviewButton.playing{box-shadow:inset 0 0 26px rgba(75,195,255,.1)}.evPremiumPreviewControls small{display:block;margin-top:10px;text-align:center;color:rgba(192,218,239,.42);font-size:9px}.evPremiumMessage{margin:12px 0 0!important;padding:11px 13px;border-radius:12px;border:1px solid rgba(114,196,255,.13);background:rgba(31,91,128,.1);color:#bfe9ff!important;font-size:10px}.evPremiumModalOffer{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:center;margin-top:18px;padding-top:18px;border-top:1px solid rgba(150,195,230,.09)}.evPremiumModalOffer>div span,.evPremiumModalOffer>div small{display:block;color:rgba(202,224,242,.46);font-size:9px}.evPremiumModalOffer>div strong{display:block;margin:2px 0;font-size:28px;letter-spacing:-.04em}.evContinueFree{display:block;margin:14px auto 0;border:0;color:rgba(201,224,241,.5);background:transparent;cursor:pointer;font-size:10px;text-decoration:underline;text-underline-offset:3px}@media(max-width:980px){.evPremiumShowcase,.evPremiumLibraryHeader{grid-template-columns:1fr}.evPremiumOffer{max-width:460px}.evPremiumCategoryTabs{grid-template-columns:repeat(5,minmax(150px,1fr))}.evPremiumSignalGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:620px){.evPremiumLaunch{padding-top:10px!important;padding-bottom:18px!important}.evPremiumShowcase{gap:22px;padding:23px 18px;border-radius:23px}.evPremiumShowcase h2{font-size:34px}.evPremiumShowcaseCopy>p{margin-top:16px;font-size:14px}.evPremiumBenefitRow{gap:7px;margin-top:18px}.evPremiumBenefitRow span{font-size:9px;padding:8px 10px}.evPremiumOffer{padding:18px;border-radius:18px}.evPremiumLibrary{padding-top:22px!important}.evPremiumLibraryHeader{gap:12px;margin-bottom:18px}.evPremiumLibraryHeader h2{font-size:32px}.evPremiumLibraryHeader>p{font-size:12px}.evPremiumCategoryTabs{margin-right:-18px;padding-right:18px}.evPremiumCategoryTabs button{min-width:138px;min-height:88px;padding:13px}.evPremiumSignalGrid{grid-template-columns:1fr 1fr;gap:8px}.evPremiumSignalCard{min-height:225px;padding:16px 14px;border-radius:17px}.evPremiumSignalCard>b{font-size:27px}.evSignalAction{left:14px;bottom:15px;font-size:8px}.evPremiumLibraryNote{align-items:flex-start;flex-direction:column;gap:5px}.evPremiumModalBackdrop{padding:10px;align-items:end}.evPremiumModal{max-height:calc(100dvh - 20px);padding:25px 18px 22px;border-radius:24px 24px 18px 18px}.evPremiumModal h2{font-size:42px}.evPremiumModalOffer{grid-template-columns:1fr}}@media(max-width:390px){.evPremiumSignalGrid{grid-template-columns:1fr}.evPremiumSignalCard{min-height:205px}}
+        .evPremiumLaunch{padding-top:18px!important;padding-bottom:34px!important}
+        .evPremiumShowcase{position:relative;overflow:hidden;display:grid;grid-template-columns:minmax(0,1.55fr) minmax(260px,.65fr);gap:30px;align-items:stretch;padding:clamp(26px,4vw,48px);border:1px solid rgba(116,192,255,.17);border-radius:30px;background:linear-gradient(135deg,rgba(4,17,39,.94),rgba(5,10,31,.92) 54%,rgba(18,8,43,.9));box-shadow:0 30px 90px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.035)}
+        .evPremiumShowcase.activeMember{border-color:rgba(215,176,255,.26);background:linear-gradient(135deg,rgba(6,22,42,.96),rgba(16,11,41,.94))}
+        .evPremiumGlow{position:absolute;width:320px;height:320px;border-radius:50%;filter:blur(80px);opacity:.18;pointer-events:none}
+        .evPremiumGlowOne{top:-180px;left:16%;background:#27b8ff}
+        .evPremiumGlowTwo{right:-130px;bottom:-210px;background:#8658ff}
+        .evPremiumShowcaseCopy,.evPremiumOffer{position:relative;z-index:1}
+        .evPremiumKickerRow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:20px}
+        .evPremiumKicker,.evFounderBadge{display:inline-flex;align-items:center;min-height:28px;padding:0 11px;border-radius:999px;font-size:10px;line-height:1;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+        .evPremiumKicker{color:#9ce8ff;border:1px solid rgba(93,201,255,.28);background:rgba(29,128,194,.1)}
+        .evFounderBadge{color:#ffd99a;border:1px solid rgba(224,173,94,.28);background:linear-gradient(135deg,rgba(141,85,34,.12),rgba(119,74,213,.1))}
+        .evPremiumShowcase h2,.evPremiumLibraryHeader h2{margin:0;color:#f3f8ff;font-size:clamp(30px,4.2vw,58px);line-height:.98;letter-spacing:-.045em;max-width:900px}
+        .evPremiumShowcaseCopy>p{max-width:780px;margin:22px 0 0;color:rgba(220,235,249,.7);font-size:clamp(15px,1.5vw,18px);line-height:1.65}
+        .evPremiumBenefitRow{display:flex;flex-wrap:wrap;gap:9px;margin-top:26px}
+        .evPremiumBenefitRow span{padding:9px 12px;border-radius:999px;border:1px solid rgba(139,197,255,.12);color:rgba(222,239,255,.8);background:rgba(255,255,255,.025);font-size:11px;font-weight:700;letter-spacing:.04em}
+        .evPremiumOffer{display:flex;flex-direction:column;justify-content:center;align-items:stretch;padding:24px;border-radius:24px;border:1px solid rgba(160,202,255,.14);background:linear-gradient(180deg,rgba(20,40,72,.42),rgba(8,12,29,.5))}
+        .evPremiumOfferLabel{color:rgba(201,226,248,.63);font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase}
+        .evPremiumOffer>strong{margin-top:9px;color:#fff;font-size:34px;letter-spacing:-.04em}
+        .evPremiumOffer>small{color:rgba(220,232,246,.58);margin:2px 0 8px}
+        .evCadCharge{display:block;margin:0 0 16px;color:#ffd79a;font-size:10px;line-height:1.45}
+        .evPremiumPrimary,.evPremiumSecondary,.evPreviewButton{border:0;cursor:pointer;font:inherit}
+        .evPremiumPrimary{min-height:48px;padding:0 18px;border-radius:14px;color:#03101c;background:linear-gradient(135deg,#95e7ff,#67b7ff 56%,#9f8cff);box-shadow:0 12px 34px rgba(72,167,255,.18);font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+        .evPremiumPrimary:disabled{cursor:not-allowed;opacity:.48}
+        .evPremiumSecondary{margin-top:9px;min-height:42px;padding:0 14px;border-radius:13px;color:#cfeaff;border:1px solid rgba(130,200,255,.14);background:rgba(255,255,255,.025);font-size:11px;font-weight:800}
+        .evPremiumOffer>p{margin:15px 0 0;text-align:center;color:rgba(210,228,244,.5);font-size:10px;line-height:1.5}
+        .evRestoreInline{margin-top:10px;border:0;background:transparent;color:rgba(205,226,244,.62);text-decoration:underline;text-underline-offset:3px;cursor:pointer;font-size:10px}
+        .evPremiumLibrary{padding-top:38px!important}
+        .evPremiumLibraryHeader{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(250px,.7fr);gap:28px;align-items:end;margin-bottom:26px}
+        .evPremiumLibraryHeader h2{font-size:clamp(30px,3.8vw,50px)}
+        .evPremiumLibraryHeader>p{margin:0;color:rgba(216,232,248,.6);line-height:1.7}
+        .evPremiumCategoryTabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin-bottom:14px;overflow:auto;scrollbar-width:none}
+        .evPremiumCategoryTabs::-webkit-scrollbar{display:none}
+        .evPremiumCategoryTabs button{min-width:150px;min-height:96px;padding:15px;text-align:left;border:1px solid rgba(115,181,236,.1);border-radius:17px;color:rgba(213,231,247,.63);background:rgba(5,15,32,.5);cursor:pointer;transition:border-color .2s ease,background .2s ease,transform .2s ease}
+        .evPremiumCategoryTabs button:hover{transform:translateY(-2px);border-color:rgba(113,196,255,.2)}
+        .evPremiumCategoryTabs button.active{color:#ebf8ff;border-color:rgba(96,197,255,.34);background:linear-gradient(145deg,rgba(25,91,137,.23),rgba(36,29,91,.22));box-shadow:inset 0 0 30px rgba(73,168,255,.04)}
+        .evPremiumCategoryTabs button>span{display:block;color:#83ddff;font-size:18px}
+        .evPremiumCategoryTabs strong{display:block;margin-top:7px;font-size:12px}
+        .evPremiumCategoryTabs small{display:block;margin-top:4px;color:rgba(203,225,243,.44);font-size:9px;line-height:1.35}
+        .evPremiumSignalGrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+        .evPremiumSignalCard{position:relative;min-height:250px;padding:19px;overflow:hidden;text-align:left;border-radius:20px;border:1px solid rgba(112,179,235,.11);color:#dff2ff;background:linear-gradient(155deg,rgba(7,24,47,.83),rgba(3,10,23,.95));cursor:pointer;transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}
+        .evPremiumSignalCard:hover{transform:translateY(-3px);border-color:rgba(102,198,255,.25);box-shadow:0 20px 42px rgba(0,0,0,.22)}
+        .evPremiumSignalCard.premium:after{content:'';position:absolute;width:130px;height:130px;top:-70px;right:-55px;border-radius:50%;background:#6d5cff;filter:blur(55px);opacity:.16}
+        .evPremiumSignalCard.unlocked{box-shadow:inset 0 0 28px rgba(202,158,255,.045),0 16px 42px rgba(87,49,170,.11)}
+        .evPremiumSignalCard.free{border-color:rgba(93,211,255,.19)}
+        .evSignalCardTopline{position:relative;z-index:1;display:flex;justify-content:space-between;gap:8px;align-items:center;color:rgba(181,216,243,.48);font-size:8px;font-weight:900;letter-spacing:.13em;text-transform:uppercase}
+        .evSignalCardTopline i{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;color:#a7e8ff;border:1px solid rgba(117,207,255,.17);font-style:normal}
+        .evPremiumSignalCard>strong{position:relative;z-index:1;display:block;margin-top:22px;color:rgba(214,236,252,.72);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+        .evPremiumSignalCard>b{position:relative;z-index:1;display:block;margin-top:2px;color:#f4fbff;font-size:clamp(27px,2.3vw,35px);letter-spacing:-.045em}
+        .evSignalPurpose{position:relative;z-index:1;display:block;margin-top:9px;color:#9fdfff;font-size:12px;font-weight:800}
+        .evPremiumSignalCard>small{position:relative;z-index:1;display:block;margin-top:7px;color:rgba(211,230,245,.48);line-height:1.5;font-size:9px}
+        .evSignalAction{position:absolute;z-index:1;left:19px;bottom:18px;color:rgba(184,226,255,.72);font-size:9px;font-weight:800;letter-spacing:.05em}
+        .evPremiumLibraryNote{display:flex;justify-content:space-between;gap:20px;align-items:center;margin-top:14px;padding:16px 18px;border:1px solid rgba(116,180,231,.08);border-radius:15px;background:rgba(255,255,255,.018)}
+        .evPremiumLibraryNote span{color:#bfeaff;font-size:11px;font-weight:800}
+        .evPremiumLibraryNote p{margin:0;color:rgba(210,228,243,.45);font-size:10px}
+        .evPremiumBuilderSelection{margin:14px 0 18px;padding:16px 18px;border-radius:17px;border:1px solid rgba(211,168,255,.35);background:radial-gradient(circle at 88% 8%,rgba(161,91,255,.17),transparent 35%),linear-gradient(145deg,rgba(23,18,52,.92),rgba(6,16,33,.94));display:flex;justify-content:space-between;gap:18px;align-items:center}
+        .evPremiumBuilderSelection span{display:block;color:#ffd99a;font-size:9px;font-weight:900;letter-spacing:.11em;text-transform:uppercase}
+        .evPremiumBuilderSelection strong{display:block;margin-top:5px;color:#f8f1ff;font-size:18px}
+        .evPremiumBuilderSelection p{margin:4px 0 0;color:rgba(218,230,244,.62);font-size:11px}
+        .evPremiumBuilderSelection button{flex:0 0 auto;border:1px solid rgba(152,201,244,.13);border-radius:12px;background:rgba(255,255,255,.025);color:#cdeaff;min-height:40px;padding:0 13px;cursor:pointer;font-size:10px}
+        .ev-premium-builder-selected #session-builder>.selectedSummary{display:none!important}
+        .ev-premium-builder-selected #session-builder .signalBadge{opacity:.35}
+        .ev-premium-builder-selected #session-builder .stateChoice.active .selectionMark{opacity:0!important}
+        .ev-premium-builder-selected #session-builder .stateChoice.active{filter:saturate(.6);opacity:.7}
+        .evPremiumModalBackdrop{position:fixed;inset:0;z-index:1700;display:grid;place-items:center;padding:18px;background:rgba(0,4,13,.76);backdrop-filter:blur(15px)}
+        .evPremiumModal{position:relative;width:min(560px,100%);max-height:min(760px,calc(100dvh - 36px));overflow:auto;padding:clamp(24px,4vw,38px);border-radius:27px;border:1px solid rgba(116,197,255,.2);color:#eef9ff;background:radial-gradient(circle at 80% -10%,rgba(77,94,255,.18),transparent 35%),linear-gradient(150deg,rgba(7,24,48,.99),rgba(3,8,20,.99));box-shadow:0 34px 110px rgba(0,0,0,.56)}
+        .evPremiumModal.ritual{background:radial-gradient(circle at 80% -10%,rgba(150,93,255,.22),transparent 38%),linear-gradient(150deg,rgba(17,16,47,.99),rgba(4,7,19,.99))}
+        .evPremiumModal.futuristic{background:radial-gradient(circle at 80% -10%,rgba(24,194,255,.2),transparent 38%),linear-gradient(150deg,rgba(5,28,48,.99),rgba(3,8,20,.99))}
+        .evPremiumModalClose{position:absolute;z-index:5;top:16px;right:16px;width:38px;height:38px;border-radius:50%;border:1px solid rgba(136,202,255,.13);color:#dff6ff;background:rgba(255,255,255,.035);cursor:pointer;font-size:22px}
+        .evPremiumModalClose:disabled{opacity:.35;cursor:not-allowed}
+        .evPremiumModalMeta{display:flex;flex-wrap:wrap;gap:8px;padding-right:44px}
+        .evPremiumModalMeta span{padding:7px 9px;border-radius:999px;border:1px solid rgba(130,201,255,.14);color:rgba(189,226,251,.62);background:rgba(255,255,255,.025);font-size:8px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+        .evPremiumModal h2{margin:27px 0 0;font-size:clamp(36px,7vw,60px);line-height:.95;letter-spacing:-.05em}
+        .evPremiumModal h2 strong{color:#94e4ff;font-weight:inherit}
+        .evPremiumModal h3{margin:12px 0 0;color:#cbefff;font-size:16px}
+        .evPremiumModal>p{color:rgba(213,232,247,.6);line-height:1.65}
+        .evPremiumSoundProfile{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-top:22px;padding:14px 15px;border-radius:14px;border:1px solid rgba(115,190,246,.1);background:rgba(255,255,255,.022)}
+        .evPremiumSoundProfile span{color:rgba(202,225,244,.45);font-size:9px;text-transform:uppercase;letter-spacing:.11em}
+        .evPremiumSoundProfile strong{color:#cdefff;font-size:11px}
+        .evPremiumPreviewControls{margin-top:12px;padding:16px;border-radius:15px;border:1px solid rgba(104,194,255,.12);background:rgba(14,48,78,.14)}
+        .evPreviewButton{width:100%;min-height:48px;border-radius:13px;color:#e5f8ff;border:1px solid rgba(106,204,255,.24);background:linear-gradient(135deg,rgba(48,141,202,.2),rgba(93,77,191,.18));font-size:11px;font-weight:900;letter-spacing:.07em;text-transform:uppercase}
+        .evPremiumPreviewControls small{display:block;margin-top:10px;text-align:center;color:rgba(192,218,239,.42);font-size:9px}
+        .evPremiumMessage,.evCheckoutMessage{margin:12px 0 0!important;padding:11px 13px;border-radius:12px;border:1px solid rgba(114,196,255,.13);background:rgba(31,91,128,.1);color:#bfe9ff!important;font-size:10px;line-height:1.55}
+        .evPremiumModalOffer{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:center;margin-top:18px;padding-top:18px;border-top:1px solid rgba(150,195,230,.09)}
+        .evPremiumModalOffer>div span,.evPremiumModalOffer>div small{display:block;color:rgba(202,224,242,.46);font-size:9px}
+        .evPremiumModalOffer>div strong{display:block;margin:2px 0;font-size:28px;letter-spacing:-.04em}
+        .evContinueFree{display:block;margin:14px auto 0;border:0;color:rgba(201,224,241,.5);background:transparent;cursor:pointer;font-size:10px;text-decoration:underline;text-underline-offset:3px}
+        .evCheckoutModal{position:relative;width:min(590px,100%);max-height:calc(100dvh - 36px);overflow:auto;border-radius:28px;border:1px solid rgba(179,142,255,.27);padding:clamp(24px,4vw,38px);color:#eef9ff;background:radial-gradient(circle at 80% 0%,rgba(147,83,255,.2),transparent 34%),linear-gradient(155deg,rgba(8,21,43,.995),rgba(6,7,20,.995));box-shadow:0 38px 120px rgba(0,0,0,.62)}
+        .evCheckoutEyebrow{margin:0;color:#ffd99a;font-size:9px;font-weight:900;letter-spacing:.14em;text-transform:uppercase}
+        .evCheckoutForm h2,.evRestorePanel h2,.evPremiumSuccess h2{margin:12px 0 0;color:#f8fbff;font-size:clamp(38px,8vw,58px);line-height:.96;letter-spacing:-.05em}
+        .evCheckoutPrice{display:flex;align-items:end;gap:12px;margin-top:20px}
+        .evCheckoutPrice strong{font-size:32px;letter-spacing:-.04em}
+        .evCheckoutPrice span{padding-bottom:5px;color:rgba(220,232,246,.55);font-size:10px}
+        .evCheckoutCurrency{margin-top:14px;padding:13px 14px;border:1px solid rgba(235,190,111,.18);border-radius:14px;background:rgba(119,74,32,.08)}
+        .evCheckoutCurrency span,.evCheckoutCurrency small{display:block;color:rgba(221,225,239,.55);font-size:9px}
+        .evCheckoutCurrency strong{display:block;margin:3px 0;color:#ffd99a;font-size:15px}
+        .evCheckoutBenefits,.evSuccessBenefits{display:flex;flex-wrap:wrap;gap:7px;margin:16px 0}
+        .evCheckoutBenefits span,.evSuccessBenefits span{padding:7px 9px;border-radius:999px;border:1px solid rgba(133,192,241,.11);background:rgba(255,255,255,.023);color:rgba(218,235,249,.74);font-size:9px}
+        .evSquareSecureLabel{display:flex;justify-content:space-between;align-items:center;margin-top:20px;color:rgba(211,231,247,.6);font-size:10px}
+        .evSquareSecureLabel strong{color:#fff}
+        .evSquareCard{min-height:92px;margin-top:8px;padding:12px;border:1px solid rgba(116,191,244,.15);border-radius:15px;background:rgba(255,255,255,.025)}
+        .evSquareCard.ready{border-color:rgba(119,207,255,.26)}
+        .evPayButton{width:100%;margin-top:16px}
+        .evCheckoutFinePrint{margin:12px 0 0;color:rgba(205,224,240,.43);font-size:9px;line-height:1.55}
+        .evCheckoutNotReady{margin-top:18px;padding:16px;border-radius:15px;border:1px solid rgba(239,183,100,.18);background:rgba(119,75,27,.08)}
+        .evCheckoutNotReady strong{color:#ffd99a;font-size:12px}
+        .evCheckoutNotReady p{margin:6px 0 0;color:rgba(218,229,242,.6);font-size:10px;line-height:1.55}
+        .evRestorePanel>p,.evPremiumSuccess>h3{color:rgba(218,232,246,.62);line-height:1.6}
+        .evRestorePanel textarea,.evRecoveryBox textarea{width:100%;min-height:120px;resize:vertical;margin-top:14px;padding:13px;border:1px solid rgba(122,191,244,.16);border-radius:13px;color:#dff5ff;background:rgba(2,10,24,.62);font:500 10px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;outline:none}
+        .evRestorePanel>.evPremiumPrimary{width:100%;margin-top:14px}
+        .evSuccessMark{display:grid;place-items:center;width:58px;height:58px;margin-bottom:18px;border-radius:50%;border:1px solid rgba(235,190,111,.3);color:#ffd99a;background:linear-gradient(135deg,rgba(137,83,255,.16),rgba(160,105,42,.15));font-size:30px}
+        .evPremiumSuccess h3{margin:8px 0 0;font-size:15px}
+        .evRecoveryBox{margin-top:20px;padding:16px;border:1px solid rgba(176,139,255,.17);border-radius:16px;background:rgba(255,255,255,.025)}
+        .evRecoveryBox strong{color:#ffe0aa;font-size:12px}
+        .evRecoveryBox p{margin:6px 0 0;color:rgba(215,229,243,.55);font-size:9px;line-height:1.5}
+        .evRecoveryBox .evPremiumSecondary{width:100%}
+        .evCheckoutActions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:18px}
+        .evCheckoutActions .evPremiumSecondary{margin:0}
+        .evReceiptLink{display:block;margin-top:13px;text-align:center;color:#aee8ff;font-size:9px;text-decoration:none}
+        .evAboutCompact{padding-top:28px!important}
+        .evAboutHeader{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:end}
+        .evAboutHeader h2{margin:0;font-size:clamp(28px,3.5vw,46px);color:#f2f8ff}
+        .evAboutHeader>p{color:rgba(211,229,244,.58);line-height:1.65}
+        .evAboutRitual{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:14px;align-items:center;margin-top:24px}
+        .evAboutRitual article{padding:18px;border:1px solid rgba(117,182,235,.08);border-radius:16px;background:rgba(255,255,255,.018)}
+        .evAboutRitual article>span{color:#7ddcff;font-size:10px}
+        .evAboutRitual strong{display:block;margin-top:8px;color:#e8f7ff}
+        .evAboutRitual p{color:rgba(208,226,241,.48);font-size:10px;line-height:1.5}
+        .evAboutRitual i{color:rgba(123,202,255,.3);font-style:normal}
+        .evAboutSignals{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+        .evAboutSignals span{padding:8px 10px;border-radius:999px;border:1px solid rgba(121,190,242,.08);color:rgba(205,227,244,.55);font-size:9px}
+        .evProductFooter{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:28px clamp(18px,5vw,70px);border-top:1px solid rgba(118,182,232,.07);background:rgba(1,7,18,.45)}
+        .evFooterBrand{display:flex;align-items:center;gap:8px}
+        .evFooterBrand img:first-child{width:28px;height:28px;object-fit:contain}
+        .evFooterBrand img:last-child{width:120px;height:auto}
+        .evProductFooter nav{display:flex;gap:15px;flex-wrap:wrap}
+        .evProductFooter a{color:rgba(205,229,246,.58);text-decoration:none;font-size:9px}
+        .evProductFooter p{margin:0;color:rgba(200,221,238,.34);font-size:8px}
+        @media(max-width:980px){.evPremiumShowcase,.evPremiumLibraryHeader,.evAboutHeader{grid-template-columns:1fr}
+        .evPremiumOffer{max-width:460px}
+        .evPremiumCategoryTabs{grid-template-columns:repeat(5,minmax(150px,1fr))}
+        .evPremiumSignalGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+        .evAboutRitual{grid-template-columns:1fr}
+        .evAboutRitual i{display:none}
+        .evProductFooter{align-items:flex-start;flex-direction:column}}
+        @media(max-width:620px){.evPremiumLaunch{padding-top:10px!important;padding-bottom:18px!important}
+        .evPremiumShowcase{gap:22px;padding:23px 18px;border-radius:23px}
+        .evPremiumShowcase h2{font-size:34px}
+        .evPremiumShowcaseCopy>p{margin-top:16px;font-size:14px}
+        .evPremiumBenefitRow{gap:7px;margin-top:18px}
+        .evPremiumBenefitRow span{font-size:9px;padding:8px 10px}
+        .evPremiumOffer{padding:18px;border-radius:18px}
+        .evPremiumLibrary{padding-top:22px!important}
+        .evPremiumLibraryHeader{gap:12px;margin-bottom:18px}
+        .evPremiumLibraryHeader h2{font-size:32px}
+        .evPremiumLibraryHeader>p{font-size:12px}
+        .evPremiumCategoryTabs{margin-right:-18px;padding-right:18px}
+        .evPremiumCategoryTabs button{min-width:138px;min-height:88px;padding:13px}
+        .evPremiumSignalGrid{grid-template-columns:1fr 1fr;gap:8px}
+        .evPremiumSignalCard{min-height:225px;padding:16px 14px;border-radius:17px}
+        .evPremiumSignalCard>b{font-size:27px}
+        .evSignalAction{left:14px;bottom:15px;font-size:8px}
+        .evPremiumLibraryNote{align-items:flex-start;flex-direction:column;gap:5px}
+        .evPremiumBuilderSelection{align-items:flex-start;flex-direction:column}
+        .evPremiumBuilderSelection button{width:100%}
+        .evPremiumModalBackdrop{padding:10px;align-items:end}
+        .evPremiumModal,.evCheckoutModal{max-height:calc(100dvh - 20px);padding:25px 18px 22px;border-radius:24px 24px 18px 18px}
+        .evPremiumModal h2{font-size:42px}
+        .evPremiumModalOffer,.evCheckoutActions{grid-template-columns:1fr}
+        .evCheckoutActions .evPremiumSecondary{margin-top:0}
+        .evCheckoutPrice{align-items:flex-start;flex-direction:column;gap:2px}
+        .evCheckoutPrice span{padding:0}
+        .evProductFooter{padding:22px 18px}}
+        @media(max-width:390px){.evPremiumSignalGrid{grid-template-columns:1fr}
+        .evPremiumSignalCard{min-height:205px}}
       `}</style>
     </>
   );
