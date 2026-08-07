@@ -1,0 +1,173 @@
+/* V12.5.3 — surgical Premium conversion + mobile category correction. */
+
+@media(max-width:980px){
+  .evPremiumCategoryTabs{
+    display:flex!important;
+    grid-template-columns:none!important;
+    gap:12px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    scroll-snap-type:x proximity;
+    -webkit-overflow-scrolling:touch;
+    padding:2px 18px 8px 0!important;
+    margin-right:-18px!important;
+  }
+  .evPremiumCategoryTabs button{
+    flex:0 0 clamp(205px,52vw,232px)!important;
+    width:auto!important;
+    min-width:0!important;
+    scroll-snap-align:start;
+  }
+}
+@media(max-width:390px){
+  .evPremiumCategoryTabs button{flex-basis:205px!important;min-width:0!important}
+}
+
+/* Gold now communicates Premium. Free 888 uses a pearl/amethyst ritual identity. */
+body.ev-product-route .signalBadge.abundance{
+  color:#e1d7ff!important;
+  border-color:rgba(172,142,255,.46)!important;
+  background:linear-gradient(135deg,rgba(105,75,182,.18),rgba(116,205,255,.08))!important;
+}
+body.ev-product-route .stateChoice.abundance.active{
+  border-color:rgba(172,142,255,.62)!important;
+  background:linear-gradient(145deg,rgba(70,48,125,.42),rgba(28,52,88,.28))!important;
+  box-shadow:inset 0 0 28px rgba(157,126,255,.08)!important;
+}
+body.ev-product-route .stateChoice.abundance.active span,
+body.ev-product-route .stateChoice.abundance.active small{color:#d9cbff!important}
+body.ev-product-route .frequencyCard.abundance.active{border-color:rgba(172,142,255,.52)!important}
+body.ev-product-route .frequencyCard.abundance .frequencyTopline{color:#d9cbff!important}
+body.ev-product-route .sessionOverlay.abundance{--session-accent:#a68bff!important}
+
+/* Premium gateway directly beneath the five free builder choices. */
+.evBuilderPremiumGateway{
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:18px;
+  align-items:center;
+  margin:14px 0 18px;
+  padding:18px 20px;
+  border:1px solid rgba(244,197,105,.58);
+  border-radius:20px;
+  background:radial-gradient(circle at 86% 20%,rgba(255,209,112,.18),transparent 34%),linear-gradient(135deg,rgba(35,26,20,.96),rgba(9,12,24,.98));
+  box-shadow:inset 0 1px 0 rgba(255,241,207,.08),0 18px 44px rgba(151,101,19,.13);
+}
+.evBuilderPremiumGatewayGlow{
+  position:absolute;
+  inset:-40% auto -40% -20%;
+  width:44%;
+  background:linear-gradient(100deg,transparent,rgba(255,221,149,.10),transparent);
+  transform:skewX(-18deg);
+  animation:evV1253GatewaySheen 6.5s ease-in-out infinite;
+  pointer-events:none;
+  z-index:-1;
+}
+.evBuilderPremiumGateway span{display:block;color:#f1c873;font-size:10px;font-weight:900;letter-spacing:.16em;text-transform:uppercase}
+.evBuilderPremiumGateway strong{display:block;margin-top:6px;color:#fff7e6;font-size:clamp(20px,2.2vw,28px);line-height:1.05;letter-spacing:-.025em}
+.evBuilderPremiumGateway p{margin:7px 0 0;color:rgba(239,230,214,.72);font-size:13px;line-height:1.5}
+.evBuilderPremiumExplore,
+.evExplorePremiumGold{
+  min-height:56px!important;
+  padding:0 20px!important;
+  border:1px solid rgba(255,215,133,.7)!important;
+  border-radius:15px!important;
+  background:linear-gradient(135deg,rgba(132,83,24,.38),rgba(76,48,20,.25))!important;
+  color:#ffe0a0!important;
+  font-weight:900!important;
+  letter-spacing:.025em!important;
+  box-shadow:inset 0 1px 0 rgba(255,244,213,.08),0 12px 28px rgba(167,110,25,.14)!important;
+}
+.evBuilderPremiumExplore:hover,
+.evExplorePremiumGold:hover{
+  transform:translateY(-1px);
+  border-color:rgba(255,225,158,.92)!important;
+  box-shadow:0 16px 36px rgba(189,130,31,.2)!important;
+}
+body.ev-premium-builder-selected .evBuilderPremiumGateway{display:none}
+@keyframes evV1253GatewaySheen{
+  0%,62%{transform:translateX(-80%) skewX(-18deg);opacity:0}
+  72%{opacity:1}
+  100%{transform:translateX(330%) skewX(-18deg);opacity:0}
+}
+@media(max-width:620px){
+  .evBuilderPremiumGateway{grid-template-columns:1fr;padding:17px;gap:14px}
+  .evBuilderPremiumExplore{width:100%}
+}
+@media(prefers-reduced-motion:reduce){.evBuilderPremiumGatewayGlow{animation:none}}
+
+/* Keep the approved checkout shell; replace only the value story with Free vs Founder Premium. */
+.evCheckoutComparisonEnabled>.evCheckoutValue{display:none!important}
+.evCheckoutComparisonV1253{display:grid;gap:14px;margin-top:28px}
+.evCheckoutComparisonV1253>h3{margin:0;color:#f7fbff;font-size:clamp(22px,2.3vw,28px);line-height:1.12}
+.evComparisonTable{overflow:hidden;border:1px solid rgba(129,184,230,.18);border-radius:20px;background:rgba(5,13,29,.58)}
+.evComparisonHeader,.evComparisonRow{display:grid;grid-template-columns:1fr 1fr}
+.evComparisonHeader{border-bottom:1px solid rgba(255,255,255,.08)}
+.evComparisonHeader span,.evComparisonHeader strong{padding:13px 16px;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+.evComparisonHeader span{color:#8ee7ff;background:rgba(55,192,235,.07)}
+.evComparisonHeader strong{color:#ffdc99;background:rgba(229,167,67,.08)}
+.evComparisonRow>span,.evComparisonRow>strong{
+  display:grid;
+  gap:4px;
+  align-content:center;
+  min-height:67px;
+  padding:11px 16px;
+  border-bottom:1px solid rgba(255,255,255,.055);
+}
+.evComparisonRow>span{color:#d8ebf7;background:rgba(37,160,204,.025)}
+.evComparisonRow>strong{color:#fff2d4;background:rgba(198,136,44,.035);border-left:1px solid rgba(255,255,255,.06)}
+.evComparisonRow:last-child>span,.evComparisonRow:last-child>strong{border-bottom:0}
+.evComparisonRow small{color:rgba(206,225,239,.56);font-size:10px;letter-spacing:.07em;text-transform:uppercase;font-weight:700}
+.evComparisonRow b,.evComparisonRow strong{font-size:13.5px;line-height:1.3}
+.evComparisonComing{margin:0;padding:13px 16px;border:1px solid rgba(238,191,100,.25);border-radius:15px;color:rgba(236,226,207,.75);background:rgba(107,72,25,.08);font-size:13px;text-align:center}
+.evComparisonComing b{color:#ffd895}
+@media(max-width:620px){
+  .evCheckoutComparisonV1253{margin-top:22px}
+  .evComparisonHeader span,.evComparisonHeader strong{padding:11px 10px;font-size:11px}
+  .evComparisonRow>span,.evComparisonRow>strong{padding:10px;min-height:64px}
+  .evComparisonRow b,.evComparisonRow strong{font-size:12.5px}
+  .evComparisonRow small{font-size:9.5px}
+}
+
+/* First-party Everlasting Founder spotlight after Return Home. */
+.evFounderSpotlightBackdrop{
+  position:fixed;
+  inset:0;
+  z-index:10080;
+  display:grid;
+  place-items:center;
+  padding:18px;
+  background:rgba(0,5,15,.74);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+.evFounderSpotlight{
+  position:relative;
+  width:min(520px,100%);
+  padding:30px;
+  border:1px solid rgba(244,196,99,.52);
+  border-radius:25px;
+  background:radial-gradient(circle at 82% 5%,rgba(247,193,87,.22),transparent 34%),linear-gradient(155deg,#07152a,#090a18 58%,#171022);
+  box-shadow:0 36px 100px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,240,203,.08);
+  text-align:center;
+}
+.evFounderSpotlight>p{margin:0;color:#f3c871;font-size:11px;font-weight:950;letter-spacing:.18em;text-transform:uppercase}
+.evFounderSpotlight h2{margin:13px auto 8px;max-width:11ch;color:#fff9ee;font-size:clamp(34px,7vw,50px);line-height:.96;letter-spacing:-.045em}
+.evFounderSpotlight>span{display:block;color:rgba(224,235,246,.74);font-size:14px;line-height:1.5}
+.evFounderSpotlightPrice{display:grid;gap:3px;margin:22px 0;padding:16px;border:1px solid rgba(238,190,96,.24);border-radius:17px;background:rgba(115,74,22,.08)}
+.evFounderSpotlightPrice small{color:#e7bf75;text-transform:uppercase;letter-spacing:.12em;font-weight:850}
+.evFounderSpotlightPrice strong{color:white;font-size:38px;letter-spacing:-.035em}
+.evFounderSpotlightPrice b{color:rgba(235,226,210,.72);font-size:13px;font-weight:600}
+.evFounderSpotlightPrimary,.evFounderSpotlightExplore{width:100%;min-height:56px;border-radius:15px;font-weight:900}
+.evFounderSpotlightPrimary{border:1px solid rgba(255,220,150,.8);background:linear-gradient(110deg,#edc365,#d99d38);color:#171005;box-shadow:0 15px 36px rgba(207,145,42,.2)}
+.evFounderSpotlightExplore{margin-top:10px;border:1px solid rgba(227,188,110,.34);background:rgba(89,59,24,.14);color:#ffdda0}
+.evFounderSpotlight>small{display:block;margin-top:14px;color:rgba(213,227,240,.48);font-size:11px}
+.evFounderSpotlightClose{position:absolute;top:14px;right:14px;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:rgba(8,20,40,.72);color:white;font-size:26px;line-height:1}
+@media(max-width:620px){
+  .evFounderSpotlight{padding:27px 20px 22px;border-radius:22px}
+  .evFounderSpotlight h2{font-size:38px}
+  .evFounderSpotlightPrice strong{font-size:34px}
+}
