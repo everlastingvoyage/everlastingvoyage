@@ -13,8 +13,8 @@ type StoredSession = {
 
 const labels: Record<StateId, { frequency: string; hz: string; state: string }> = {
   alpha: { frequency: 'Alpha', hz: '10 Hz', state: 'Calm Focus' },
-  gamma: { frequency: 'Gamma', hz: '40 Hz', state: 'Deep Focus' },
-  theta: { frequency: 'Theta', hz: '4 Hz', state: 'Creative Flow' },
+  gamma: { frequency: 'Gamma', hz: '40 Hz', state: 'Gamma Clarity' },
+  theta: { frequency: 'Theta', hz: '4 Hz', state: 'Reflective Space' },
   delta: { frequency: 'Delta', hz: '2 Hz', state: 'Deep Rest' },
   abundance: { frequency: 'Pure Tone', hz: '888 Hz', state: 'Abundance' }
 };
@@ -56,7 +56,9 @@ export default function V10SessionUtilities() {
       const target = event.target as Element | null;
       if (target?.closest('.builderActions .primaryButton')) storedScrollY = window.scrollY;
 
-      const closingControl = target?.closest('.v10CloseSession, .v10CompletionActions button');
+      // Only a manual session close should restore the pre-session page position.
+      // Completion actions own their own navigation (Builder or Home) and must not be overridden here.
+      const closingControl = target?.closest('.v10CloseSession');
       if (!closingControl) return;
 
       const active = document.activeElement as HTMLElement | null;
@@ -112,7 +114,7 @@ export default function V10SessionUtilities() {
       'Everlasting Voyage',
       '',
       `State: ${meta.state}`,
-      `Signal: ${meta.frequency} · ${meta.hz}`,
+      `Frequency: ${meta.frequency} · ${meta.hz}`,
       `Duration: ${duration} minutes`,
       intention ? `Intention: ${intention}` : 'Intention: Open focus',
       '',
