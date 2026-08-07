@@ -1,4 +1,5 @@
 from pathlib import Path
+import shutil
 
 patch_path = Path('scripts/v12_5_patch.py')
 source = patch_path.read_text()
@@ -39,3 +40,12 @@ if old not in source:
 
 source = source.replace(old, new, 1)
 exec(compile(source, str(patch_path), 'exec'), {'__name__': '__main__'})
+
+# The existing QA workflow uploads popup-motion-qa after build. Keep the exact
+# patched files as a nested zip so Next.js does not type-check the duplicate TSX
+# copies living outside app/ during the build itself.
+patched_dir = Path('popup-motion-qa/patched')
+archive_base = Path('popup-motion-qa/v12-5-patched-source')
+if patched_dir.exists():
+    shutil.make_archive(str(archive_base), 'zip', root_dir=patched_dir)
+    shutil.rmtree(patched_dir)
