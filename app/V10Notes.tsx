@@ -179,6 +179,7 @@ export default function V10Notes() {
 
   useEffect(() => {
     if (!enabled) return;
+    let syncFrame: number | null = null;
 
     const syncMount = () => {
       const actions = document.querySelector<HTMLElement>('.v10CompletionActions');
@@ -194,13 +195,32 @@ export default function V10Notes() {
         mount.id = 'ev-save-notes-root';
         actions.appendChild(mount);
       }
-      setSaveMount(mount);
+      setSaveMount((current) => current === mount ? current : mount);
+    };
+
+    const scheduleSync = () => {
+      if (syncFrame !== null) return;
+      syncFrame = window.requestAnimationFrame(() => {
+        syncFrame = null;
+        syncMount();
+      });
+    };
+
+    const handleCompletionNavigation = (event: MouseEvent) => {
+      const target = event.target as Element | null;
+      if (target?.closest('.v10CompletionActions, .v10CloseSession')) window.setTimeout(scheduleSync, 0);
     };
 
     syncMount();
-    const observer = new MutationObserver(syncMount);
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
+    window.addEventListener('ev:voyage-completed', scheduleSync);
+    window.addEventListener('ev:voyage-return-home', scheduleSync);
+    document.addEventListener('click', handleCompletionNavigation, true);
+    return () => {
+      if (syncFrame !== null) window.cancelAnimationFrame(syncFrame);
+      window.removeEventListener('ev:voyage-completed', scheduleSync);
+      window.removeEventListener('ev:voyage-return-home', scheduleSync);
+      document.removeEventListener('click', handleCompletionNavigation, true);
+    };
   }, [enabled]);
 
   useEffect(() => {
