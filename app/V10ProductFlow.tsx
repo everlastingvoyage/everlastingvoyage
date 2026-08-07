@@ -134,15 +134,15 @@ const premiumCategories: PremiumCategory[] = [
 const premiumSignals: PremiumSignal[] = [
   { id: 'alpha', category: 'study', family: 'Alpha', hz: 10, label: 'Calm Focus', purpose: 'Study, reading and steady concentration.', description: 'The free Alpha flagship for calm, sustained concentration.', premium: false, pure: false, soundProfile: 'clean', freeStateId: 'alpha', leftHz: 180, rightHz: 190 },
   { id: 'alpha-8', category: 'study', family: 'Alpha', hz: 8, label: 'Relaxed Study', purpose: 'A slower Alpha experience for relaxed reading and study.', description: 'Clean binaural signal with a restrained, distraction-free presentation.', premium: true, pure: false, soundProfile: 'clean', leftHz: 180, rightHz: 188 },
-  { id: 'alpha-12', category: 'study', family: 'Alpha', hz: 12, label: 'Active Learning', purpose: 'A brighter Alpha experience for active learning and review.', description: 'Clean binaural signal designed to remain simple and precise.', premium: true, pure: false, soundProfile: 'clean', leftHz: 180, rightHz: 192 },
+  { id: 'alpha-12', category: 'study', family: 'Alpha', hz: 12, label: 'Memory Retention', purpose: 'A luminous study environment for focused review and information retention.', description: 'Luminous pad, glass harmonics and restrained melodic detail around a precise 12 Hz foundation.', premium: true, pure: false, soundProfile: 'focus', leftHz: 256, rightHz: 268 },
   { id: 'smr-14', category: 'study', family: 'SMR', hz: 14, label: 'Steady Attention', purpose: 'A steady-attention signal with an extremely subtle support layer.', description: 'Minimal binaural signal with a quiet tonal bed beneath the main signal.', premium: true, pure: false, soundProfile: 'focus', leftHz: 180, rightHz: 194 },
-  { id: 'beta-18', category: 'study', family: 'Beta', hz: 18, label: 'Mental Drive', purpose: 'A more active focus experience for demanding study blocks.', description: 'Binaural focus signal with a restrained modern texture.', premium: true, pure: false, soundProfile: 'focus', leftHz: 180, rightHz: 198 },
+  { id: 'beta-18', category: 'study', family: 'Beta', hz: 18, label: 'Focused Drive', purpose: 'A forward-moving focus environment for productive work and active study.', description: 'Warm technological pad, restrained pulse and positive forward movement around an 18 Hz foundation.', premium: true, pure: false, soundProfile: 'focus', leftHz: 186, rightHz: 204 },
 
   { id: 'gamma', category: 'work', family: 'Gamma', hz: 40, label: 'Deep Focus', purpose: 'Demanding work, research and high-attention sessions.', description: 'The free Gamma flagship for demanding focus sessions.', premium: false, pure: false, soundProfile: 'clean', freeStateId: 'gamma', leftHz: 220, rightHz: 260 },
   { id: 'beta-15', category: 'work', family: 'Beta', hz: 15, label: 'Focus Mode', purpose: 'A clean, minimal signal for focused execution.', description: 'Minimal binaural presentation with no distracting sound bed.', premium: true, pure: false, soundProfile: 'clean', leftHz: 200, rightHz: 215 },
-  { id: 'beta-20', category: 'work', family: 'Beta', hz: 20, label: 'High Attention', purpose: 'An active focus signal with a subtle futuristic pulse.', description: 'Binaural signal supported by a quiet digital pulse and spacious texture.', premium: true, pure: false, soundProfile: 'futuristic', leftHz: 200, rightHz: 220 },
+  { id: 'beta-20', category: 'work', family: 'Beta', hz: 20, label: 'Peak Attention', purpose: 'A bright futuristic focus environment built for high-attention sessions.', description: 'Wide futuristic pad, crystalline accents and spatial motion around a precise 20 Hz foundation.', premium: true, pure: false, soundProfile: 'futuristic', leftHz: 300, rightHz: 320 },
   { id: 'gamma-30', category: 'work', family: 'Gamma', hz: 30, label: 'Creative Flow', purpose: 'A futuristic Gamma experience for creative production.', description: 'Binaural signal with a low synthetic pad and gentle stereo movement.', premium: true, pure: false, soundProfile: 'futuristic', leftHz: 200, rightHz: 230 },
-  { id: 'gamma-35', category: 'work', family: 'Gamma', hz: 35, label: 'Deep Execution', purpose: 'A deeper sci-fi productivity atmosphere for concentrated execution.', description: 'Binaural signal with a subtle technological soundscape kept beneath the core tone.', premium: true, pure: false, soundProfile: 'futuristic', leftHz: 200, rightHz: 235 },
+  { id: 'gamma-35', category: 'work', family: 'Gamma', hz: 35, label: 'Peak Focus', purpose: 'A polished Gamma experience for clear, sustained high-performance focus.', description: 'Luminous Gamma atmosphere with a clean pad, supportive drone and restrained tonal movement.', premium: true, pure: false, soundProfile: 'futuristic', leftHz: 280, rightHz: 315 },
 
   { id: 'theta', category: 'meditation', family: 'Theta', hz: 4, label: 'Creative Flow', purpose: 'Writing, reflection, meditation and ideation.', description: 'The free Theta flagship for reflective and meditative sessions.', premium: false, pure: false, soundProfile: 'clean', freeStateId: 'theta', leftHz: 95, rightHz: 99 },
   { id: 'theta-5', category: 'meditation', family: 'Theta', hz: 5, label: 'Inner Stillness', purpose: 'A soft inward signal with a quiet atmospheric pad.', description: 'Binaural signal supported by a warm, spacious tonal bed.', premium: true, pure: false, soundProfile: 'meditative', leftHz: 95, rightHz: 100 },
@@ -172,6 +172,12 @@ const FALLBACK_PENDING_KEY = 'ev-premium-pending-attempt';
 
 function customerFrequencyCopy(value: string) {
   return value.replace(/\bsignals\b/gi, 'frequencies').replace(/\bsignal\b/gi, 'frequency');
+}
+
+function getCustomerAudioType(signal: PremiumSignal) {
+  if (signal.pure) return 'Pure Tone';
+  if (getPremiumAudioRecipe(signal.id)) return 'Immersive Frequency';
+  return 'Clean Frequency';
 }
 
 function createNoiseBuffer(context: AudioContext, seconds = 2) {
@@ -974,7 +980,12 @@ export default function V10ProductFlow() {
                 return (
                   <button key={signal.id} type="button" className={`evPremiumSignalCard ${signal.premium ? 'premium' : 'free'} ${signal.soundProfile} ${unlocked ? 'unlocked' : ''}`} onClick={() => openSignal(signal)}>
                     <span className="evSignalCardTopline"><span>{signal.premium ? (unlocked ? 'Premium active' : 'Premium') : 'Free flagship'}</span><i aria-hidden="true">{signal.premium ? (unlocked ? '✓' : '◇') : '✓'}</i></span>
-                    <strong>{signal.family}</strong><b>{signal.hz} Hz</b><span className="evSignalPurpose">{signal.label}</span><small>{customerFrequencyCopy(signal.purpose)}</small><span className="evSignalAction">{signal.premium ? (unlocked ? 'Use this frequency →' : 'Preview frequency →') : 'Use free frequency →'}</span>
+                    <span className="evSignalExperienceTitle">{signal.label}</span>
+                    <b>{signal.hz} Hz</b>
+                    {!signal.pure ? <strong>{signal.family}</strong> : null}
+                    <span className="evSignalType">{getCustomerAudioType(signal)}</span>
+                    <small>{customerFrequencyCopy(signal.purpose)}</small>
+                    <span className="evSignalAction">{signal.premium ? (unlocked ? 'Use this frequency →' : 'Preview frequency →') : 'Use free frequency →'}</span>
                   </button>
                 );
               })}
@@ -1005,7 +1016,9 @@ export default function V10ProductFlow() {
           <article className={`evPremiumModal ${previewSignal.soundProfile}`} role="dialog" aria-modal="true" aria-labelledby="ev-preview-title">
             <button type="button" className="evPremiumModalClose" onClick={closePreview} aria-label="Close premium preview">×</button>
             <div className="evPremiumModalMeta"><span>Premium frequency</span><span>{premiumCategories.find((category) => category.id === previewSignal.category)?.title}</span></div>
-            <h2 id="ev-preview-title">{previewSignal.family} <strong>{previewSignal.hz} Hz</strong></h2><h3>{previewSignal.label}</h3><p>{getPremiumAudioRecipe(previewSignal.id)?.recommendedUse ?? customerFrequencyCopy(previewSignal.description)}</p>
+            <h2 id="ev-preview-title">{previewSignal.label}</h2>
+            <div className="evPremiumModalFrequency"><strong>{previewSignal.hz} Hz</strong>{!previewSignal.pure ? <span>{previewSignal.family}</span> : null}<span className="evPremiumTypeBadge">{getCustomerAudioType(previewSignal)}</span></div>
+            <p>{getPremiumAudioRecipe(previewSignal.id)?.recommendedUse ?? customerFrequencyCopy(previewSignal.description)}</p>
             <div className="evPremiumSoundProfile"><span>Sound profile</span><strong>{getPremiumSoundIdentity(previewSignal.id) ?? (previewSignal.soundProfile === 'ritual' ? 'Ritual soundscape' : previewSignal.soundProfile === 'futuristic' ? 'Futuristic focus' : previewSignal.soundProfile === 'sleep' ? 'Sleep ambience' : previewSignal.soundProfile === 'meditative' ? 'Meditative ambience' : previewSignal.soundProfile === 'focus' ? 'Minimal focus bed' : 'Clean frequency')}</strong></div>
             <div className="evPremiumPreviewControls">
               <button type="button" className={`evPreviewButton ${previewing ? 'playing' : ''}`} onClick={() => previewing ? stopPreview() : startPreview(previewSignal)}>{previewing ? `Stop preview · ${previewSeconds}s` : `Preview ${previewDurationSeconds} seconds`}</button>
@@ -1168,18 +1181,27 @@ export default function V10ProductFlow() {
         .evPremiumCategoryTabs strong{display:block;margin-top:7px;font-size:12px}
         .evPremiumCategoryTabs small{display:block;margin-top:4px;color:rgba(203,225,243,.44);font-size:9px;line-height:1.35}
         .evPremiumSignalGrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
-        .evPremiumSignalCard{position:relative;min-height:250px;padding:19px;overflow:hidden;text-align:left;border-radius:20px;border:1px solid rgba(112,179,235,.11);color:#dff2ff;background:linear-gradient(155deg,rgba(7,24,47,.83),rgba(3,10,23,.95));cursor:pointer;transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}
-        .evPremiumSignalCard:hover{transform:translateY(-3px);border-color:rgba(102,198,255,.25);box-shadow:0 20px 42px rgba(0,0,0,.22)}
-        .evPremiumSignalCard.premium:after{content:'';position:absolute;width:130px;height:130px;top:-70px;right:-55px;border-radius:50%;background:#6d5cff;filter:blur(55px);opacity:.16}
-        .evPremiumSignalCard.unlocked{box-shadow:inset 0 0 28px rgba(202,158,255,.045),0 16px 42px rgba(87,49,170,.11)}
+        .evPremiumSignalCard{position:relative;isolation:isolate;min-height:286px;padding:19px;overflow:hidden;text-align:left;border-radius:20px;border:1px solid rgba(112,179,235,.11);color:#dff2ff;background:linear-gradient(155deg,rgba(7,24,47,.83),rgba(3,10,23,.95));cursor:pointer;transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease,background .22s ease}
+        .evPremiumSignalCard:hover{transform:translateY(-3px);border-color:rgba(102,198,255,.28);box-shadow:0 20px 42px rgba(0,0,0,.24)}
+        .evPremiumSignalCard.premium{border-color:rgba(232,188,99,.44);background:radial-gradient(circle at 88% 4%,rgba(255,207,111,.16),transparent 34%),linear-gradient(155deg,rgba(28,22,26,.96),rgba(8,11,22,.98) 58%,rgba(17,13,22,.98));box-shadow:inset 0 1px 0 rgba(255,238,196,.055),0 16px 44px rgba(111,74,16,.12)}
+        .evPremiumSignalCard.premium:hover{border-color:rgba(255,215,131,.66);box-shadow:inset 0 1px 0 rgba(255,242,210,.08),0 22px 52px rgba(173,118,27,.18),0 0 28px rgba(246,194,93,.08)}
+        .evPremiumSignalCard.premium:after{content:'';position:absolute;z-index:0;width:165px;height:165px;top:-82px;right:-62px;border-radius:50%;background:#f3bd59;filter:blur(58px);opacity:.25;pointer-events:none}
+        .evPremiumSignalCard.premium:before{content:'';position:absolute;z-index:0;top:-55%;left:-75%;width:34%;height:220%;transform:rotate(18deg);background:linear-gradient(90deg,transparent,rgba(255,231,174,.12),transparent);pointer-events:none;animation:evPremiumGoldSheen 8.5s ease-in-out infinite}
+        .evPremiumSignalCard.unlocked{border-color:rgba(255,219,144,.62);box-shadow:inset 0 0 34px rgba(255,206,112,.055),0 18px 46px rgba(146,96,18,.15)}
         .evPremiumSignalCard.free{border-color:rgba(93,211,255,.19)}
-        .evSignalCardTopline{position:relative;z-index:1;display:flex;justify-content:space-between;gap:8px;align-items:center;color:rgba(181,216,243,.48);font-size:8px;font-weight:900;letter-spacing:.13em;text-transform:uppercase}
-        .evSignalCardTopline i{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;color:#a7e8ff;border:1px solid rgba(117,207,255,.17);font-style:normal}
-        .evPremiumSignalCard>strong{position:relative;z-index:1;display:block;margin-top:22px;color:rgba(214,236,252,.72);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
-        .evPremiumSignalCard>b{position:relative;z-index:1;display:block;margin-top:2px;color:#f4fbff;font-size:clamp(27px,2.3vw,35px);letter-spacing:-.045em}
-        .evSignalPurpose{position:relative;z-index:1;display:block;margin-top:9px;color:#9fdfff;font-size:12px;font-weight:800}
-        .evPremiumSignalCard>small{position:relative;z-index:1;display:block;margin-top:7px;color:rgba(211,230,245,.48);line-height:1.5;font-size:9px}
-        .evSignalAction{position:absolute;z-index:1;left:19px;bottom:18px;color:rgba(184,226,255,.72);font-size:9px;font-weight:800;letter-spacing:.05em}
+        .evSignalCardTopline{position:relative;z-index:1;display:flex;justify-content:space-between;gap:8px;align-items:center;color:rgba(181,216,243,.58);font-size:9px;font-weight:900;letter-spacing:.13em;text-transform:uppercase}
+        .evPremiumSignalCard.premium .evSignalCardTopline>span{display:inline-flex;align-items:center;min-height:27px;padding:0 10px;border:1px solid rgba(242,192,94,.42);border-radius:999px;color:#ffe2a5;background:rgba(150,101,29,.1);box-shadow:0 0 22px rgba(235,180,77,.06)}
+        .evSignalCardTopline i{display:grid;place-items:center;width:27px;height:27px;border-radius:50%;color:#a7e8ff;border:1px solid rgba(117,207,255,.2);font-style:normal}
+        .evPremiumSignalCard.premium .evSignalCardTopline i{color:#ffd68b;border-color:rgba(240,190,93,.38);background:rgba(161,105,24,.08)}
+        .evSignalExperienceTitle{position:relative;z-index:1;display:block;margin-top:20px;color:#f5fbff;font-size:clamp(23px,2vw,30px);font-weight:900;line-height:1.03;letter-spacing:-.035em;text-wrap:balance}
+        .evPremiumSignalCard.premium .evSignalExperienceTitle{color:#fff2d2;text-shadow:0 0 22px rgba(244,191,90,.12)}
+        .evPremiumSignalCard>b{position:relative;z-index:1;display:block;margin-top:9px;color:#f4fbff;font-size:clamp(21px,1.8vw,27px);line-height:1;letter-spacing:-.035em}
+        .evPremiumSignalCard>strong{position:relative;z-index:1;display:block;margin-top:7px;color:rgba(204,228,246,.66);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+        .evSignalType{position:relative;z-index:1;display:inline-flex;align-items:center;min-height:24px;margin-top:9px;padding:0 8px;border:1px solid rgba(110,205,255,.18);border-radius:999px;color:#a9e8ff;background:rgba(56,155,209,.07);font-size:8px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+        .evPremiumSignalCard.premium .evSignalType{border-color:rgba(238,188,91,.35);color:#ffdaa0;background:rgba(145,91,17,.09)}
+        .evPremiumSignalCard>small{position:relative;z-index:1;display:block;margin-top:9px;padding-bottom:38px;color:rgba(211,230,245,.58);line-height:1.5;font-size:10px}
+        .evSignalAction{position:absolute;z-index:1;left:19px;bottom:18px;color:rgba(184,226,255,.78);font-size:9px;font-weight:900;letter-spacing:.05em}
+        .evPremiumSignalCard.premium .evSignalAction{color:#ffd58c}
         .evPremiumLibraryNote{display:flex;justify-content:space-between;gap:20px;align-items:center;margin-top:14px;padding:16px 18px;border:1px solid rgba(116,180,231,.08);border-radius:15px;background:rgba(255,255,255,.018)}
         .evPremiumLibraryNote span{color:#bfeaff;font-size:11px;font-weight:800}
         .evPremiumLibraryNote p{margin:0;color:rgba(210,228,243,.45);font-size:10px}
@@ -1193,21 +1215,23 @@ export default function V10ProductFlow() {
         .ev-premium-builder-selected #session-builder .stateChoice.active .selectionMark{opacity:0!important}
         .ev-premium-builder-selected #session-builder .stateChoice.active{filter:saturate(.6);opacity:.7}
         .evPremiumModalBackdrop{position:fixed;inset:0;z-index:1700;display:grid;place-items:center;padding:18px;overflow:hidden;overscroll-behavior:none;background:rgba(0,4,13,.76);backdrop-filter:blur(15px)}
-        .evPremiumModal{position:relative;width:min(560px,100%);max-height:min(760px,calc(100dvh - 36px));overflow:auto;padding:clamp(24px,4vw,38px);border-radius:27px;border:1px solid rgba(116,197,255,.2);color:#eef9ff;background:radial-gradient(circle at 80% -10%,rgba(77,94,255,.18),transparent 35%),linear-gradient(150deg,rgba(7,24,48,.99),rgba(3,8,20,.99));box-shadow:0 34px 110px rgba(0,0,0,.56)}
-        .evPremiumModal.ritual{background:radial-gradient(circle at 80% -10%,rgba(150,93,255,.22),transparent 38%),linear-gradient(150deg,rgba(17,16,47,.99),rgba(4,7,19,.99))}
-        .evPremiumModal.futuristic{background:radial-gradient(circle at 80% -10%,rgba(24,194,255,.2),transparent 38%),linear-gradient(150deg,rgba(5,28,48,.99),rgba(3,8,20,.99))}
+        .evPremiumModal{position:relative;width:min(560px,100%);max-height:min(760px,calc(100dvh - 36px));overflow:auto;padding:clamp(24px,4vw,38px);border-radius:27px;border:1px solid rgba(237,193,106,.42);color:#eef9ff;background:radial-gradient(circle at 82% -8%,rgba(245,190,82,.2),transparent 37%),radial-gradient(circle at 4% 18%,rgba(70,186,255,.07),transparent 30%),linear-gradient(150deg,rgba(13,18,33,.995),rgba(5,8,18,.995));box-shadow:0 34px 110px rgba(0,0,0,.58),0 0 42px rgba(194,133,28,.08)}
+        .evPremiumModal.ritual{background:radial-gradient(circle at 82% -8%,rgba(248,191,76,.23),transparent 38%),radial-gradient(circle at 12% 20%,rgba(139,93,43,.08),transparent 34%),linear-gradient(150deg,rgba(21,17,26,.995),rgba(5,7,16,.995))}
+        .evPremiumModal.futuristic{background:radial-gradient(circle at 82% -8%,rgba(245,190,82,.2),transparent 37%),radial-gradient(circle at 10% 26%,rgba(32,188,255,.12),transparent 34%),linear-gradient(150deg,rgba(8,24,37,.995),rgba(4,8,18,.995))}
         .evPremiumModalClose{position:absolute;z-index:5;top:16px;right:16px;width:38px;height:38px;border-radius:50%;border:1px solid rgba(136,202,255,.13);color:#dff6ff;background:rgba(255,255,255,.035);cursor:pointer;font-size:22px}
         .evPremiumModalClose:disabled{opacity:.35;cursor:not-allowed}
         .evPremiumModalMeta{display:flex;flex-wrap:wrap;gap:8px;padding-right:44px}
-        .evPremiumModalMeta span{padding:7px 9px;border-radius:999px;border:1px solid rgba(130,201,255,.14);color:rgba(189,226,251,.62);background:rgba(255,255,255,.025);font-size:8px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
-        .evPremiumModal h2{margin:27px 0 0;font-size:clamp(36px,7vw,60px);line-height:.95;letter-spacing:-.05em}
-        .evPremiumModal h2 strong{color:#94e4ff;font-weight:inherit}
-        .evPremiumModal h3{margin:12px 0 0;color:#cbefff;font-size:16px}
+        .evPremiumModalMeta span{padding:8px 10px;border-radius:999px;border:1px solid rgba(236,190,98,.28);color:#ffe0a5;background:rgba(144,92,21,.08);font-size:9px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+        .evPremiumModal h2{margin:28px 0 0;color:#fff7e7;font-size:clamp(48px,8vw,68px);line-height:.94;letter-spacing:-.055em;text-wrap:balance;text-shadow:0 0 28px rgba(239,184,76,.08)}
+        .evPremiumModalFrequency{display:flex;align-items:center;flex-wrap:wrap;gap:9px 12px;margin-top:16px}
+        .evPremiumModalFrequency>strong{color:#ffd77e;font-size:clamp(29px,5vw,38px);line-height:1;letter-spacing:-.04em}
+        .evPremiumModalFrequency>span:not(.evPremiumTypeBadge){color:rgba(219,231,244,.7);font-size:12px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+        .evPremiumTypeBadge{display:inline-flex;align-items:center;min-height:27px;padding:0 10px;border:1px solid rgba(237,189,93,.38);border-radius:999px;color:#ffe0a5;background:rgba(145,93,24,.1);font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
         .evPremiumModal>p{color:rgba(213,232,247,.6);line-height:1.65}
-        .evPremiumSoundProfile{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-top:22px;padding:14px 15px;border-radius:14px;border:1px solid rgba(115,190,246,.1);background:rgba(255,255,255,.022)}
+        .evPremiumSoundProfile{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-top:22px;padding:14px 15px;border-radius:14px;border:1px solid rgba(233,187,94,.18);background:linear-gradient(135deg,rgba(137,87,20,.06),rgba(255,255,255,.018))}
         .evPremiumSoundProfile span{color:rgba(202,225,244,.45);font-size:9px;text-transform:uppercase;letter-spacing:.11em}
-        .evPremiumSoundProfile strong{color:#cdefff;font-size:11px}
-        .evPremiumPreviewControls{margin-top:12px;padding:16px;border-radius:15px;border:1px solid rgba(104,194,255,.12);background:rgba(14,48,78,.14)}
+        .evPremiumSoundProfile strong{color:#ffe0aa;font-size:11px}
+        .evPremiumPreviewControls{margin-top:12px;padding:16px;border-radius:15px;border:1px solid rgba(231,185,92,.18);background:linear-gradient(135deg,rgba(119,77,22,.07),rgba(20,44,65,.1))}
         .evPreviewButton{width:100%;min-height:48px;border-radius:13px;color:#e5f8ff;border:1px solid rgba(106,204,255,.24);background:linear-gradient(135deg,rgba(48,141,202,.2),rgba(93,77,191,.18));font-size:11px;font-weight:900;letter-spacing:.07em;text-transform:uppercase}
         .evPremiumPreviewControls small{display:block;margin-top:10px;text-align:center;color:rgba(192,218,239,.42);font-size:9px}
         .evPremiumMessage,.evCheckoutMessage{margin:12px 0 0!important;padding:11px 13px;border-radius:12px;border:1px solid rgba(114,196,255,.13);background:rgba(31,91,128,.1);color:#bfe9ff!important;font-size:10px;line-height:1.55}
@@ -1281,6 +1305,7 @@ export default function V10ProductFlow() {
         .evCheckoutActions .evPremiumSecondary{margin:0}
         .evReceiptLink{display:block;margin-top:14px;text-align:center;color:#aee8ff;font-size:12px;text-decoration:none}
         @keyframes evFounderSheen{0%,65%{left:-34%;opacity:0}70%{opacity:.2}82%{opacity:.52}95%,100%{left:124%;opacity:0}}
+        @keyframes evPremiumGoldSheen{0%,68%{left:-75%;opacity:0}73%{opacity:.24}84%{opacity:.5}96%,100%{left:135%;opacity:0}}
         .evAboutCompact{padding-top:28px!important}
         .evAboutHeader{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:end}
         .evAboutHeader h2{margin:0;font-size:clamp(28px,3.5vw,46px);color:#f2f8ff}
@@ -1322,15 +1347,20 @@ export default function V10ProductFlow() {
         .evPremiumCategoryTabs{margin-right:-18px;padding-right:18px}
         .evPremiumCategoryTabs button{min-width:138px;min-height:88px;padding:13px}
         .evPremiumSignalGrid{grid-template-columns:1fr 1fr;gap:8px}
-        .evPremiumSignalCard{min-height:225px;padding:16px 14px;border-radius:17px}
-        .evPremiumSignalCard>b{font-size:27px}
+        .evPremiumSignalCard{min-height:270px;padding:16px 14px;border-radius:17px}
+        .evSignalExperienceTitle{margin-top:18px;font-size:clamp(22px,6.1vw,26px)}
+        .evPremiumSignalCard>b{font-size:22px}
+        .evPremiumSignalCard>strong{font-size:10px}
+        .evSignalType{font-size:7.5px}
+        .evPremiumSignalCard>small{font-size:9.5px;padding-bottom:36px}
         .evSignalAction{left:14px;bottom:15px;font-size:8px}
         .evPremiumLibraryNote{align-items:flex-start;flex-direction:column;gap:5px}
         .evPremiumBuilderSelection{align-items:flex-start;flex-direction:column}
         .evPremiumBuilderSelection button{width:100%}
         .evPremiumModalBackdrop{padding:10px;align-items:end}
         .evPremiumModal{max-height:calc(100dvh - 20px);padding:25px 18px 22px;border-radius:24px 24px 18px 18px}
-        .evPremiumModal h2{font-size:42px}
+        .evPremiumModal h2{font-size:46px}
+        .evPremiumModalFrequency>strong{font-size:30px}
         .evPremiumModalOffer,.evCheckoutActions{grid-template-columns:1fr}
         .evCheckoutActions .evPremiumSecondary{margin-top:0}
         .evCheckoutBackdrop{align-items:center;padding:10px;padding-top:max(10px,env(safe-area-inset-top));padding-right:max(10px,env(safe-area-inset-right));padding-bottom:max(10px,env(safe-area-inset-bottom));padding-left:max(10px,env(safe-area-inset-left))}
@@ -1370,7 +1400,7 @@ export default function V10ProductFlow() {
         .evCheckoutPrice strong{font-size:36px}
         .evCheckoutForm,.evRestorePanel,.evPremiumSuccess{padding-left:20px;padding-right:20px}
         .evPayButton{font-size:12.8px!important;letter-spacing:.025em}}
-        @media(prefers-reduced-motion:reduce){.evCheckoutBenefitCard{transition:none}.evPayButton:not(:disabled):after{animation:none;display:none}}
+        @media(prefers-reduced-motion:reduce){.evCheckoutBenefitCard{transition:none}.evPayButton:not(:disabled):after,.evPremiumSignalCard.premium:before{animation:none;display:none}}
       `}</style>
     </>
   );

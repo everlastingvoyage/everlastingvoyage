@@ -99,16 +99,20 @@ export const premiumAudioRecipes: Record<string, PremiumAudioRecipe> = {
     preview: { representativeEventAtSeconds: 5.4, fadeInSeconds: 0.55 }
   },
   'alpha-12': {
-    id: 'alpha-12', category: 'study', title: 'Active Learning', soundIdentity: 'Luminous learning chamber',
-    recommendedUse: 'Active review, note-taking and energized learning.',
-    core: { type: 'binaural', targetDifferenceHz: 12, leftCarrierHz: 260, rightCarrierHz: 272, waveform: 'sine', gain: 0.52 },
+    id: 'alpha-12', category: 'study', title: 'Memory Retention', soundIdentity: 'Luminous learning atmosphere',
+    recommendedUse: 'A luminous study environment for focused review and information retention.',
+    core: { type: 'binaural', targetDifferenceHz: 12, leftCarrierHz: 256, rightCarrierHz: 268, waveform: 'sine', gain: 0.5 },
     stems: [
-      { id: 'luminous-pad', role: 'pad', gain: 0.07, rootHz: 130, waveform: 'triangle', intervals: [0, 4, 7, 11], detuneCents: [-5, 4], cutoffHz: 2400, movementHz: 0.045 },
-      { id: 'quiet-study-room', role: 'sample', gain: 0.022, assetPath: '/audio/ambience/cafe-quiet-loop.m4a', startOffsetSeconds: 11 }
+      { id: 'memory-luminous-pad', role: 'pad', gain: 0.15, rootHz: 196, waveform: 'sine', intervals: [0, 4, 7, 11], detuneCents: [-8, 0, 6], cutoffHz: 3300, movementHz: 0.022 },
+      { id: 'memory-glass-halo', role: 'glass', gain: 0.066, rootHz: 392, waveform: 'sine', intervals: [0, 7, 12, 16], detuneCents: [-5, 5], cutoffHz: 5200, movementHz: 0.07 },
+      { id: 'memory-study-air', role: 'sample', gain: 0.038, assetPath: '/audio/ambience/cafe-quiet-loop.m4a', startOffsetSeconds: 11 }
     ],
-    events: [{ id: 'learning-motif', role: 'motif', minIntervalSeconds: 14, maxIntervalSeconds: 28, probability: 0.7, gainMin: 0.014, gainMax: 0.024, panMin: -0.25, panMax: 0.25, frequenciesHz: [520, 650, 780, 650], durationSeconds: 3.4 }],
-    processing: { highpassHz: 42, lowpassHz: 5200, compressorThreshold: -22, compressorRatio: 3, stereoWidth: 0.62 },
-    preview: { representativeEventAtSeconds: 4.8, fadeInSeconds: 0.48 }
+    events: [
+      { id: 'memory-motif', role: 'motif', minIntervalSeconds: 15, maxIntervalSeconds: 30, probability: 0.78, gainMin: 0.024, gainMax: 0.038, panMin: -0.28, panMax: 0.28, frequenciesHz: [784, 988, 1176, 988], durationSeconds: 4.2 },
+      { id: 'memory-crystal', role: 'crystal', minIntervalSeconds: 22, maxIntervalSeconds: 42, probability: 0.56, gainMin: 0.018, gainMax: 0.03, panMin: -0.5, panMax: 0.5, frequenciesHz: [1568, 1976, 2352], durationSeconds: 2.4 }
+    ],
+    processing: { highpassHz: 40, lowpassHz: 6200, compressorThreshold: -23, compressorRatio: 3.1, stereoWidth: 0.76 },
+    preview: { representativeEventAtSeconds: 3.6, fadeInSeconds: 0.38 }
   },
   'smr-14': {
     id: 'smr-14', category: 'study', title: 'Steady Attention', soundIdentity: 'Structured attention pulse',
@@ -124,17 +128,20 @@ export const premiumAudioRecipes: Record<string, PremiumAudioRecipe> = {
     preview: { fadeInSeconds: 0.45 }
   },
   'beta-18': {
-    id: 'beta-18', category: 'study', title: 'Mental Drive', soundIdentity: 'Energetic neural drive',
-    recommendedUse: 'Demanding study blocks and higher-energy review.',
-    core: { type: 'binaural', targetDifferenceHz: 18, leftCarrierHz: 320, rightCarrierHz: 338, waveform: 'sine', gain: 0.5 },
+    id: 'beta-18', category: 'study', title: 'Focused Drive', soundIdentity: 'Momentum focus environment',
+    recommendedUse: 'A forward-moving focus environment for productive work and active study.',
+    core: { type: 'binaural', targetDifferenceHz: 18, leftCarrierHz: 186, rightCarrierHz: 204, waveform: 'sine', gain: 0.53 },
     stems: [
-      { id: 'drive-bed', role: 'pad', gain: 0.075, rootHz: 80, waveform: 'sawtooth', intervals: [0, 7, 12], detuneCents: [-6, 6], cutoffHz: 1250, movementHz: 0.055 },
-      { id: 'drive-pulse', role: 'pulse', gain: 0.038, rootHz: 160, waveform: 'triangle', pulseHz: 0.78, pulseDepth: 0.72, cutoffHz: 1900 },
-      { id: 'cabin-tech', role: 'sample', gain: 0.025, assetPath: '/audio/ambience/cabin-hum-loop.m4a', startOffsetSeconds: 17 }
+      { id: 'drive-warm-tech-pad', role: 'pad', gain: 0.115, rootHz: 93, waveform: 'triangle', intervals: [0, 2, 7, 12], detuneCents: [-6, 5], cutoffHz: 2100, movementHz: 0.038 },
+      { id: 'drive-forward-pulse', role: 'pulse', gain: 0.052, rootHz: 186, waveform: 'triangle', pulseHz: 0.72, pulseDepth: 0.58, cutoffHz: 2300 },
+      { id: 'drive-air', role: 'noise', gain: 0.022, noiseColor: 'pink', cutoffHz: 1700, movementHz: 0.045 }
     ],
-    events: [{ id: 'digital-accent', role: 'crystal', minIntervalSeconds: 13, maxIntervalSeconds: 25, probability: 0.58, gainMin: 0.012, gainMax: 0.022, panMin: -0.5, panMax: 0.5, frequenciesHz: [1280, 1600, 1920], durationSeconds: 1.5 }],
-    processing: { highpassHz: 34, lowpassHz: 4800, compressorThreshold: -23, compressorRatio: 3.6, stereoWidth: 0.7 },
-    preview: { representativeEventAtSeconds: 6.1, fadeInSeconds: 0.42 }
+    events: [
+      { id: 'drive-motif', role: 'motif', minIntervalSeconds: 14, maxIntervalSeconds: 27, probability: 0.7, gainMin: 0.02, gainMax: 0.032, panMin: -0.3, panMax: 0.3, frequenciesHz: [372, 465, 558, 465], durationSeconds: 3.2 },
+      { id: 'drive-swell', role: 'swell', minIntervalSeconds: 20, maxIntervalSeconds: 38, probability: 0.5, gainMin: 0.014, gainMax: 0.024, panMin: -0.24, panMax: 0.24, frequenciesHz: [186, 279, 372], durationSeconds: 4.6 }
+    ],
+    processing: { highpassHz: 32, lowpassHz: 5000, compressorThreshold: -23, compressorRatio: 3.4, stereoWidth: 0.58 },
+    preview: { representativeEventAtSeconds: 5.2, fadeInSeconds: 0.36 }
   },
   'beta-15': {
     id: 'beta-15', category: 'work', title: 'Focus Mode', soundIdentity: 'Dry precision field',
@@ -146,17 +153,21 @@ export const premiumAudioRecipes: Record<string, PremiumAudioRecipe> = {
     preview: { fadeInSeconds: 0.35 }
   },
   'beta-20': {
-    id: 'beta-20', category: 'work', title: 'High Attention', soundIdentity: 'Futuristic digital chamber',
-    recommendedUse: 'Fast execution and sustained high-attention work.',
-    core: { type: 'binaural', targetDifferenceHz: 20, leftCarrierHz: 240, rightCarrierHz: 260, waveform: 'sine', gain: 0.5 },
+    id: 'beta-20', category: 'work', title: 'Peak Attention', soundIdentity: 'Futuristic attention space',
+    recommendedUse: 'A bright futuristic focus environment built for high-attention sessions.',
+    core: { type: 'binaural', targetDifferenceHz: 20, leftCarrierHz: 300, rightCarrierHz: 320, waveform: 'sine', gain: 0.48 },
     stems: [
-      { id: 'digital-pad', role: 'pad', gain: 0.075, rootHz: 60, waveform: 'sawtooth', intervals: [0, 7, 14], detuneCents: [-8, 8], cutoffHz: 1450, movementHz: 0.05 },
-      { id: 'digital-pulse', role: 'pulse', gain: 0.035, rootHz: 180, waveform: 'triangle', pulseHz: 0.54, pulseDepth: 0.78, cutoffHz: 2200 },
-      { id: 'night-flight-bed', role: 'sample', gain: 0.025, assetPath: '/audio/ambience/airplane-night-loop.m4a', startOffsetSeconds: 23 }
+      { id: 'peak-attention-pad', role: 'pad', gain: 0.16, rootHz: 75, waveform: 'triangle', intervals: [0, 7, 11, 14], detuneCents: [-10, -2, 7], cutoffHz: 3000, movementHz: 0.06 },
+      { id: 'peak-attention-glass', role: 'glass', gain: 0.07, rootHz: 600, waveform: 'sine', intervals: [0, 5, 12, 19], detuneCents: [-6, 6], cutoffHz: 6200, movementHz: 0.095 },
+      { id: 'peak-attention-pulse', role: 'pulse', gain: 0.055, rootHz: 225, waveform: 'sine', pulseHz: 0.52, pulseDepth: 0.7, cutoffHz: 3200 },
+      { id: 'peak-attention-air', role: 'noise', gain: 0.018, noiseColor: 'white', cutoffHz: 2400, movementHz: 0.052 }
     ],
-    events: [{ id: 'scan-accent', role: 'crystal', minIntervalSeconds: 12, maxIntervalSeconds: 26, probability: 0.62, gainMin: 0.012, gainMax: 0.022, panMin: -0.65, panMax: 0.65, frequenciesHz: [900, 1200, 1500], durationSeconds: 1.7 }],
-    processing: { highpassHz: 32, lowpassHz: 4600, compressorThreshold: -22, compressorRatio: 3.8, stereoWidth: 0.78 },
-    preview: { representativeEventAtSeconds: 5.1, fadeInSeconds: 0.4 }
+    events: [
+      { id: 'peak-crystal', role: 'crystal', minIntervalSeconds: 12, maxIntervalSeconds: 25, probability: 0.76, gainMin: 0.026, gainMax: 0.042, panMin: -0.68, panMax: 0.68, frequenciesHz: [1200, 1500, 1800], durationSeconds: 2.1 },
+      { id: 'peak-sequence', role: 'motif', minIntervalSeconds: 18, maxIntervalSeconds: 34, probability: 0.64, gainMin: 0.018, gainMax: 0.03, panMin: -0.42, panMax: 0.42, frequenciesHz: [450, 600, 750, 900], durationSeconds: 3.6 }
+    ],
+    processing: { highpassHz: 38, lowpassHz: 6500, compressorThreshold: -22, compressorRatio: 3.6, stereoWidth: 0.9 },
+    preview: { representativeEventAtSeconds: 3.9, fadeInSeconds: 0.32 }
   },
   'gamma-30': {
     id: 'gamma-30', category: 'work', title: 'Creative Flow', soundIdentity: 'Expansive creative field',
@@ -171,17 +182,18 @@ export const premiumAudioRecipes: Record<string, PremiumAudioRecipe> = {
     preview: { representativeEventAtSeconds: 4.6, fadeInSeconds: 0.5 }
   },
   'gamma-35': {
-    id: 'gamma-35', category: 'work', title: 'Deep Execution', soundIdentity: 'Dark execution engine',
-    recommendedUse: 'Long concentrated execution with a darker technological atmosphere.',
-    core: { type: 'binaural', targetDifferenceHz: 35, leftCarrierHz: 315, rightCarrierHz: 350, waveform: 'sine', gain: 0.48 },
+    id: 'gamma-35', category: 'work', title: 'Peak Focus', soundIdentity: 'Elevated Gamma atmosphere',
+    recommendedUse: 'A polished Gamma experience for clear, sustained high-performance focus.',
+    core: { type: 'binaural', targetDifferenceHz: 35, leftCarrierHz: 280, rightCarrierHz: 315, waveform: 'sine', gain: 0.49 },
     stems: [
-      { id: 'execution-drone', role: 'drone', gain: 0.08, rootHz: 52.5, waveform: 'sawtooth', intervals: [0, 7, 12], detuneCents: [-5, 5], cutoffHz: 820, movementHz: 0.022 },
-      { id: 'execution-pulse', role: 'pulse', gain: 0.034, rootHz: 105, waveform: 'square', pulseHz: 0.33, pulseDepth: 0.6, cutoffHz: 900 },
-      { id: 'cabin-engine', role: 'sample', gain: 0.03, assetPath: '/audio/ambience/cabin-hum-loop.m4a', startOffsetSeconds: 8 }
+      { id: 'peak-focus-pad', role: 'pad', gain: 0.125, rootHz: 140, waveform: 'sine', intervals: [0, 4, 7, 14], detuneCents: [-5, 4], cutoffHz: 3600, movementHz: 0.028 },
+      { id: 'peak-focus-drone', role: 'drone', gain: 0.052, rootHz: 70, waveform: 'sine', intervals: [0, 12, 19], detuneCents: [-3, 3], cutoffHz: 1500, movementHz: 0.016 },
+      { id: 'peak-focus-glass', role: 'glass', gain: 0.042, rootHz: 420, waveform: 'sine', intervals: [0, 7, 12], detuneCents: [-4, 5], cutoffHz: 5200, movementHz: 0.05 },
+      { id: 'peak-focus-pulse', role: 'pulse', gain: 0.026, rootHz: 210, waveform: 'triangle', pulseHz: 0.28, pulseDepth: 0.42, cutoffHz: 2600 }
     ],
-    events: [{ id: 'execution-swell', role: 'swell', minIntervalSeconds: 18, maxIntervalSeconds: 38, probability: 0.62, gainMin: 0.012, gainMax: 0.022, panMin: -0.3, panMax: 0.3, frequenciesHz: [210, 315], durationSeconds: 4.8 }],
-    processing: { highpassHz: 20, lowpassHz: 3100, compressorThreshold: -24, compressorRatio: 4, stereoWidth: 0.58 },
-    preview: { representativeEventAtSeconds: 7.2, fadeInSeconds: 0.55 }
+    events: [{ id: 'peak-focus-swell', role: 'swell', minIntervalSeconds: 17, maxIntervalSeconds: 34, probability: 0.64, gainMin: 0.018, gainMax: 0.03, panMin: -0.3, panMax: 0.3, frequenciesHz: [420, 560, 700], durationSeconds: 4.8 }],
+    processing: { highpassHz: 28, lowpassHz: 5600, compressorThreshold: -23, compressorRatio: 3.4, stereoWidth: 0.72 },
+    preview: { representativeEventAtSeconds: 5.8, fadeInSeconds: 0.4 }
   },
   'theta-5': {
     id: 'theta-5', category: 'meditation', title: 'Inner Stillness', soundIdentity: 'Warm inward drone',

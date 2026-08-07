@@ -112,10 +112,10 @@ const signals: Record<SignalId, SignalDefinition> = {
     premium: true, soundProfile: 'clean', leftHz: 180, rightHz: 188
   },
   'alpha-12': {
-    id: 'alpha-12', themeId: 'alpha', frequency: 'Alpha', hz: '12 Hz', state: 'Active Learning',
-    purpose: 'A brighter Alpha experience for active learning and review.',
-    technical: 'Left 180 Hz · Right 192 Hz · 12 Hz difference', note: 'Headphones recommended · Premium',
-    premium: true, soundProfile: 'clean', leftHz: 180, rightHz: 192
+    id: 'alpha-12', themeId: 'alpha', frequency: 'Alpha', hz: '12 Hz', state: 'Memory Retention',
+    purpose: 'A luminous study environment for focused review and information retention.',
+    technical: 'Left 256 Hz · Right 268 Hz · 12 Hz difference', note: 'Headphones recommended · Premium',
+    premium: true, soundProfile: 'focus', leftHz: 256, rightHz: 268
   },
   'smr-14': {
     id: 'smr-14', themeId: 'alpha', frequency: 'SMR', hz: '14 Hz', state: 'Steady Attention',
@@ -124,10 +124,10 @@ const signals: Record<SignalId, SignalDefinition> = {
     premium: true, soundProfile: 'focus', leftHz: 180, rightHz: 194
   },
   'beta-18': {
-    id: 'beta-18', themeId: 'alpha', frequency: 'Beta', hz: '18 Hz', state: 'Mental Drive',
-    purpose: 'A more active focus experience for demanding study blocks.',
-    technical: 'Left 180 Hz · Right 198 Hz · 18 Hz difference', note: 'Headphones recommended · Premium',
-    premium: true, soundProfile: 'focus', leftHz: 180, rightHz: 198
+    id: 'beta-18', themeId: 'alpha', frequency: 'Beta', hz: '18 Hz', state: 'Focused Drive',
+    purpose: 'A forward-moving focus environment for productive work and active study.',
+    technical: 'Left 186 Hz · Right 204 Hz · 18 Hz difference', note: 'Headphones recommended · Premium',
+    premium: true, soundProfile: 'focus', leftHz: 186, rightHz: 204
   },
   'beta-15': {
     id: 'beta-15', themeId: 'gamma', frequency: 'Beta', hz: '15 Hz', state: 'Focus Mode',
@@ -136,10 +136,10 @@ const signals: Record<SignalId, SignalDefinition> = {
     premium: true, soundProfile: 'clean', leftHz: 200, rightHz: 215
   },
   'beta-20': {
-    id: 'beta-20', themeId: 'gamma', frequency: 'Beta', hz: '20 Hz', state: 'High Attention',
-    purpose: 'An active focus signal with a subtle futuristic pulse.',
-    technical: 'Left 200 Hz · Right 220 Hz · 20 Hz difference', note: 'Headphones recommended · Premium',
-    premium: true, soundProfile: 'futuristic', leftHz: 200, rightHz: 220
+    id: 'beta-20', themeId: 'gamma', frequency: 'Beta', hz: '20 Hz', state: 'Peak Attention',
+    purpose: 'A bright futuristic focus environment built for high-attention sessions.',
+    technical: 'Left 300 Hz · Right 320 Hz · 20 Hz difference', note: 'Headphones recommended · Premium',
+    premium: true, soundProfile: 'futuristic', leftHz: 300, rightHz: 320
   },
   'gamma-30': {
     id: 'gamma-30', themeId: 'gamma', frequency: 'Gamma', hz: '30 Hz', state: 'Creative Flow',
@@ -148,10 +148,10 @@ const signals: Record<SignalId, SignalDefinition> = {
     premium: true, soundProfile: 'futuristic', leftHz: 200, rightHz: 230
   },
   'gamma-35': {
-    id: 'gamma-35', themeId: 'gamma', frequency: 'Gamma', hz: '35 Hz', state: 'Deep Execution',
-    purpose: 'A deeper sci-fi productivity atmosphere for concentrated execution.',
-    technical: 'Left 200 Hz · Right 235 Hz · 35 Hz difference', note: 'Headphones recommended · Premium',
-    premium: true, soundProfile: 'futuristic', leftHz: 200, rightHz: 235
+    id: 'gamma-35', themeId: 'gamma', frequency: 'Gamma', hz: '35 Hz', state: 'Peak Focus',
+    purpose: 'A polished Gamma experience for clear, sustained high-performance focus.',
+    technical: 'Left 280 Hz · Right 315 Hz · 35 Hz difference', note: 'Headphones recommended · Premium',
+    premium: true, soundProfile: 'futuristic', leftHz: 280, rightHz: 315
   },
   'theta-5': {
     id: 'theta-5', themeId: 'theta', frequency: 'Theta', hz: '5 Hz', state: 'Inner Stillness',
