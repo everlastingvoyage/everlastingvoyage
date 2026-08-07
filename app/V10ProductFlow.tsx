@@ -286,6 +286,7 @@ export default function V10ProductFlow() {
   const founderPriceLabel = checkoutConfig?.displayPriceUsd || 'US$9.99';
   const founderOfferOpen = checkoutConfig?.founderAvailable !== false;
   const founderChargeLabel = checkoutConfig?.chargePriceCad || formatCadCents(checkoutConfig?.chargeCadCents ?? null);
+  const founderChargeActionLabel = checkoutConfig?.chargePriceCad ? founderChargeLabel.replace(/\s+CAD$/i, '') : '';
 
   const stopPreview = useCallback(() => {
     audioCleanupRef.current?.();
@@ -736,6 +737,64 @@ export default function V10ProductFlow() {
   }, [checkoutConfig, checkoutOpen, checkoutStatus, destroySquareCard, premiumState]);
 
   useEffect(() => {
+    const overlayOpen = checkoutOpen || Boolean(previewSignal);
+    if (!overlayOpen) return;
+
+    const body = document.body;
+    const html = document.documentElement;
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
+    const bodySnapshot = {
+      position: body.style.position,
+      top: body.style.top,
+      left: body.style.left,
+      right: body.style.right,
+      width: body.style.width,
+      overflow: body.style.overflow,
+      overscrollBehavior: body.style.overscrollBehavior,
+      paddingRight: body.style.paddingRight
+    };
+    const htmlSnapshot = {
+      overflow: html.style.overflow,
+      overscrollBehavior: html.style.overscrollBehavior,
+      scrollBehavior: html.style.scrollBehavior
+    };
+    const scrollbarGap = Math.max(0, window.innerWidth - html.clientWidth);
+    const currentPaddingRight = Number.parseFloat(window.getComputedStyle(body).paddingRight) || 0;
+
+    body.classList.add('ev-modal-open');
+    html.classList.add('ev-modal-open');
+    body.style.position = 'fixed';
+    body.style.top = `-${scrollY}px`;
+    body.style.left = `-${scrollX}px`;
+    body.style.right = '0';
+    body.style.width = '100%';
+    body.style.overflow = 'hidden';
+    body.style.overscrollBehavior = 'none';
+    if (scrollbarGap > 0) body.style.paddingRight = `${currentPaddingRight + scrollbarGap}px`;
+    html.style.overflow = 'hidden';
+    html.style.overscrollBehavior = 'none';
+
+    return () => {
+      body.classList.remove('ev-modal-open');
+      html.classList.remove('ev-modal-open');
+      body.style.position = bodySnapshot.position;
+      body.style.top = bodySnapshot.top;
+      body.style.left = bodySnapshot.left;
+      body.style.right = bodySnapshot.right;
+      body.style.width = bodySnapshot.width;
+      body.style.overflow = bodySnapshot.overflow;
+      body.style.overscrollBehavior = bodySnapshot.overscrollBehavior;
+      body.style.paddingRight = bodySnapshot.paddingRight;
+      html.style.overflow = htmlSnapshot.overflow;
+      html.style.overscrollBehavior = htmlSnapshot.overscrollBehavior;
+      html.style.scrollBehavior = 'auto';
+      window.scrollTo(scrollX, scrollY);
+      html.style.scrollBehavior = htmlSnapshot.scrollBehavior;
+    };
+  }, [checkoutOpen, previewSignal]);
+
+  useEffect(() => {
     document.body.classList.toggle('ev-product-route', active);
     if (!active) return () => document.body.classList.remove('ev-product-route');
 
@@ -975,30 +1034,47 @@ export default function V10ProductFlow() {
               </div>
             ) : (
               <div className="evCheckoutForm">
-                <p className="evCheckoutEyebrow">Everlasting Voyage Premium</p>
-                <h2 id="ev-checkout-title">Founding Member</h2>
-                <div className="evCheckoutPrice"><strong>{founderPriceLabel}</strong><span>one time · lifetime Premium</span></div>
-                <div className="evCheckoutCurrency">
-                  <span>Square charge</span><strong>{founderChargeLabel}</strong>
-                  <small>{checkoutConfig?.chargePriceCad ? 'Your card will be charged this exact amount in Canadian dollars.' : 'Payment is disabled until the exact CAD charge is configured.'}</small>
+                <div className="evCheckoutIntro">
+                  <p className="evCheckoutEyebrow">Everlasting Voyage Premium</p>
+                  <h2 id="ev-checkout-title">Founding Member</h2>
+                  <div className="evCheckoutPrice"><strong>{founderPriceLabel}</strong><span>One payment · Lifetime Premium</span></div>
                 </div>
-                <div className="evCheckoutBenefits"><span>20 Premium signals</span><span>5 collections</span><span>Premium soundscapes</span><span>Unlimited Voyages</span><span>No ads</span></div>
+
+                <section className="evCheckoutValue" aria-labelledby="ev-checkout-benefits-title">
+                  <h3 id="ev-checkout-benefits-title">Everything you unlock</h3>
+                  <div className="evCheckoutBenefitGrid">
+                    <article className="evCheckoutBenefitCard evBenefitCyan"><span className="evCheckoutBenefitIcon" aria-hidden="true">◉</span><div><strong>20 Premium Signals</strong><p>Explore deeper frequencies across Study, Deep Work, Meditation, Sleep and Ritual.</p></div></article>
+                    <article className="evCheckoutBenefitCard evBenefitViolet"><span className="evCheckoutBenefitIcon" aria-hidden="true">✦</span><div><strong>Premium Soundscapes</strong><p>Immersive focus, meditation, sleep and ritual listening environments.</p></div></article>
+                    <article className="evCheckoutBenefitCard evBenefitAqua"><span className="evCheckoutBenefitIcon" aria-hidden="true">∞</span><div><strong>Unlimited Voyages</strong><p>Enter whenever you want. No session limits.</p></div></article>
+                    <article className="evCheckoutBenefitCard evBenefitGold"><span className="evCheckoutBenefitIcon" aria-hidden="true">◇</span><div><strong>Lifetime Founder Access</strong><p>One payment. Premium stays unlocked as a Founding Member.</p></div></article>
+                  </div>
+                  <p className="evCheckoutBenefitMeta"><span>5 collections</span><span>No ads</span><span>No account required</span></p>
+                </section>
+
+                <div className="evFounderPromise"><span aria-hidden="true">∞</span><p><strong>Founder price.</strong> One payment. Yours for life.</p></div>
+
+                <div className="evCheckoutCurrency">
+                  <span>You’ll be charged</span>
+                  <strong>{checkoutConfig?.chargePriceCad ? founderChargeLabel : 'Checkout unavailable'}</strong>
+                  <small>{checkoutConfig?.chargePriceCad ? 'Processed securely by Square in Canadian dollars.' : 'Premium checkout is temporarily unavailable. Please try again shortly.'}</small>
+                </div>
 
                 {!checkoutConfig ? (
-                  <div className="evCheckoutNotReady"><strong>Loading secure checkout…</strong><p>Everlasting Voyage is checking the Square payment configuration.</p></div>
+                  <div className="evCheckoutNotReady"><strong>Loading secure checkout…</strong><p>Everlasting Voyage is preparing the secure Square payment form.</p></div>
                 ) : !checkoutConfig.founderAvailable ? (
                   <p className="evCheckoutMessage">Founding Member access has ended.</p>
                 ) : !checkoutConfig.checkoutReady ? (
-                  <div className="evCheckoutNotReady"><strong>Secure checkout is being configured.</strong><p>No card can be charged until the Square Sandbox credentials, entitlement secret, and exact CAD amount are configured on the server.</p></div>
+                  <div className="evCheckoutNotReady"><strong>Premium checkout is temporarily unavailable.</strong><p>Please try again shortly. No card can be charged while checkout is unavailable.</p></div>
                 ) : (
                   <>
-                    <div className="evSquareSecureLabel"><span>Secure card payment</span><strong>Square</strong></div>
+                    <div className="evSquareSecureLabel"><span>Secure checkout</span><strong>Square</strong></div>
                     <div id="ev-square-card" className={`evSquareCard ${cardReady ? 'ready' : ''}`} aria-label="Secure Square card form" />
                   </>
                 )}
 
                 {checkoutMessage ? <p className="evCheckoutMessage" role="status">{checkoutMessage}</p> : null}
-                <button type="button" className="evPremiumPrimary evPayButton" disabled={!cardReady || checkoutStatus === 'processing' || !checkoutConfig?.checkoutReady} onClick={processPayment}>{checkoutStatus === 'processing' ? 'Processing…' : `Pay ${founderChargeLabel} securely`}</button>
+                <button type="button" className="evPremiumPrimary evPayButton" disabled={!cardReady || checkoutStatus === 'processing' || !checkoutConfig?.checkoutReady} onClick={processPayment}>{checkoutStatus === 'processing' ? 'Processing…' : checkoutConfig?.chargePriceCad ? `Unlock lifetime Premium — ${founderChargeActionLabel}` : 'Premium checkout temporarily unavailable'}</button>
+                <p className="evSquareTrust">Secure payment processed by Square</p>
                 <p className="evCheckoutFinePrint">Founder access is available through {checkoutConfig?.founderEndsLabel || 'August 31, 2026'}. The free Everlasting Voyage experience remains available regardless of purchase.</p>
                 <button type="button" className="evRestoreInline" onClick={() => { setCheckoutStatus('restore'); setCheckoutMessage(''); }}>Already a Founder? Restore access</button>
               </div>
@@ -1071,7 +1147,7 @@ export default function V10ProductFlow() {
         .ev-premium-builder-selected #session-builder .signalBadge{opacity:.35}
         .ev-premium-builder-selected #session-builder .stateChoice.active .selectionMark{opacity:0!important}
         .ev-premium-builder-selected #session-builder .stateChoice.active{filter:saturate(.6);opacity:.7}
-        .evPremiumModalBackdrop{position:fixed;inset:0;z-index:1700;display:grid;place-items:center;padding:18px;background:rgba(0,4,13,.76);backdrop-filter:blur(15px)}
+        .evPremiumModalBackdrop{position:fixed;inset:0;z-index:1700;display:grid;place-items:center;padding:18px;overflow:hidden;overscroll-behavior:none;background:rgba(0,4,13,.76);backdrop-filter:blur(15px)}
         .evPremiumModal{position:relative;width:min(560px,100%);max-height:min(760px,calc(100dvh - 36px));overflow:auto;padding:clamp(24px,4vw,38px);border-radius:27px;border:1px solid rgba(116,197,255,.2);color:#eef9ff;background:radial-gradient(circle at 80% -10%,rgba(77,94,255,.18),transparent 35%),linear-gradient(150deg,rgba(7,24,48,.99),rgba(3,8,20,.99));box-shadow:0 34px 110px rgba(0,0,0,.56)}
         .evPremiumModal.ritual{background:radial-gradient(circle at 80% -10%,rgba(150,93,255,.22),transparent 38%),linear-gradient(150deg,rgba(17,16,47,.99),rgba(4,7,19,.99))}
         .evPremiumModal.futuristic{background:radial-gradient(circle at 80% -10%,rgba(24,194,255,.2),transparent 38%),linear-gradient(150deg,rgba(5,28,48,.99),rgba(3,8,20,.99))}
@@ -1094,38 +1170,72 @@ export default function V10ProductFlow() {
         .evPremiumModalOffer>div span,.evPremiumModalOffer>div small{display:block;color:rgba(202,224,242,.46);font-size:9px}
         .evPremiumModalOffer>div strong{display:block;margin:2px 0;font-size:28px;letter-spacing:-.04em}
         .evContinueFree{display:block;margin:14px auto 0;border:0;color:rgba(201,224,241,.5);background:transparent;cursor:pointer;font-size:10px;text-decoration:underline;text-underline-offset:3px}
-        .evCheckoutModal{position:relative;width:min(590px,100%);max-height:calc(100dvh - 36px);overflow:auto;border-radius:28px;border:1px solid rgba(179,142,255,.27);padding:clamp(24px,4vw,38px);color:#eef9ff;background:radial-gradient(circle at 80% 0%,rgba(147,83,255,.2),transparent 34%),linear-gradient(155deg,rgba(8,21,43,.995),rgba(6,7,20,.995));box-shadow:0 38px 120px rgba(0,0,0,.62)}
-        .evCheckoutEyebrow{margin:0;color:#ffd99a;font-size:9px;font-weight:900;letter-spacing:.14em;text-transform:uppercase}
-        .evCheckoutForm h2,.evRestorePanel h2,.evPremiumSuccess h2{margin:12px 0 0;color:#f8fbff;font-size:clamp(38px,8vw,58px);line-height:.96;letter-spacing:-.05em}
-        .evCheckoutPrice{display:flex;align-items:end;gap:12px;margin-top:20px}
-        .evCheckoutPrice strong{font-size:32px;letter-spacing:-.04em}
-        .evCheckoutPrice span{padding-bottom:5px;color:rgba(220,232,246,.55);font-size:10px}
-        .evCheckoutCurrency{margin-top:14px;padding:13px 14px;border:1px solid rgba(235,190,111,.18);border-radius:14px;background:rgba(119,74,32,.08)}
-        .evCheckoutCurrency span,.evCheckoutCurrency small{display:block;color:rgba(221,225,239,.55);font-size:9px}
-        .evCheckoutCurrency strong{display:block;margin:3px 0;color:#ffd99a;font-size:15px}
-        .evCheckoutBenefits,.evSuccessBenefits{display:flex;flex-wrap:wrap;gap:7px;margin:16px 0}
-        .evCheckoutBenefits span,.evSuccessBenefits span{padding:7px 9px;border-radius:999px;border:1px solid rgba(133,192,241,.11);background:rgba(255,255,255,.023);color:rgba(218,235,249,.74);font-size:9px}
-        .evSquareSecureLabel{display:flex;justify-content:space-between;align-items:center;margin-top:20px;color:rgba(211,231,247,.6);font-size:10px}
-        .evSquareSecureLabel strong{color:#fff}
-        .evSquareCard{min-height:92px;margin-top:8px;padding:12px;border:1px solid rgba(116,191,244,.15);border-radius:15px;background:rgba(255,255,255,.025)}
-        .evSquareCard.ready{border-color:rgba(119,207,255,.26)}
-        .evPayButton{width:100%;margin-top:16px}
-        .evCheckoutFinePrint{margin:12px 0 0;color:rgba(205,224,240,.43);font-size:9px;line-height:1.55}
-        .evCheckoutNotReady{margin-top:18px;padding:16px;border-radius:15px;border:1px solid rgba(239,183,100,.18);background:rgba(119,75,27,.08)}
-        .evCheckoutNotReady strong{color:#ffd99a;font-size:12px}
-        .evCheckoutNotReady p{margin:6px 0 0;color:rgba(218,229,242,.6);font-size:10px;line-height:1.55}
-        .evRestorePanel>p,.evPremiumSuccess>h3{color:rgba(218,232,246,.62);line-height:1.6}
-        .evRestorePanel textarea,.evRecoveryBox textarea{width:100%;min-height:120px;resize:vertical;margin-top:14px;padding:13px;border:1px solid rgba(122,191,244,.16);border-radius:13px;color:#dff5ff;background:rgba(2,10,24,.62);font:500 10px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;outline:none}
-        .evRestorePanel>.evPremiumPrimary{width:100%;margin-top:14px}
-        .evSuccessMark{display:grid;place-items:center;width:58px;height:58px;margin-bottom:18px;border-radius:50%;border:1px solid rgba(235,190,111,.3);color:#ffd99a;background:linear-gradient(135deg,rgba(137,83,255,.16),rgba(160,105,42,.15));font-size:30px}
-        .evPremiumSuccess h3{margin:8px 0 0;font-size:15px}
-        .evRecoveryBox{margin-top:20px;padding:16px;border:1px solid rgba(176,139,255,.17);border-radius:16px;background:rgba(255,255,255,.025)}
-        .evRecoveryBox strong{color:#ffe0aa;font-size:12px}
-        .evRecoveryBox p{margin:6px 0 0;color:rgba(215,229,243,.55);font-size:9px;line-height:1.5}
+        .evCheckoutBackdrop{align-items:center;padding:18px}
+        .evCheckoutModal{position:relative;isolation:isolate;display:flex;flex-direction:column;width:min(740px,calc(100vw - 36px));max-height:min(900px,calc(100dvh - 36px));overflow:hidden;border-radius:30px;border:1px solid rgba(179,142,255,.32);color:#eef9ff;background:radial-gradient(circle at 82% -3%,rgba(144,76,255,.24),transparent 34%),radial-gradient(circle at 4% 22%,rgba(47,184,255,.1),transparent 30%),linear-gradient(155deg,rgba(8,21,43,.997),rgba(6,7,20,.997));box-shadow:0 42px 140px rgba(0,0,0,.68),inset 0 1px 0 rgba(255,255,255,.035)}
+        .evCheckoutForm,.evRestorePanel,.evPremiumSuccess{min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:38px 42px 36px;scrollbar-width:none}
+        .evCheckoutForm::-webkit-scrollbar,.evRestorePanel::-webkit-scrollbar,.evPremiumSuccess::-webkit-scrollbar{width:0;height:0}
+        .evCheckoutModal .evPremiumModalClose{top:18px;right:18px;width:44px;height:44px;border-color:rgba(153,205,255,.2);background:rgba(14,26,51,.72);box-shadow:0 8px 28px rgba(0,0,0,.25);backdrop-filter:blur(10px);font-size:24px}
+        .evCheckoutEyebrow{margin:0;color:#ffdda2;font-size:12px;font-weight:900;letter-spacing:.14em;text-transform:uppercase}
+        .evCheckoutForm h2,.evRestorePanel h2,.evPremiumSuccess h2{margin:11px 0 0;color:#f8fbff;font-size:clamp(54px,6vw,60px);line-height:.96;letter-spacing:-.05em}
+        .evCheckoutPrice{display:flex;align-items:end;gap:14px;margin-top:18px}
+        .evCheckoutPrice strong{color:#fff;font-size:42px;line-height:1;letter-spacing:-.045em}
+        .evCheckoutPrice span{padding-bottom:5px;color:rgba(225,237,249,.76);font-size:14px;font-weight:600}
+        .evCheckoutValue{margin-top:30px}
+        .evCheckoutValue>h3{margin:0 0 12px;color:#edfaff;font-size:16px;font-weight:850;letter-spacing:.015em}
+        .evCheckoutBenefitGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+        .evCheckoutBenefitCard{--ev-benefit:86,215,255;position:relative;overflow:hidden;display:flex;gap:12px;min-height:112px;padding:16px 16px 15px;border:1px solid rgba(var(--ev-benefit),.24);border-radius:17px;background:linear-gradient(145deg,rgba(var(--ev-benefit),.075),rgba(255,255,255,.018) 52%,rgba(5,10,26,.52));box-shadow:inset 0 1px 0 rgba(255,255,255,.045),0 14px 34px rgba(var(--ev-benefit),.035);transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}
+        .evCheckoutBenefitCard:after{content:'';position:absolute;top:-70px;right:-55px;width:150px;height:150px;border-radius:50%;background:rgba(var(--ev-benefit),.18);filter:blur(42px);pointer-events:none}
+        .evCheckoutBenefitCard:hover{transform:translateY(-2px);border-color:rgba(var(--ev-benefit),.38);box-shadow:inset 0 1px 0 rgba(255,255,255,.055),0 18px 40px rgba(var(--ev-benefit),.07)}
+        .evBenefitCyan{--ev-benefit:75,211,255}
+        .evBenefitViolet{--ev-benefit:157,112,255}
+        .evBenefitAqua{--ev-benefit:75,229,218}
+        .evBenefitGold{--ev-benefit:235,184,105}
+        .evCheckoutBenefitIcon{position:relative;z-index:1;flex:0 0 auto;display:grid;place-items:center;width:32px;height:32px;border-radius:11px;border:1px solid rgba(var(--ev-benefit),.34);color:rgb(var(--ev-benefit));background:rgba(var(--ev-benefit),.09);box-shadow:0 0 24px rgba(var(--ev-benefit),.1);font-size:16px;font-weight:900}
+        .evCheckoutBenefitCard>div{position:relative;z-index:1;min-width:0}
+        .evCheckoutBenefitCard strong{display:block;color:#f3fbff;font-size:15px;line-height:1.25}
+        .evCheckoutBenefitCard p{margin:6px 0 0;color:rgba(216,234,248,.72);font-size:12.5px;line-height:1.5}
+        .evCheckoutBenefitMeta{display:flex;justify-content:center;flex-wrap:wrap;margin:12px 0 0;color:rgba(211,231,247,.72);font-size:12.5px;font-weight:700}
+        .evCheckoutBenefitMeta span+span:before{content:'·';margin:0 8px;color:rgba(149,214,255,.5)}
+        .evFounderPromise{display:flex;align-items:center;gap:10px;margin-top:14px;padding:12px 14px;border:1px solid rgba(224,178,102,.2);border-radius:14px;background:linear-gradient(120deg,rgba(124,79,26,.1),rgba(117,72,205,.07))}
+        .evFounderPromise>span{display:grid;place-items:center;flex:0 0 auto;width:29px;height:29px;border-radius:50%;color:#ffdca1;border:1px solid rgba(235,190,111,.28);background:rgba(235,190,111,.07);font-size:17px}
+        .evFounderPromise p{margin:0;color:rgba(229,236,247,.8);font-size:13px;line-height:1.4}
+        .evFounderPromise strong{color:#ffe0aa}
+        .evCheckoutCurrency{margin-top:18px;padding:16px 18px;border:1px solid rgba(235,190,111,.28);border-radius:17px;background:radial-gradient(circle at 93% 0%,rgba(235,190,111,.11),transparent 40%),linear-gradient(145deg,rgba(119,74,32,.11),rgba(91,54,131,.055));box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}
+        .evCheckoutCurrency span,.evCheckoutCurrency small{display:block;color:rgba(226,232,242,.72);font-size:12px}
+        .evCheckoutCurrency span{font-weight:850;letter-spacing:.1em;text-transform:uppercase}
+        .evCheckoutCurrency strong{display:block;margin:5px 0 4px;color:#ffdda2;font-size:22px;line-height:1.08;letter-spacing:-.02em}
+        .evCheckoutCurrency small{font-size:13px;line-height:1.5}
+        .evSquareSecureLabel{display:flex;justify-content:space-between;align-items:center;margin-top:22px;color:rgba(219,236,249,.76);font-size:13px;font-weight:700}
+        .evSquareSecureLabel strong{color:#fff;font-size:13px}
+        .evSquareCard{min-height:102px;margin-top:9px;padding:12px;border:1px solid rgba(116,191,244,.18);border-radius:17px;background:rgba(255,255,255,.028);box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}
+        .evSquareCard.ready{border-color:rgba(119,207,255,.32);box-shadow:0 0 0 1px rgba(119,207,255,.025),inset 0 1px 0 rgba(255,255,255,.035)}
+        .evCheckoutModal .evPremiumPrimary{font-size:14px}
+        .evCheckoutModal .evPremiumSecondary{font-size:13px}
+        .evCheckoutModal .evContinueFree{font-size:13px;color:rgba(211,232,248,.7)}
+        .evCheckoutModal .evCheckoutMessage{font-size:13px;line-height:1.55;color:#c9efff!important}
+        .evPayButton{position:relative;overflow:hidden;width:100%;min-height:58px;margin-top:18px;padding:0 18px;font-size:14.5px!important;letter-spacing:.055em;box-shadow:0 15px 38px rgba(73,169,255,.22),0 0 34px rgba(142,104,255,.09)}
+        .evPayButton:not(:disabled):after{content:'';position:absolute;top:-90%;left:-34%;width:20%;height:280%;transform:rotate(18deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.44),transparent);opacity:0;pointer-events:none;animation:evFounderSheen 5.8s ease-in-out infinite}
+        .evSquareTrust{margin:9px 0 0;text-align:center;color:rgba(208,231,247,.7);font-size:12.5px;font-weight:650}
+        .evCheckoutFinePrint{margin:16px 0 0;color:rgba(212,229,243,.68);font-size:12.5px;line-height:1.55}
+        .evCheckoutForm>.evRestoreInline{display:block;margin:12px auto 0;color:rgba(213,235,250,.78);font-size:13px}
+        .evCheckoutNotReady{margin-top:20px;padding:16px;border-radius:15px;border:1px solid rgba(239,183,100,.21);background:rgba(119,75,27,.08)}
+        .evCheckoutNotReady strong{color:#ffd99a;font-size:14px}
+        .evCheckoutNotReady p{margin:6px 0 0;color:rgba(222,233,245,.7);font-size:13px;line-height:1.55}
+        .evRestorePanel>p,.evPremiumSuccess>h3{color:rgba(222,235,247,.72);font-size:14px;line-height:1.6}
+        .evRestorePanel textarea,.evRecoveryBox textarea{width:100%;min-height:132px;resize:vertical;margin-top:14px;padding:13px;border:1px solid rgba(122,191,244,.18);border-radius:13px;color:#dff5ff;background:rgba(2,10,24,.62);font:500 12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;outline:none}
+        .evRestorePanel>.evPremiumPrimary{width:100%;margin-top:16px}
+        .evSuccessMark{display:grid;place-items:center;width:62px;height:62px;margin-bottom:18px;border-radius:50%;border:1px solid rgba(235,190,111,.34);color:#ffd99a;background:linear-gradient(135deg,rgba(137,83,255,.18),rgba(160,105,42,.17));font-size:32px}
+        .evPremiumSuccess h3{margin:9px 0 0;font-size:16px}
+        .evSuccessBenefits{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0}
+        .evSuccessBenefits span{padding:8px 10px;border-radius:999px;border:1px solid rgba(133,192,241,.14);background:rgba(255,255,255,.03);color:rgba(226,239,249,.82);font-size:12px}
+        .evRecoveryBox{margin-top:20px;padding:18px;border:1px solid rgba(176,139,255,.2);border-radius:16px;background:rgba(255,255,255,.027)}
+        .evRecoveryBox strong{color:#ffe0aa;font-size:14px}
+        .evRecoveryBox p{margin:7px 0 0;color:rgba(219,232,245,.68);font-size:12.5px;line-height:1.5}
         .evRecoveryBox .evPremiumSecondary{width:100%}
-        .evCheckoutActions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:18px}
+        .evCheckoutActions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
         .evCheckoutActions .evPremiumSecondary{margin:0}
-        .evReceiptLink{display:block;margin-top:13px;text-align:center;color:#aee8ff;font-size:9px;text-decoration:none}
+        .evReceiptLink{display:block;margin-top:14px;text-align:center;color:#aee8ff;font-size:12px;text-decoration:none}
+        @keyframes evFounderSheen{0%,65%{left:-34%;opacity:0}70%{opacity:.2}82%{opacity:.52}95%,100%{left:124%;opacity:0}}
         .evAboutCompact{padding-top:28px!important}
         .evAboutHeader{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:end}
         .evAboutHeader h2{margin:0;font-size:clamp(28px,3.5vw,46px);color:#f2f8ff}
@@ -1173,15 +1283,48 @@ export default function V10ProductFlow() {
         .evPremiumBuilderSelection{align-items:flex-start;flex-direction:column}
         .evPremiumBuilderSelection button{width:100%}
         .evPremiumModalBackdrop{padding:10px;align-items:end}
-        .evPremiumModal,.evCheckoutModal{max-height:calc(100dvh - 20px);padding:25px 18px 22px;border-radius:24px 24px 18px 18px}
+        .evPremiumModal{max-height:calc(100dvh - 20px);padding:25px 18px 22px;border-radius:24px 24px 18px 18px}
         .evPremiumModal h2{font-size:42px}
         .evPremiumModalOffer,.evCheckoutActions{grid-template-columns:1fr}
         .evCheckoutActions .evPremiumSecondary{margin-top:0}
-        .evCheckoutPrice{align-items:flex-start;flex-direction:column;gap:2px}
-        .evCheckoutPrice span{padding:0}
+        .evCheckoutBackdrop{align-items:center;padding:10px;padding-top:max(10px,env(safe-area-inset-top));padding-right:max(10px,env(safe-area-inset-right));padding-bottom:max(10px,env(safe-area-inset-bottom));padding-left:max(10px,env(safe-area-inset-left))}
+        .evCheckoutModal{width:calc(100vw - 20px);max-height:calc(100dvh - 20px);padding:0;border-radius:24px}
+        .evCheckoutForm,.evRestorePanel,.evPremiumSuccess{padding:24px 22px 22px}
+        .evCheckoutModal .evPremiumModalClose{top:14px;right:14px;width:44px;height:44px}
+        .evCheckoutEyebrow{font-size:12px;padding-right:48px}
+        .evCheckoutForm h2,.evRestorePanel h2,.evPremiumSuccess h2{margin-top:10px;font-size:44px}
+        .evCheckoutPrice{align-items:flex-start;flex-direction:column;gap:4px;margin-top:16px}
+        .evCheckoutPrice strong{font-size:38px}
+        .evCheckoutPrice span{padding:0;font-size:14px}
+        .evCheckoutValue{margin-top:24px}
+        .evCheckoutValue>h3{margin-bottom:10px;font-size:16px}
+        .evCheckoutBenefitGrid{grid-template-columns:1fr;gap:9px}
+        .evCheckoutBenefitCard{min-height:0;padding:14px;border-radius:16px}
+        .evCheckoutBenefitIcon{width:31px;height:31px;border-radius:10px}
+        .evCheckoutBenefitCard strong{font-size:14.5px}
+        .evCheckoutBenefitCard p{margin-top:5px;font-size:13px;line-height:1.45}
+        .evCheckoutBenefitMeta{margin-top:11px;font-size:12px}
+        .evCheckoutBenefitMeta span+span:before{margin:0 6px}
+        .evFounderPromise{margin-top:13px;padding:11px 12px}
+        .evFounderPromise p{font-size:12.5px}
+        .evCheckoutCurrency{margin-top:17px;padding:15px 16px}
+        .evCheckoutCurrency strong{font-size:23px}
+        .evCheckoutCurrency small{font-size:13px}
+        .evSquareSecureLabel{margin-top:19px;font-size:13px}
+        .evSquareCard{margin-top:8px;border-radius:16px}
+        .evPayButton{min-height:58px;margin-top:16px;font-size:13.5px!important;letter-spacing:.04em;white-space:nowrap}
+        .evSquareTrust{font-size:12px}
+        .evCheckoutFinePrint{margin-top:14px;font-size:12px}
+        .evCheckoutForm>.evRestoreInline{font-size:13px}
+        .evRestorePanel>p,.evPremiumSuccess>h3{font-size:13.5px}
         .evProductFooter{padding:22px 18px}}
         @media(max-width:390px){.evPremiumSignalGrid{grid-template-columns:1fr}
-        .evPremiumSignalCard{min-height:205px}}
+        .evPremiumSignalCard{min-height:205px}
+        .evCheckoutForm h2,.evRestorePanel h2,.evPremiumSuccess h2{font-size:40px}
+        .evCheckoutPrice strong{font-size:36px}
+        .evCheckoutForm,.evRestorePanel,.evPremiumSuccess{padding-left:20px;padding-right:20px}
+        .evPayButton{font-size:12.8px!important;letter-spacing:.025em}}
+        @media(prefers-reduced-motion:reduce){.evCheckoutBenefitCard{transition:none}.evPayButton:not(:disabled):after{animation:none;display:none}}
       `}</style>
     </>
   );
