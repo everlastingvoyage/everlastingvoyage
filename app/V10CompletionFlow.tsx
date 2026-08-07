@@ -139,33 +139,25 @@ export default function V10CompletionFlow() {
   const pathname = usePathname();
   const enabled = pathname === '/voyage';
   const activeCompletionRef = useRef<HTMLElement | null>(null);
-  const scrollTimersRef = useRef<number[]>([]);
+  const scrollFrameRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!enabled) return;
 
-    const clearScrollTimers = () => {
-      scrollTimersRef.current.forEach((timer) => window.clearTimeout(timer));
-      scrollTimersRef.current = [];
-    };
-
     const resetCompletionPosition = (overlay: HTMLElement, completion: HTMLElement) => {
-      clearScrollTimers();
-
+      if (scrollFrameRef.current !== null) window.cancelAnimationFrame(scrollFrameRef.current);
       const reset = () => {
         const previousBehavior = overlay.style.scrollBehavior;
         overlay.style.scrollBehavior = 'auto';
         overlay.scrollTop = 0;
-        overlay.scrollTo({ top: 0, left: 0, behavior: 'auto' });
         completion.scrollIntoView({ block: 'start', behavior: 'auto' });
         overlay.scrollTop = 0;
         overlay.style.scrollBehavior = previousBehavior;
       };
-
       reset();
-      window.requestAnimationFrame(reset);
-      [80, 220, 520].forEach((delay) => {
-        scrollTimersRef.current.push(window.setTimeout(reset, delay));
+      scrollFrameRef.current = window.requestAnimationFrame(() => {
+        scrollFrameRef.current = null;
+        reset();
       });
     };
 
@@ -270,18 +262,25 @@ export default function V10CompletionFlow() {
       }
     };
 
+    let syncFrame: number | null = null;
+    const scheduleSync = () => {
+      if (syncFrame !== null) return;
+      syncFrame = window.requestAnimationFrame(() => {
+        syncFrame = null;
+        syncCompletion();
+      });
+    };
+
     syncCompletion();
-    const observer = new MutationObserver(() => window.requestAnimationFrame(syncCompletion));
+    const observer = new MutationObserver(scheduleSync);
     observer.observe(document.body, {
       childList: true,
-      subtree: true,
-      characterData: true,
-      attributes: true,
-      attributeFilter: ['disabled', 'class']
+      subtree: true
     });
 
     const handleClick = (event: MouseEvent) => {
       const target = event.target as Element | null;
+      if (target?.closest('.v10CompletionActions')) scheduleSync();
       const saveButton = target?.closest<HTMLButtonElement>('.evSaveNotesButton.is-saved');
       if (!saveButton) return;
       event.preventDefault();
@@ -291,7 +290,8 @@ export default function V10CompletionFlow() {
 
     document.addEventListener('click', handleClick, true);
     return () => {
-      clearScrollTimers();
+      if (syncFrame !== null) window.cancelAnimationFrame(syncFrame);
+      if (scrollFrameRef.current !== null) window.cancelAnimationFrame(scrollFrameRef.current);
       observer.disconnect();
       document.removeEventListener('click', handleClick, true);
     };
