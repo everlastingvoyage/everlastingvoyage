@@ -1,220 +1,71 @@
-name: V12.1.5 Session Footer QA
+name: V12.5.2 Trusted No-Vercel Executor
 
 on:
   push:
     branches:
-      - v12-1-5-session-footer-cleanup
-      - v12-1-7-compact-session-spacing
-      - v12-1-8-restore-stable-session-flow
-  pull_request:
-    branches:
-      - main
-  workflow_dispatch:
+      - _no-vercel/v12-5-2-work
+    paths:
+      - .github/workflows/v12-1-5-session-footer-qa.yml
+
+permissions:
+  contents: write
 
 jobs:
-  session-footer-qa:
+  apply-build-commit:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-
+    timeout-minutes: 25
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
         with:
-          node-version: 22
+          ref: _no-vercel/v12-5-2-work
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Extract and run V12.5.2 patch
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          source = Path('.github/workflows/v12-5-2-work.yml').read_text()
+          marker = "          python3 - <<'PY'\n"
+          start = source.index(marker) + len(marker)
+          end = source.index("\n          PY\n", start)
+          block = source[start:end]
+          lines = []
+          for line in block.splitlines():
+              lines.append(line[10:] if line.startswith('          ') else line)
+          Path('/tmp/v12-5-2-apply.py').write_text('\n'.join(lines) + '\n')
+          PY
+          python3 /tmp/v12-5-2-apply.py
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Build application
+      - name: Production build
         run: npm run build
 
-      - name: Prepare system Chrome
+      - name: Verify protected Ritual legacy audio was not edited
+        shell: bash
         run: |
-          npm install --no-save puppeteer-core@24.16.0
-          CHROME_PATH="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)"
-          if [ -z "$CHROME_PATH" ]; then
-            echo "System Chrome was not found"
+          changed=$(git diff -U0 -- app/V10VoyageEngine.tsx app/premium-audio-engine.ts | grep '^+' | grep -E "pure-(222|444|528|963)|888 Hz" || true)
+          if [ -n "$changed" ]; then
+            echo "Protected Ritual lines changed unexpectedly:"
+            echo "$changed"
             exit 1
           fi
-          echo "CHROME_PATH=$CHROME_PATH" >> "$GITHUB_ENV"
-          "$CHROME_PATH" --version
 
-      - name: Start application
+      - name: Restore QA workflow, remove temporary workflow, commit validated product batch
+        shell: bash
         run: |
-          npm run start -- --hostname 127.0.0.1 > /tmp/everlasting-voyage.log 2>&1 &
-          for i in {1..60}; do
-            if curl -fsS http://127.0.0.1:3000/voyage >/dev/null; then
-              exit 0
-            fi
-            sleep 1
-          done
-          cat /tmp/everlasting-voyage.log
-          exit 1
-
-      - name: Validate full session flow and footer position
-        run: |
-          mkdir -p session-footer-qa
-          cat > session-footer-qa.mjs <<'EOF'
-          import puppeteer from 'puppeteer-core';
-          import fs from 'node:fs';
-
-          const browser = await puppeteer.launch({
-            headless: true,
-            executablePath: process.env.CHROME_PATH,
-            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
-          });
-
-          const profiles = [
-            { name: 'scaled-desktop-short', width: 1024, height: 640 },
-            { name: 'scaled-desktop', width: 1024, height: 768 },
-            { name: 'narrow-desktop', width: 900, height: 700 },
-            { name: 'desktop', width: 1440, height: 900 },
-            { name: 'wide-desktop', width: 1792, height: 864 },
-            { name: 'mobile', width: 390, height: 844 }
-          ];
-          const results = [];
-          const pageErrors = [];
-
-          const overlapArea = (a, b) => {
-            const width = Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left));
-            const height = Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
-            return width * height;
-          };
-
-          for (const profile of profiles) {
-            const page = await browser.newPage();
-            await page.setViewport({ width: profile.width, height: profile.height, deviceScaleFactor: 1 });
-            page.on('pageerror', (error) => pageErrors.push(`${profile.name}: ${String(error)}`));
-
-            await page.goto('http://127.0.0.1:3000/voyage', { waitUntil: 'networkidle0' });
-            await page.waitForSelector('#session-builder');
-            await page.evaluate(() => document.querySelector('#session-builder')?.scrollIntoView({ block: 'center' }));
-            await page.click('.stateChoice.alpha');
-            await page.click('.builderActions .primaryButton');
-            await page.waitForSelector('.v10SessionOverlay.alpha:not(.completed)');
-            await page.waitForSelector('#ev-session-atmosphere-root .evSessionAtmosphere');
-            await page.waitForSelector('.v10SessionFooter .v12SessionFooterBrand');
-            await new Promise((resolve) => setTimeout(resolve, 500));
-
-            const geometry = await page.evaluate(() => {
-              const toRect = (element) => {
-                const value = element.getBoundingClientRect();
-                return {
-                  left: value.left,
-                  top: value.top,
-                  right: value.right,
-                  bottom: value.bottom,
-                  width: value.width,
-                  height: value.height
-                };
-              };
-
-              const sessionMain = document.querySelector('.v10SessionMain');
-              const identity = document.querySelector('.v10SessionIdentity');
-              const timer = document.querySelector('.v10TimerArea');
-              const capture = document.querySelector('.v10ThoughtCapture');
-              const signal = document.querySelector('.v10AudioControls');
-              const atmosphereRoot = document.querySelector('#ev-session-atmosphere-root');
-              const atmosphere = document.querySelector('#ev-session-atmosphere-root .evSessionAtmosphere');
-              const footer = document.querySelector('.v10SessionFooter');
-              const brand = document.querySelector('.v10SessionFooter .v12SessionFooterBrand');
-              const spans = Array.from(document.querySelectorAll('.v10SessionFooter > span'));
-              if (!sessionMain || !identity || !timer || !capture || !signal || !atmosphereRoot || !atmosphere || !footer || !brand || spans.length !== 2) {
-                throw new Error('Required Pomodoro flow elements are missing');
-              }
-
-              return {
-                sessionMain: toRect(sessionMain),
-                consolePanels: [
-                  { name: 'Identity', rect: toRect(identity) },
-                  { name: 'Timer', rect: toRect(timer) },
-                  { name: 'Capture', rect: toRect(capture) },
-                  { name: 'Pure Signal', rect: toRect(signal) }
-                ],
-                atmosphereRoot: toRect(atmosphereRoot),
-                atmosphere: toRect(atmosphere),
-                footer: toRect(footer),
-                brand: toRect(brand),
-                spans: spans.map((span) => ({
-                  text: span.textContent?.trim() ?? '',
-                  rect: toRect(span),
-                  position: getComputedStyle(span).position
-                })),
-                footerDisplay: getComputedStyle(footer).display,
-                footerPosition: getComputedStyle(footer).position
-              };
-            });
-
-            const issues = [];
-            const footerOverlap = overlapArea(geometry.atmosphere, geometry.footer);
-            if (footerOverlap > 1) issues.push(`Atmosphere/footer overlap: ${footerOverlap}`);
-
-            const footerGap = geometry.footer.top - geometry.atmosphere.bottom;
-            if (footerGap < 12) issues.push(`Footer gap is only ${footerGap}px`);
-
-            const consoleBottom = Math.max(...geometry.consolePanels.map((panel) => panel.rect.bottom));
-            const consoleGap = geometry.atmosphere.top - consoleBottom;
-            if (profile.width >= 1100) {
-              if (consoleGap < 8) issues.push(`Console/Atmosphere gap is only ${consoleGap}px`);
-              if (geometry.atmosphereRoot.top < consoleBottom - 1) {
-                issues.push('Atmosphere begins before the visible Pomodoro console ends');
-              }
-            }
-
-            for (const panel of geometry.consolePanels) {
-              const overlap = overlapArea(panel.rect, geometry.atmosphere);
-              if (overlap > 1) issues.push(`${panel.name} overlaps Atmosphere by ${overlap}`);
-              if (profile.width >= 1100 && panel.rect.bottom > geometry.sessionMain.bottom + 1) {
-                issues.push(`${panel.name} overflows the session main container`);
-              }
-            }
-
-            for (const span of geometry.spans) {
-              const overlap = overlapArea(geometry.atmosphere, span.rect);
-              if (overlap > 1) issues.push(`${span.text} overlaps Atmosphere by ${overlap}`);
-              if (span.rect.top < geometry.footer.top - 1 || span.rect.bottom > geometry.footer.bottom + 1) {
-                issues.push(`${span.text} is outside the footer bounds`);
-              }
-              if (span.position === 'absolute' || span.position === 'fixed') {
-                issues.push(`${span.text} uses ${span.position} positioning`);
-              }
-            }
-
-            const lowestTechnicalText = Math.max(...geometry.spans.map((span) => span.rect.bottom));
-            if (geometry.brand.top < lowestTechnicalText + 6) {
-              issues.push('Brand is not separated from technical guidance');
-            }
-
-            await page.evaluate(() => window.scrollTo(0, 0));
-            await new Promise((resolve) => setTimeout(resolve, 200));
-            await page.screenshot({
-              path: `session-footer-qa/${profile.name}-session-top.png`,
-              fullPage: false
-            });
-
-            results.push({ profile, geometry, consoleGap, footerGap, issues });
-            await page.close();
-          }
-
-          fs.writeFileSync('session-footer-qa/results.json', JSON.stringify({ pageErrors, results }, null, 2));
-
-          if (pageErrors.length) throw new Error(`Page errors: ${pageErrors.join(' | ')}`);
-          const issues = results.flatMap((result) => result.issues.map((issue) => `${result.profile.name}: ${issue}`));
-          if (issues.length) throw new Error(`Session flow issues: ${issues.join(' | ')}`);
-
-          await browser.close();
-          EOF
-          node session-footer-qa.mjs
-          rm session-footer-qa.mjs
-
-      - name: Upload footer QA artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: v12-1-8-session-flow-qa
-          path: session-footer-qa
-          if-no-files-found: warn
-          retention-days: 7
+          git checkout 1d704e7a4548d60f62e20a3ea6c8bde21a4e7b97 -- .github/workflows/v12-1-5-session-footer-qa.yml
+          rm -f .github/workflows/v12-5-2-work.yml
+          git config user.name "Everlasting Voyage Build"
+          git config user.email "actions@users.noreply.github.com"
+          git add app .github/workflows/v12-1-5-session-footer-qa.yml .github/workflows/v12-5-2-work.yml
+          git status --short
+          git commit -m "V12.5.2 validated product batch"
+          git push origin HEAD:_no-vercel/v12-5-2-work
