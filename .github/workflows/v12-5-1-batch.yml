@@ -23,7 +23,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
 
       - name: Apply V12.5.1 batch
         run: python .github/scripts/apply-v1251.py
@@ -32,7 +31,7 @@ jobs:
         run: rm -f .github/scripts/apply-v1251.py .github/workflows/v12-5-1-batch.yml
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install --no-audit --no-fund
 
       - name: Production build and TypeScript validation
         run: npm run build
