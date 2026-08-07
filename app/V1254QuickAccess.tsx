@@ -14,8 +14,14 @@ function isEditableTarget(target: EventTarget | null) {
 function scrollToSection(id: string) {
   const node = document.getElementById(id);
   if (!node) return;
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  node.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+  node.scrollIntoView({ behavior: 'auto', block: 'start' });
+}
+
+function mutationTouchesDialog(mutations: MutationRecord[]) {
+  return mutations.some((mutation) => [...mutation.addedNodes, ...mutation.removedNodes].some((node) => {
+    if (!(node instanceof Element)) return false;
+    return node.matches('[role="dialog"]') || Boolean(node.querySelector('[role="dialog"]'));
+  }));
 }
 
 export default function V1254QuickAccess() {
@@ -23,6 +29,7 @@ export default function V1254QuickAccess() {
   const enabled = pathname === '/voyage';
   const [pastHero, setPastHero] = useState(false);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
+  const [overlayOpen, setOverlayOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<DockSection>('voyage');
 
   useEffect(() => {
@@ -41,10 +48,12 @@ export default function V1254QuickAccess() {
         const premiumTop = premium.getBoundingClientRect().top;
         const premiumBottom = premium.getBoundingClientRect().bottom;
         const premiumInFocus = premiumTop <= window.innerHeight * 0.46 && premiumBottom > 130;
-        setActiveSection(premiumInFocus ? 'premium' : 'voyage');
+        if (premiumInFocus) setActiveSection('premium');
+        else if (!document.querySelector('[role="dialog"]')) setActiveSection('voyage');
       }
     };
 
+    const updateOverlay = () => setOverlayOpen(Boolean(document.querySelector('[role="dialog"]')));
     const viewport = window.visualViewport;
     const updateKeyboard = () => {
       const activeEditable = isEditableTarget(document.activeElement);
@@ -59,11 +68,17 @@ export default function V1254QuickAccess() {
 
     updatePosition();
     updateKeyboard();
+    updateOverlay();
     window.addEventListener('scroll', updatePosition, { passive: true });
     window.addEventListener('resize', updatePosition, { passive: true });
     viewport?.addEventListener('resize', updateKeyboard);
     document.addEventListener('focusin', handleFocusIn);
     document.addEventListener('focusout', handleFocusOut);
+
+    const overlayObserver = new MutationObserver((mutations) => {
+      if (mutationTouchesDialog(mutations)) updateOverlay();
+    });
+    overlayObserver.observe(document.body, { childList: true, subtree: true });
 
     return () => {
       window.removeEventListener('scroll', updatePosition);
@@ -71,6 +86,7 @@ export default function V1254QuickAccess() {
       viewport?.removeEventListener('resize', updateKeyboard);
       document.removeEventListener('focusin', handleFocusIn);
       document.removeEventListener('focusout', handleFocusOut);
+      overlayObserver.disconnect();
     };
   }, [enabled]);
 
@@ -102,23 +118,30 @@ export default function V1254QuickAccess() {
       id: 'saved' as const,
       label: 'Saved',
       icon: '▣',
-      action: () => document.querySelector<HTMLButtonElement>('.evSavedSpacesTrigger')?.click()
+      action: () => {
+        setActiveSection('saved');
+        document.querySelector<HTMLButtonElement>('.evSavedSpacesTrigger')?.click();
+      }
     },
     {
       id: 'notes' as const,
       label: 'Notes',
       icon: '▤',
-      action: () => document.querySelector<HTMLButtonElement>('.evNotesTrigger')?.click()
+      action: () => {
+        setActiveSection('notes');
+        document.querySelector<HTMLButtonElement>('.evNotesTrigger')?.click();
+      }
     }
   ], []);
 
   if (!enabled) return null;
+  const dockVisible = pastHero && !keyboardOpen && !overlayOpen;
 
   return (
     <nav
-      className={`evQuickAccessDock ${pastHero && !keyboardOpen ? 'is-visible' : ''}`}
+      className={`evQuickAccessDock ${dockVisible ? 'is-visible' : ''}`}
       aria-label="Quick access"
-      aria-hidden={pastHero && !keyboardOpen ? undefined : true}
+      aria-hidden={!dockVisible}
     >
       {items.map((item) => (
         <button
@@ -127,7 +150,8 @@ export default function V1254QuickAccess() {
           className={`${item.id === 'premium' ? 'premium' : ''} ${activeSection === item.id ? 'is-active' : ''}`}
           onClick={item.action}
           aria-label={`Open ${item.label}`}
-          aria-current={activeSection === item.id ? 'page' : undefined}
+          aria-current={dockVisible && activeSection === item.id ? 'page' : undefined}
+          tabIndex={dockVisible ? 0 : -1}
         >
           <span aria-hidden="true">{item.icon}</span>
           <small>{item.label}</small>
