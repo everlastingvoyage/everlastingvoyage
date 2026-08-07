@@ -32,6 +32,16 @@ type SignalId =
   | 'pure-222'
   | 'pure-444'
   | 'pure-528'
+  | 'alpha-7'
+  | 'beta-22'
+  | 'beta-25'
+  | 'gamma-45'
+  | 'theta-3-5'
+  | 'alpha-10-5'
+  | 'delta-0-8'
+  | 'theta-3-8'
+  | 'ritual-639'
+  | 'ritual-741'
   | 'pure-963';
 type SessionStatus = 'ready' | 'running' | 'paused' | 'completed';
 
@@ -81,13 +91,13 @@ const signals: Record<SignalId, SignalDefinition> = {
     premium: false, soundProfile: 'clean', leftHz: 180, rightHz: 190
   },
   gamma: {
-    id: 'gamma', themeId: 'gamma', frequency: 'Gamma', hz: '40 Hz', state: 'Deep Focus',
+    id: 'gamma', themeId: 'gamma', frequency: 'Gamma', hz: '40 Hz', state: 'Gamma Clarity',
     purpose: 'High-attention focus for demanding work and research.',
     technical: 'Left 220 Hz · Right 260 Hz · 40 Hz difference', note: 'Headphones recommended',
     premium: false, soundProfile: 'clean', leftHz: 220, rightHz: 260
   },
   theta: {
-    id: 'theta', themeId: 'theta', frequency: 'Theta', hz: '4 Hz', state: 'Creative Flow',
+    id: 'theta', themeId: 'theta', frequency: 'Theta', hz: '4 Hz', state: 'Reflective Space',
     purpose: 'A reflective space for writing, meditation and ideation.',
     technical: 'Left 95 Hz · Right 99 Hz · 4 Hz difference', note: 'Headphones recommended',
     premium: false, soundProfile: 'clean', leftHz: 95, rightHz: 99
@@ -124,13 +134,15 @@ const signals: Record<SignalId, SignalDefinition> = {
     premium: true, soundProfile: 'focus', leftHz: 180, rightHz: 194
   },
   'beta-18': {
-    id: 'beta-18', themeId: 'alpha', frequency: 'Beta', hz: '18 Hz', state: 'Focused Drive',
+    id: 'beta-18', themeId: 'alpha', frequency: 'Beta', hz: '18 Hz', state: 'Learning Momentum',
     purpose: 'A forward-moving focus environment for productive work and active study.',
-    technical: 'Left 186 Hz · Right 204 Hz · 18 Hz difference', note: 'Headphones recommended · Premium',
+    technical: 'Left 216 Hz · Right 234 Hz · 18 Hz difference', note: 'Headphones recommended · Premium',
     premium: true, soundProfile: 'focus', leftHz: 186, rightHz: 204
   },
+  'alpha-7': { id: 'alpha-7', themeId: 'alpha', frequency: 'Alpha', hz: '7 Hz', state: 'Recall Spark', purpose: 'A bright review environment with crystalline detail and spacious, low-pressure clarity.', technical: 'Left 224 Hz · Right 231 Hz · 7 Hz difference', note: 'Headphones recommended · Premium', premium: true, soundProfile: 'focus', leftHz: 224, rightHz: 231 },
+  'beta-22': { id: 'beta-22', themeId: 'alpha', frequency: 'Beta', hz: '22 Hz', state: 'Knowledge Flow', purpose: 'A smooth extended-learning atmosphere for long reading, practice and connected thinking.', technical: 'Left 330 Hz · Right 352 Hz · 22 Hz difference', note: 'Headphones recommended · Premium', premium: true, soundProfile: 'focus', leftHz: 330, rightHz: 352 },
   'beta-15': {
-    id: 'beta-15', themeId: 'gamma', frequency: 'Beta', hz: '15 Hz', state: 'Focus Mode',
+    id: 'beta-15', themeId: 'gamma', frequency: 'Beta', hz: '15 Hz', state: 'Precision Mode',
     purpose: 'A clean, minimal signal for focused execution.',
     technical: 'Left 200 Hz · Right 215 Hz · 15 Hz difference', note: 'Headphones recommended · Premium',
     premium: true, soundProfile: 'clean', leftHz: 200, rightHz: 215
@@ -142,8 +154,8 @@ const signals: Record<SignalId, SignalDefinition> = {
     premium: true, soundProfile: 'futuristic', leftHz: 300, rightHz: 320
   },
   'gamma-30': {
-    id: 'gamma-30', themeId: 'gamma', frequency: 'Gamma', hz: '30 Hz', state: 'Creative Flow',
-    purpose: 'A futuristic Gamma experience for creative production.',
+    id: 'gamma-30', themeId: 'gamma', frequency: 'Gamma', hz: '30 Hz', state: 'Creative Spark',
+    purpose: 'A spacious Gamma experience for creative production and exploratory work.',
     technical: 'Left 200 Hz · Right 230 Hz · 30 Hz difference', note: 'Headphones recommended · Premium',
     premium: true, soundProfile: 'futuristic', leftHz: 200, rightHz: 230
   },
@@ -153,6 +165,8 @@ const signals: Record<SignalId, SignalDefinition> = {
     technical: 'Left 280 Hz · Right 315 Hz · 35 Hz difference', note: 'Headphones recommended · Premium',
     premium: true, soundProfile: 'futuristic', leftHz: 280, rightHz: 315
   },
+  'beta-25': { id: 'beta-25', themeId: 'gamma', frequency: 'Beta', hz: '25 Hz', state: 'Productive Rhythm', purpose: 'A forward, balanced work atmosphere for sustained output without an aggressive edge.', technical: 'Left 205 Hz · Right 230 Hz · 25 Hz difference', note: 'Headphones recommended · Premium', premium: true, soundProfile: 'futuristic', leftHz: 205, rightHz: 230 },
+  'gamma-45': { id: 'gamma-45', themeId: 'gamma', frequency: 'Gamma', hz: '45 Hz', state: 'Clear Purpose', purpose: 'A bright, expansive work environment for deliberate high-attention sessions.', technical: 'Left 360 Hz · Right 405 Hz · 45 Hz difference', note: 'Headphones recommended · Premium', premium: true, soundProfile: 'futuristic', leftHz: 360, rightHz: 405 },
   'theta-5': {
     id: 'theta-5', themeId: 'theta', frequency: 'Theta', hz: '5 Hz', state: 'Inner Stillness',
     purpose: 'A soft inward signal with a quiet atmospheric pad.',
@@ -177,8 +191,10 @@ const signals: Record<SignalId, SignalDefinition> = {
     technical: 'Left 180 Hz · Right 189 Hz · 9 Hz difference', note: 'Headphones recommended · Premium',
     premium: true, soundProfile: 'clean', leftHz: 180, rightHz: 189
   },
+  'theta-3-5': { id: 'theta-3-5', themeId: 'theta', frequency: 'Theta', hz: '3.5 Hz', state: 'Inner Light', purpose: 'A bright, gentle inward atmosphere for reflective meditation and spacious stillness.', technical: 'Left 108 Hz · Right 111.5 Hz · 3.5 Hz difference', note: 'Headphones recommended · Premium', premium: true, soundProfile: 'meditative', leftHz: 108, rightHz: 111.5 },
+  'alpha-10-5': { id: 'alpha-10-5', themeId: 'theta', frequency: 'Alpha', hz: '10.5 Hz', state: 'Serene Expansion', purpose: 'A spacious, peaceful meditation environment with airy vocal color and slow harmonic expansion.', technical: 'Left 240 Hz · Right 250.5 Hz · 10.5 Hz difference', note: 'Headphones recommended · Premium', premium: true, soundProfile: 'meditative', leftHz: 240, rightHz: 250.5 },
   'delta-1': {
-    id: 'delta-1', themeId: 'delta', frequency: 'Delta', hz: '1 Hz', state: 'Deep Rest',
+    id: 'delta-1', themeId: 'delta', frequency: 'Delta', hz: '1 Hz', state: 'Warm Rest',
     purpose: 'A very slow Delta signal with a deep warm ambience.',
     technical: 'Left 70 Hz · Right 71 Hz · 1 Hz difference', note: 'Headphones recommended · Premium',
     premium: true, soundProfile: 'sleep', leftHz: 70, rightHz: 71
@@ -190,17 +206,19 @@ const signals: Record<SignalId, SignalDefinition> = {
     premium: true, soundProfile: 'clean', leftHz: 70, rightHz: 71.5
   },
   'delta-2-5': {
-    id: 'delta-2-5', themeId: 'delta', frequency: 'Delta', hz: '2.5 Hz', state: 'Slow Descent',
-    purpose: 'A slow Delta signal supported by a dark filtered-noise bed.',
+    id: 'delta-2-5', themeId: 'delta', frequency: 'Delta', hz: '2.5 Hz', state: 'Sleep Serenity',
+    purpose: 'A soft Delta experience with gentle filtered air and a peaceful tonal bed.',
     technical: 'Left 70 Hz · Right 72.5 Hz · 2.5 Hz difference', note: 'Headphones recommended · Premium',
     premium: true, soundProfile: 'sleep', leftHz: 70, rightHz: 72.5
   },
   'delta-3': {
     id: 'delta-3', themeId: 'delta', frequency: 'Delta', hz: '3 Hz', state: 'Sleep Preparation',
-    purpose: 'A gentle nighttime signal with a soft dark atmosphere.',
+    purpose: 'A gentle nighttime frequency with a soft warm atmosphere.',
     technical: 'Left 70 Hz · Right 73 Hz · 3 Hz difference', note: 'Headphones recommended · Premium',
     premium: true, soundProfile: 'sleep', leftHz: 70, rightHz: 73
   },
+  'delta-0-8': { id: 'delta-0-8', themeId: 'delta', frequency: 'Delta', hz: '0.8 Hz', state: 'Moonlit Ease', purpose: 'A soft, safe nighttime atmosphere with slow air, gentle warmth and minimal movement.', technical: 'Left 64 Hz · Right 64.8 Hz · 0.8 Hz difference', note: 'Headphones recommended · Premium', premium: true, soundProfile: 'sleep', leftHz: 64, rightHz: 64.8 },
+  'theta-3-8': { id: 'theta-3-8', themeId: 'delta', frequency: 'Theta', hz: '3.8 Hz', state: 'Quiet Horizon', purpose: 'A peaceful, slightly brighter nighttime field for easing into sustained rest.', technical: 'Left 172 Hz · Right 175.8 Hz · 3.8 Hz difference', note: 'Headphones recommended · Premium', premium: true, soundProfile: 'sleep', leftHz: 172, rightHz: 175.8 },
   'pure-222': {
     id: 'pure-222', themeId: 'abundance', frequency: 'Pure Tone', hz: '222 Hz', state: 'Alignment',
     purpose: 'A warm ritual listening space for intention and visualization.',
@@ -219,6 +237,8 @@ const signals: Record<SignalId, SignalDefinition> = {
     technical: 'Pure 528 Hz tone · Ritual soundscape', note: 'Speakers or headphones · Premium',
     premium: true, soundProfile: 'ritual', pureHz: 528
   },
+  'ritual-639': { id: 'ritual-639', themeId: 'abundance', frequency: 'Ritual Frequency', hz: '639 Hz', state: 'Solar Harmony', purpose: 'A warm ceremonial atmosphere for intention, visualization and expansive ritual listening.', technical: 'Pure 639 Hz tone · Immersive frequency world', note: 'Speakers or headphones · Premium', premium: true, soundProfile: 'ritual', pureHz: 639 },
+  'ritual-741': { id: 'ritual-741', themeId: 'abundance', frequency: 'Ritual Frequency', hz: '741 Hz', state: 'Celestial Radiance', purpose: 'A bright ritual atmosphere with airy vocal color, crystalline detail and spacious movement.', technical: 'Pure 741 Hz tone · Immersive frequency world', note: 'Speakers or headphones · Premium', premium: true, soundProfile: 'ritual', pureHz: 741 },
   'pure-963': {
     id: 'pure-963', themeId: 'abundance', frequency: 'Pure Tone', hz: '963 Hz', state: 'Higher Awareness',
     purpose: 'A celestial ritual listening space for reflection and intention.',
@@ -367,7 +387,7 @@ export default function V10VoyageEngine() {
 
     // V12.5: redesigned non-Ritual Premium experiences share Preview/full Voyage recipes.
     // Approved Manifestation & Ritual remains on the exact legacy implementation below.
-    const premiumRecipe = signal.premium && signal.soundProfile !== 'ritual' ? getPremiumAudioRecipe(signal.id) : null;
+    const premiumRecipe = signal.premium ? getPremiumAudioRecipe(signal.id) : null;
     if (premiumRecipe) {
       premiumAudioHandleRef.current = await startPremiumAudioRecipe(context, masterGain, signal.id, { mode: 'immersive', preview: false });
       sourceRefs.current = [];

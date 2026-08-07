@@ -349,3 +349,14 @@
   .evFrequencyPowerCard,
   .evFrequencyPowerBackdrop { animation: none !important; }
 }
+
+
+/* V12.5.2 — editorial bridge from the YouTube channel into the interactive product */
+.youtubeOrigin { display: none; }
+.ev-product-route .youtubeOrigin { position: relative; width: min(660px, calc(100% - 44px)); margin: 0 auto 30px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: center; color: #dce9f7; text-align: left; }
+.ev-product-route .youtubeOrigin::before,.ev-product-route .youtubeOrigin::after { content: ''; position: absolute; left: 50%; width: min(82%, 500px); height: 1px; transform: translateX(-50%); background: linear-gradient(90deg, transparent, rgba(115,199,255,.25), rgba(157,135,255,.2), transparent); }
+.ev-product-route .youtubeOrigin::before { top: -12px; }.ev-product-route .youtubeOrigin::after { bottom: -12px; }
+.ev-product-route .youtubeOriginIcon { position: relative; z-index: 1; width: 42px; height: 31px; filter: drop-shadow(0 0 14px rgba(255,0,51,.18)); }.ev-product-route .youtubeOriginIcon svg { display:block;width:100%;height:100%; }
+.ev-product-route .youtubeOrigin blockquote { margin:0;min-width:0; }.ev-product-route .youtubeOrigin p { margin:0;color:rgba(229,239,249,.82);font-family:Georgia,'Times New Roman',serif;font-size:clamp(13px,1.12vw,15px);font-style:italic;line-height:1.55;letter-spacing:.005em; }.ev-product-route .youtubeOrigin cite { display:block;margin-top:5px;color:rgba(137,210,255,.72);font-family:inherit;font-size:10px;font-style:normal;font-weight:800;letter-spacing:.13em;text-transform:uppercase; }.ev-product-route .youtubeOriginQuote { position:absolute;left:45px;top:-22px;color:rgba(126,192,255,.1);font-family:Georgia,serif;font-size:66px;line-height:1;pointer-events:none; }
+@media (max-width:760px){.ev-product-route .heroSection{padding-top:104px!important}.ev-product-route .youtubeOrigin{width:min(100% - 42px,520px);margin-bottom:30px;grid-template-columns:36px minmax(0,1fr);gap:12px}.ev-product-route .youtubeOriginIcon{width:36px;height:26px}.ev-product-route .youtubeOrigin p{font-size:13.5px;line-height:1.5}.ev-product-route .youtubeOrigin cite{font-size:10px}.ev-product-route .youtubeOriginQuote{left:38px;top:-19px;font-size:56px}}
+@media (max-width:390px){.ev-product-route .youtubeOrigin{width:calc(100% - 34px);grid-template-columns:32px minmax(0,1fr);gap:10px}.ev-product-route .youtubeOriginIcon{width:32px;height:24px}.ev-product-route .youtubeOrigin p{font-size:13px}}

@@ -27,7 +27,7 @@ const voyageStates: VoyageState[] = [
   },
   {
     id: 'gamma',
-    state: 'Deep Focus',
+    state: 'Gamma Clarity',
     frequency: 'Gamma',
     hz: '40 Hz',
     purpose: 'Demanding work, research and high-attention sessions.',
@@ -36,7 +36,7 @@ const voyageStates: VoyageState[] = [
   },
   {
     id: 'theta',
-    state: 'Creative Flow',
+    state: 'Reflective Space',
     frequency: 'Theta',
     hz: '4 Hz',
     purpose: 'Writing, reflection, meditation and ideation.',
@@ -68,8 +68,8 @@ const durations = [15, 25, 40, 60];
 const qualityPoints = [
   {
     number: '01',
-    title: 'Pure signals',
-    text: 'Clean tones with transparent signal information.'
+    title: 'Pure frequencies',
+    text: 'Clean tones with transparent frequency information.'
   },
   {
     number: '02',
@@ -298,6 +298,13 @@ export default function Home() {
           </div>
         </div>
 
+
+        <aside className="youtubeOrigin" aria-label="Everlasting Voyage YouTube origin">
+<span className="youtubeOriginQuote" aria-hidden="true">“</span>
+<div className="youtubeOriginIcon" aria-hidden="true"><svg viewBox="0 0 28 20" role="presentation"><rect x="0.5" y="0.5" width="27" height="19" rx="5" fill="#ff0033" /><path d="M11 5.5 19 10l-8 4.5z" fill="#fff" /></svg></div>
+<blockquote><p>Born from the Everlasting Voyage YouTube channel — expanded into a more personal and immersive frequency experience for the community.</p><cite>Everlasting Voyage · YouTube</cite></blockquote>
+        </aside>
+
         <article className="sessionBuilder glassCard" id="session-builder">
           <div className="builderHeader">
             <div>
@@ -427,17 +434,17 @@ export default function Home() {
         <div className="sectionIntro horizontalIntro">
           <div>
             <p className="eyebrow">Frequency library</p>
-            <h2>Pure signals with nothing hidden.</h2>
+            <h2>Pure frequencies with nothing hidden.</h2>
           </div>
           <p>
-            Tap a frequency around the humanoid signal to open a focused pop-up, inspect the tone and jump back into the builder.
+            Tap a frequency around the frequency figure to open a focused pop-up, inspect the tone and jump back into the builder.
           </p>
         </div>
 
         <article className="signalExperience glassCard">
           <div className="signalExperienceTop">
             <div className="carouselHint compactHint" aria-hidden="true">
-              <span>Tap a frequency to expand the signal</span>
+              <span>Tap a frequency to explore the experience</span>
               <span className="hintArrow">→</span>
             </div>
           </div>
