@@ -156,6 +156,14 @@ export default function V1253Surgical() {
       if (syncFrame !== null) return;
       syncFrame = window.requestAnimationFrame(() => { syncFrame = null; sync(); });
     };
+    const premiumSyncSelector = '#ev-premium-builder-root,.evCheckoutForm,.evPremiumBenefitRow,.evSuccessBenefits,.evCheckoutBenefitMeta,.evPremiumOffer,.evCheckoutActions';
+    const nodeTouchesPremiumUi = (node: Node) => {
+      if (!(node instanceof Element)) return false;
+      return node.matches(premiumSyncSelector) || Boolean(node.querySelector(premiumSyncSelector));
+    };
+    const mutationNeedsPremiumSync = (mutations: MutationRecord[]) => mutations.some((mutation) =>
+      [...mutation.addedNodes, ...mutation.removedNodes].some(nodeTouchesPremiumUi)
+    );
     const handleClick = (event: MouseEvent) => {
       const target = event.target as Element | null;
       if (target?.closest('.evBuilderPremiumExplore')) {
@@ -175,7 +183,9 @@ export default function V1253Surgical() {
     };
 
     sync();
-    const observer = new MutationObserver(scheduleSync);
+    const observer = new MutationObserver((mutations) => {
+      if (mutationNeedsPremiumSync(mutations)) scheduleSync();
+    });
     observer.observe(document.body, { childList: true, subtree: true });
     document.addEventListener('click', handleClick, true);
     window.addEventListener('ev:voyage-return-home', handleReturnHome);
