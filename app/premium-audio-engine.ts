@@ -209,7 +209,7 @@ export const premiumAudioRecipes: Record<string, PremiumAudioRecipe> = {
     preview: { representativeEventAtSeconds: 3.9, fadeInSeconds: 0.32 }
   },
   'gamma-30': {
-    id: 'gamma-30', category: 'work', title: 'Creative Flow', soundIdentity: 'Expansive creative field',
+    id: 'gamma-30', category: 'work', title: 'Creative Spark', soundIdentity: 'Expansive creative field',
     recommendedUse: 'Creative production, design and exploratory work.',
     core: { type: 'binaural', targetDifferenceHz: 30, leftCarrierHz: 170, rightCarrierHz: 200, waveform: 'sine', gain: 0.47 },
     stems: [

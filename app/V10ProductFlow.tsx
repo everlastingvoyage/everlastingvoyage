@@ -126,7 +126,7 @@ declare global {
 const premiumCategories: PremiumCategory[] = [
   { id: 'ritual', title: 'Manifestation & Ritual', subtitle: 'Intention. Visualization. Ritual.', icon: '∞' },
   { id: 'study', title: 'Study & Memory', subtitle: 'Learn. Read. Retain.', icon: '⌁' },
-  { id: 'work', title: 'Deep Work', subtitle: 'Lock in. Create. Execute.', icon: '⚡' },
+  { id: 'work', title: 'Deep Work', subtitle: 'Create. Build. Achieve.', icon: '⚡' },
   { id: 'meditation', title: 'Meditation', subtitle: 'Slow down. Go inward.', icon: '◌' },
   { id: 'sleep', title: 'Sleep', subtitle: 'Disconnect. Slow down. Rest.', icon: '☾' }
 ];
@@ -141,16 +141,16 @@ const premiumSignals: PremiumSignal[] = [
   { id: 'alpha-7', category: 'study', family: 'Alpha', hz: 7, label: 'Recall Spark', purpose: 'A bright review environment with crystalline detail and spacious, low-pressure clarity.', description: 'Luminous pad, glass detail and a gentle recall motif around a precise 7 Hz foundation.', premium: true, pure: false, soundProfile: 'focus', leftHz: 224, rightHz: 231 },
   { id: 'beta-22', category: 'study', family: 'Beta', hz: 22, label: 'Knowledge Flow', purpose: 'A smooth extended-learning atmosphere for long reading, practice and connected thinking.', description: 'Flowing harmony, soft pulse and melodic movement around a precise 22 Hz foundation.', premium: true, pure: false, soundProfile: 'focus', leftHz: 330, rightHz: 352 },
 
-  { id: 'gamma', category: 'work', family: 'Gamma', hz: 40, label: 'Gamma Clarity', purpose: 'Demanding work, research and high-attention sessions.', description: 'The free Gamma flagship for demanding focus sessions.', premium: false, pure: false, soundProfile: 'clean', freeStateId: 'gamma', leftHz: 220, rightHz: 260 },
+  { id: 'gamma', category: 'work', family: 'Gamma', hz: 40, label: 'Gamma Clarity', purpose: 'Demanding work, research and high-attention sessions.', description: 'The free Gamma flagship for demanding clarity and high-attention sessions.', premium: false, pure: false, soundProfile: 'clean', freeStateId: 'gamma', leftHz: 220, rightHz: 260 },
   { id: 'beta-15', category: 'work', family: 'Beta', hz: 15, label: 'Precision Mode', purpose: 'A clean, minimal frequency for structured precision work.', description: 'Minimal binaural presentation with no distracting sound bed.', premium: true, pure: false, soundProfile: 'clean', leftHz: 200, rightHz: 215 },
   { id: 'beta-20', category: 'work', family: 'Beta', hz: 20, label: 'Peak Attention', purpose: 'A bright futuristic focus environment built for high-attention sessions.', description: 'Wide futuristic pad, crystalline accents and spatial motion around a precise 20 Hz foundation.', premium: true, pure: false, soundProfile: 'futuristic', leftHz: 300, rightHz: 320 },
-  { id: 'gamma-30', category: 'work', family: 'Gamma', hz: 30, label: 'Reflective Space', purpose: 'A futuristic Gamma experience for creative production.', description: 'Binaural signal with a low synthetic pad and gentle stereo movement.', premium: true, pure: false, soundProfile: 'futuristic', leftHz: 200, rightHz: 230 },
+  { id: 'gamma-30', category: 'work', family: 'Gamma', hz: 30, label: 'Creative Spark', purpose: 'A futuristic Gamma experience for creative production.', description: 'Binaural signal with a low synthetic pad and gentle stereo movement.', premium: true, pure: false, soundProfile: 'futuristic', leftHz: 200, rightHz: 230 },
   { id: 'gamma-35', category: 'work', family: 'Gamma', hz: 35, label: 'Peak Focus', purpose: 'A polished Gamma experience for clear, sustained high-performance focus.', description: 'Luminous Gamma atmosphere with a clean pad, supportive drone and restrained tonal movement.', premium: true, pure: false, soundProfile: 'futuristic', leftHz: 280, rightHz: 315 },
 
   { id: 'beta-25', category: 'work', family: 'Beta', hz: 25, label: 'Productive Rhythm', purpose: 'A forward, balanced work atmosphere for sustained output without an aggressive edge.', description: 'Bright pad, gentle rhythmic motion and positive work energy around a precise 25 Hz foundation.', premium: true, pure: false, soundProfile: 'futuristic', leftHz: 205, rightHz: 230 },
   { id: 'gamma-45', category: 'work', family: 'Gamma', hz: 45, label: 'Clear Purpose', purpose: 'A bright, expansive work environment for deliberate high-attention sessions.', description: 'Radiant high-Gamma atmosphere with polished harmonics, crystal detail and controlled motion.', premium: true, pure: false, soundProfile: 'futuristic', leftHz: 360, rightHz: 405 },
 
-  { id: 'theta', category: 'meditation', family: 'Theta', hz: 4, label: 'Creative Spark', purpose: 'Writing, reflection, meditation and ideation.', description: 'The free Theta flagship for reflective and meditative sessions.', premium: false, pure: false, soundProfile: 'clean', freeStateId: 'theta', leftHz: 95, rightHz: 99 },
+  { id: 'theta', category: 'meditation', family: 'Theta', hz: 4, label: 'Reflective Space', purpose: 'Writing, reflection, meditation and ideation.', description: 'The free Theta flagship for reflective and meditative sessions.', premium: false, pure: false, soundProfile: 'clean', freeStateId: 'theta', leftHz: 95, rightHz: 99 },
   { id: 'theta-5', category: 'meditation', family: 'Theta', hz: 5, label: 'Inner Stillness', purpose: 'A soft inward signal with a quiet atmospheric pad.', description: 'Binaural signal supported by a warm, spacious tonal bed.', premium: true, pure: false, soundProfile: 'meditative', leftHz: 95, rightHz: 100 },
   { id: 'theta-6', category: 'meditation', family: 'Theta', hz: 6, label: 'Deep Meditation', purpose: 'A spacious meditative experience with slow harmonic movement.', description: 'Binaural signal with soft harmonics and a wide, calm atmosphere.', premium: true, pure: false, soundProfile: 'meditative', leftHz: 95, rightHz: 101 },
   { id: 'theta-7', category: 'meditation', family: 'Theta', hz: 7, label: 'Mindful Awareness', purpose: 'A gentle Theta signal with light airy movement.', description: 'Binaural signal with a quiet, breathable ambient texture.', premium: true, pure: false, soundProfile: 'meditative', leftHz: 95, rightHz: 102 },
@@ -1168,8 +1168,9 @@ export default function V10ProductFlow() {
         .evPremiumBenefitRow span:nth-child(1){--ev-chip:74,212,255;color:#bcefff}
         .evPremiumBenefitRow span:nth-child(2){--ev-chip:104,166,255;color:#d2e5ff}
         .evPremiumBenefitRow span:nth-child(3){--ev-chip:164,111,255;color:#e1d2ff}
-        .evPremiumBenefitRow span:nth-child(4){--ev-chip:74,226,213;color:#bff8ef}
-        .evPremiumBenefitRow span:nth-child(5){--ev-chip:231,185,108;color:#ffe0aa}
+        .evPremiumBenefitRow span:nth-child(4){--ev-chip:231,185,108;color:#ffe0aa}
+        .evPremiumBenefitRow span:nth-child(5){--ev-chip:74,226,213;color:#bff8ef}
+        .evPremiumBenefitRow span:nth-child(6){--ev-chip:231,185,108;color:#ffe8bd}
         .evPremiumBenefitRow span:hover{transform:translateY(-1px);border-color:rgba(var(--ev-chip),.42);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 0 26px rgba(var(--ev-chip),.10)}
         .evPremiumOffer{display:flex;flex-direction:column;justify-content:center;align-items:stretch;padding:24px;border-radius:24px;border:1px solid rgba(160,202,255,.14);background:linear-gradient(180deg,rgba(20,40,72,.42),rgba(8,12,29,.5))}
         .evPremiumOfferLabel{align-self:flex-start;display:inline-flex;align-items:center;min-height:31px;padding:0 11px;border:1px solid rgba(235,190,111,.28);border-radius:999px;color:#ffe0a8;background:linear-gradient(135deg,rgba(147,92,35,.14),rgba(126,78,216,.11));box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 0 28px rgba(224,171,91,.06);text-shadow:0 0 18px rgba(255,212,143,.13);font-size:13px;font-weight:900;letter-spacing:.13em;text-transform:uppercase}
@@ -1184,7 +1185,7 @@ export default function V10ProductFlow() {
         .evRestoreInline{margin-top:10px;border:0;background:transparent;color:rgba(205,226,244,.62);text-decoration:underline;text-underline-offset:3px;cursor:pointer;font-size:10px}
         .evPremiumLibrary{padding-top:38px!important}
         .evPremiumLibraryHeader{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(250px,.7fr);gap:28px;align-items:end;margin-bottom:26px}
-        .evPremiumLibraryTitle{margin:0 0 12px;color:#f0c66f;font-size:clamp(22px,2.5vw,34px);font-weight:950;letter-spacing:.12em;text-transform:uppercase;text-shadow:0 0 26px rgba(240,190,91,.16)}
+        .evPremiumLibraryTitle{margin:0 0 12px;color:#f0c66f;font-size:clamp(28px,3vw,42px);font-weight:950;letter-spacing:.12em;text-transform:uppercase;text-shadow:0 0 26px rgba(240,190,91,.16)}
         .evPremiumLibraryHeader h2{font-size:clamp(34px,4.2vw,56px)}
         .evPremiumLibraryHeader>p{margin:0;color:rgba(224,237,249,.78);font-size:clamp(15px,1.45vw,18px);line-height:1.65}
         .evPremiumCategoryTabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin-bottom:14px;overflow:auto;scrollbar-width:none}
@@ -1358,7 +1359,7 @@ export default function V10ProductFlow() {
         .evPremiumOfferLabel{font-size:12.5px;min-height:30px}
         .evPremiumLibrary{padding-top:22px!important}
         .evPremiumLibraryHeader{gap:12px;margin-bottom:18px}
-        .evPremiumLibraryTitle{margin-bottom:10px;font-size:22px;line-height:1.1;letter-spacing:.1em}
+        .evPremiumLibraryTitle{margin-bottom:10px;font-size:28px;line-height:1.1;letter-spacing:.1em}
         .evPremiumLibraryHeader h2{font-size:36px}
         .evPremiumLibraryHeader>p{font-size:15px;line-height:1.55}
         .evPremiumCategoryTabs{margin-right:-18px;padding-right:18px}
