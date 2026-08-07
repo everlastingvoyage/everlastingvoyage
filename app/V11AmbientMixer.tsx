@@ -360,12 +360,33 @@ export default function V11AmbientMixer() {
   useEffect(() => {
     if (!enabled) return;
 
+    const hasEnabledLayers = () => layersRef.current.some(
+      (layer) => layer.enabled && isPlayableAmbientId(layer.id)
+    );
+
     const markRestoreRequired = () => {
-      if (getSessionStatus() !== 'running') return;
-      const hasEnabledLayers = layersRef.current.some((layer) => layer.enabled && isPlayableAmbientId(layer.id));
-      if (!hasEnabledLayers) return;
+      if (getSessionStatus() !== 'running' || !hasEnabledLayers()) return;
       restoreRequiredRef.current = true;
       publishRuntime();
+    };
+
+    const recoverEnabledAudio = async () => {
+      if (document.visibilityState === 'hidden') return;
+      if (getSessionStatus() !== 'running' || !hasEnabledLayers()) return;
+      try {
+        const engine = await ensureEngine();
+        const stormLayer = layersRef.current.find((layer) => layer.id === 'storm' && layer.enabled);
+        const stormRuntime = runtimeStatesRef.current.storm;
+        if (stormLayer && stormRuntime?.playbackState === 'error') {
+          await engine.retryLayer('storm', stormLayer.volume);
+        }
+        await syncEngine(layersRef.current, true);
+        restoreRequiredRef.current = false;
+        publishRuntime();
+      } catch {
+        restoreRequiredRef.current = true;
+        publishRuntime();
+      }
     };
 
     const handleVisibility = () => {
@@ -373,28 +394,39 @@ export default function V11AmbientMixer() {
         markRestoreRequired();
         return;
       }
-      if (contextRef.current?.state === 'suspended') markRestoreRequired();
+      void recoverEnabledAudio();
     };
 
-    const handlePageShow = () => {
-      if (contextRef.current?.state !== 'running') markRestoreRequired();
-    };
-
+    const handlePageShow = () => { void recoverEnabledAudio(); };
+    const handleFocus = () => { void recoverEnabledAudio(); };
     const mediaDevices = navigator.mediaDevices;
+
     document.addEventListener('visibilitychange', handleVisibility);
     window.addEventListener('pagehide', markRestoreRequired);
     window.addEventListener('pageshow', handlePageShow);
-    window.addEventListener('blur', markRestoreRequired);
+    window.addEventListener('focus', handleFocus);
     mediaDevices?.addEventListener?.('devicechange', markRestoreRequired);
 
+    const watchdog = window.setInterval(() => {
+      if (document.visibilityState === 'hidden' || getSessionStatus() !== 'running') return;
+      const selectedLayers = layersRef.current.filter((layer) => layer.enabled && isPlayableAmbientId(layer.id));
+      if (!selectedLayers.length) return;
+      const needsRecovery = contextRef.current?.state === 'suspended' || selectedLayers.some((layer) => {
+        const state = runtimeStatesRef.current[layer.id]?.playbackState;
+        return state === 'paused' || (layer.id === 'storm' && state === 'error');
+      });
+      if (needsRecovery) void recoverEnabledAudio();
+    }, 10000);
+
     return () => {
+      window.clearInterval(watchdog);
       document.removeEventListener('visibilitychange', handleVisibility);
       window.removeEventListener('pagehide', markRestoreRequired);
       window.removeEventListener('pageshow', handlePageShow);
-      window.removeEventListener('blur', markRestoreRequired);
+      window.removeEventListener('focus', handleFocus);
       mediaDevices?.removeEventListener?.('devicechange', markRestoreRequired);
     };
-  }, [enabled, publishRuntime]);
+  }, [enabled, ensureEngine, publishRuntime, syncEngine]);
 
   useEffect(() => {
     return () => {

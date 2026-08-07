@@ -3,6 +3,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { usePathname } from 'next/navigation';
+import {
+  getPremiumAudioRecipe,
+  getPremiumRecipeTechnical,
+  getPremiumSoundIdentity,
+  startPremiumAudioRecipe
+} from './premium-audio-engine';
 
 type PremiumCategoryId = 'study' | 'work' | 'meditation' | 'sleep' | 'ritual';
 type SoundProfile = 'clean' | 'focus' | 'futuristic' | 'meditative' | 'sleep' | 'ritual';
@@ -118,11 +124,11 @@ declare global {
 }
 
 const premiumCategories: PremiumCategory[] = [
+  { id: 'ritual', title: 'Manifestation & Ritual', subtitle: 'Intention. Visualization. Ritual.', icon: '∞' },
   { id: 'study', title: 'Study & Memory', subtitle: 'Learn. Read. Retain.', icon: '⌁' },
   { id: 'work', title: 'Deep Work', subtitle: 'Lock in. Create. Execute.', icon: '⚡' },
   { id: 'meditation', title: 'Meditation', subtitle: 'Slow down. Go inward.', icon: '◌' },
-  { id: 'sleep', title: 'Sleep', subtitle: 'Disconnect. Slow down. Rest.', icon: '☾' },
-  { id: 'ritual', title: 'Manifestation & Ritual', subtitle: 'Intention. Visualization. Ritual.', icon: '∞' }
+  { id: 'sleep', title: 'Sleep', subtitle: 'Disconnect. Slow down. Rest.', icon: '☾' }
 ];
 
 const premiumSignals: PremiumSignal[] = [
@@ -264,7 +270,7 @@ export default function V10ProductFlow() {
   const [builderPremiumMount, setBuilderPremiumMount] = useState<HTMLElement | null>(null);
   const [aboutMount, setAboutMount] = useState<HTMLElement | null>(null);
   const [footerMount, setFooterMount] = useState<HTMLElement | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<PremiumCategoryId>('study');
+  const [selectedCategory, setSelectedCategory] = useState<PremiumCategoryId>('ritual');
   const [previewSignal, setPreviewSignal] = useState<PremiumSignal | null>(null);
   const [previewing, setPreviewing] = useState(false);
   const [previewSeconds, setPreviewSeconds] = useState(previewDurationSeconds);
@@ -327,6 +333,22 @@ export default function V10ProductFlow() {
       master.gain.setValueAtTime(0.0001, now);
       master.gain.exponentialRampToValueAtTime(0.105, now + 0.7);
       master.connect(context.destination);
+
+      // V12.5: non-Ritual Premium previews use the same canonical recipe as the full Voyage.
+      // Manifestation & Ritual deliberately stays on the approved legacy path below.
+      const premiumRecipe = signal.premium && signal.category !== 'ritual' ? getPremiumAudioRecipe(signal.id) : null;
+      if (premiumRecipe) {
+        const premiumHandle = await startPremiumAudioRecipe(context, master, signal.id, { mode: 'immersive', preview: true });
+        audioCleanupRef.current = () => {
+          premiumHandle.stop(0.18);
+          window.setTimeout(() => context.close().catch(() => undefined), 240);
+        };
+        setPreviewing(true);
+        setPreviewSeconds(previewDurationSeconds);
+        previewTickRef.current = window.setInterval(() => setPreviewSeconds((current) => Math.max(0, current - 1)), 1000);
+        previewTimerRef.current = window.setTimeout(stopPreview, previewDurationSeconds * 1000);
+        return;
+      }
 
       const sources: AudioScheduledSourceNode[] = [];
       const nodes: AudioNode[] = [master];
@@ -727,9 +749,9 @@ export default function V10ProductFlow() {
         if (payments.setLocale) await payments.setLocale('en-CA');
         const card = await payments.card({
           style: {
-            '.message-text': { color: '#cfe7f7', fontSize: '14px', fontWeight: '600' },
+            '.message-text': { color: '#cfe7f7' },
             '.message-icon': { color: '#88dcff' },
-            '.message-text.is-error': { color: '#ffb7c0', fontSize: '14px', fontWeight: '700' },
+            '.message-text.is-error': { color: '#ffb7c0' },
             '.message-icon.is-error': { color: '#ff9eaa' }
           }
         });
@@ -983,11 +1005,11 @@ export default function V10ProductFlow() {
           <article className={`evPremiumModal ${previewSignal.soundProfile}`} role="dialog" aria-modal="true" aria-labelledby="ev-preview-title">
             <button type="button" className="evPremiumModalClose" onClick={closePreview} aria-label="Close premium preview">×</button>
             <div className="evPremiumModalMeta"><span>Premium frequency</span><span>{premiumCategories.find((category) => category.id === previewSignal.category)?.title}</span></div>
-            <h2 id="ev-preview-title">{previewSignal.family} <strong>{previewSignal.hz} Hz</strong></h2><h3>{previewSignal.label}</h3><p>{customerFrequencyCopy(previewSignal.description)}</p>
-            <div className="evPremiumSoundProfile"><span>Sound profile</span><strong>{previewSignal.soundProfile === 'ritual' ? 'Ritual soundscape' : previewSignal.soundProfile === 'futuristic' ? 'Futuristic focus' : previewSignal.soundProfile === 'sleep' ? 'Sleep ambience' : previewSignal.soundProfile === 'meditative' ? 'Meditative ambience' : previewSignal.soundProfile === 'focus' ? 'Minimal focus bed' : 'Clean frequency'}</strong></div>
+            <h2 id="ev-preview-title">{previewSignal.family} <strong>{previewSignal.hz} Hz</strong></h2><h3>{previewSignal.label}</h3><p>{getPremiumAudioRecipe(previewSignal.id)?.recommendedUse ?? customerFrequencyCopy(previewSignal.description)}</p>
+            <div className="evPremiumSoundProfile"><span>Sound profile</span><strong>{getPremiumSoundIdentity(previewSignal.id) ?? (previewSignal.soundProfile === 'ritual' ? 'Ritual soundscape' : previewSignal.soundProfile === 'futuristic' ? 'Futuristic focus' : previewSignal.soundProfile === 'sleep' ? 'Sleep ambience' : previewSignal.soundProfile === 'meditative' ? 'Meditative ambience' : previewSignal.soundProfile === 'focus' ? 'Minimal focus bed' : 'Clean frequency')}</strong></div>
             <div className="evPremiumPreviewControls">
               <button type="button" className={`evPreviewButton ${previewing ? 'playing' : ''}`} onClick={() => previewing ? stopPreview() : startPreview(previewSignal)}>{previewing ? `Stop preview · ${previewSeconds}s` : `Preview ${previewDurationSeconds} seconds`}</button>
-              <small>{previewSignal.pure ? `Pure ${previewSignal.pureHz} Hz tone` : `Left ${previewSignal.leftHz} Hz · Right ${previewSignal.rightHz} Hz · ${previewSignal.hz} Hz difference`}</small>
+              <small>{getPremiumRecipeTechnical(previewSignal.id) ?? (previewSignal.pure ? `Pure ${previewSignal.pureHz} Hz tone` : `Left ${previewSignal.leftHz} Hz · Right ${previewSignal.rightHz} Hz · ${previewSignal.hz} Hz difference`)}</small>
             </div>
             {previewMessage ? <p className="evPremiumMessage" role="status">{previewMessage}</p> : null}
             <div className="evPremiumModalOffer"><div><span>Founding Member</span><strong>{founderPriceLabel}</strong><small>One time · Lifetime</small></div><button type="button" className="evPremiumPrimary" onClick={() => startCheckout(previewSignal)} disabled={!founderOfferOpen}>{founderOfferOpen ? 'Unlock Premium' : 'Founder access ended'}</button></div>
