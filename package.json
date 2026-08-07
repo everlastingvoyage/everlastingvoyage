@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "postinstall": "python3 scripts/v12_5_patch.py"
   },
   "dependencies": {
     "next": "16.2.12",
