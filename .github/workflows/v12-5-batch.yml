@@ -42,7 +42,11 @@ jobs:
         run: |
           git fetch origin "$BASE_BRANCH" --depth=1
           git show "origin/$BASE_BRANCH:package.json" > package.json
-          git show "origin/$BASE_BRANCH:package-lock.json" > package-lock.json
+          if git cat-file -e "origin/$BASE_BRANCH:package-lock.json" 2>/dev/null; then
+            git show "origin/$BASE_BRANCH:package-lock.json" > package-lock.json
+          else
+            rm -f package-lock.json
+          fi
           rm -rf scripts/v12_5_patch.py scripts/v12_5_run.py popup-motion-qa
 
       - name: Commit validated V12.5 source batch
@@ -50,7 +54,8 @@ jobs:
         run: |
           git config user.name "Everlasting Voyage Build"
           git config user.email "actions@users.noreply.github.com"
-          git add app/V10ProductFlow.tsx app/V10VoyageEngine.tsx app/V11AmbientMixer.tsx app/V10CompletionFlow.tsx app/v11-8-completion-polish.css package.json package-lock.json scripts
+          git add app/V10ProductFlow.tsx app/V10VoyageEngine.tsx app/V11AmbientMixer.tsx app/V10CompletionFlow.tsx app/v11-8-completion-polish.css package.json
+          git add -A scripts
           git diff --cached --check
           git status --short
           git commit -m "V12.5 apply shared sonic engine and reliability changes"
