@@ -35,8 +35,8 @@ const MAX_NOTES = 60;
 
 const stateMeta: Record<StateId, { frequency: string; hz: string; state: string }> = {
   alpha: { frequency: 'Alpha', hz: '10 Hz', state: 'Calm Focus' },
-  gamma: { frequency: 'Gamma', hz: '40 Hz', state: 'Deep Focus' },
-  theta: { frequency: 'Theta', hz: '4 Hz', state: 'Creative Flow' },
+  gamma: { frequency: 'Gamma', hz: '40 Hz', state: 'Gamma Clarity' },
+  theta: { frequency: 'Theta', hz: '4 Hz', state: 'Reflective Space' },
   delta: { frequency: 'Delta', hz: '2 Hz', state: 'Deep Rest' },
   abundance: { frequency: 'Pure Tone', hz: '888 Hz', state: 'Abundance' }
 };
@@ -105,7 +105,7 @@ function formatNoteText(note: VoyageNote) {
     note.title || defaultTitle(note.stateId, note.durationMinutes),
     '',
     `State: ${meta.state}`,
-    `Signal: ${meta.frequency} · ${meta.hz}`,
+    `Frequency: ${meta.frequency} · ${meta.hz}`,
     `Duration: ${note.durationMinutes} minutes`,
     note.intention ? `Intention: ${note.intention}` : 'Intention: Open focus',
     `Saved: ${new Date(note.createdAt).toLocaleString()}`,
