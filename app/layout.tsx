@@ -131,23 +131,23 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             color: #80e6ff !important;
           }
           .evPremiumSignalCard.premium {
-            border-color: rgba(183, 137, 255, .38) !important;
-            background: radial-gradient(circle at 84% 7%, rgba(150, 85, 255, .2), transparent 35%), linear-gradient(155deg, rgba(27, 20, 58, .96), rgba(7, 8, 25, .99)) !important;
-            box-shadow: inset 0 1px 0 rgba(234, 213, 255, .055), 0 14px 38px rgba(74, 40, 150, .08);
+            border-color: rgba(235, 193, 105, .48) !important;
+            background: radial-gradient(circle at 84% 7%, rgba(247, 195, 91, .18), transparent 35%), linear-gradient(155deg, rgba(29, 23, 24, .97), rgba(7, 9, 20, .99)) !important;
+            box-shadow: inset 0 1px 0 rgba(255, 238, 199, .065), 0 16px 42px rgba(128, 84, 16, .11);
           }
           .evPremiumSignalCard.premium:hover {
-            border-color: rgba(224, 179, 255, .67) !important;
-            box-shadow: 0 22px 50px rgba(99, 55, 190, .19), inset 0 0 36px rgba(160, 100, 255, .07) !important;
+            border-color: rgba(255, 219, 142, .74) !important;
+            box-shadow: 0 22px 52px rgba(175, 119, 25, .20), inset 0 0 36px rgba(245, 191, 83, .065) !important;
           }
           .evPremiumSignalCard.premium .evSignalCardTopline {
-            color: #e2bcff !important;
+            color: #ffe0a4 !important;
           }
           .evPremiumSignalCard.premium .evSignalCardTopline > span {
             padding: 5px 8px;
             border-radius: 999px;
             border: 1px solid rgba(239, 196, 126, .34);
             color: #ffdca0;
-            background: linear-gradient(135deg, rgba(155, 96, 37, .15), rgba(119, 74, 210, .16));
+            background: linear-gradient(135deg, rgba(155, 96, 37, .16), rgba(230, 172, 66, .10));
           }
           .evPremiumSignalCard.premium .evSignalCardTopline i {
             color: #ffd99a !important;
@@ -159,20 +159,20 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             color: #f7f0ff !important;
           }
           .evPremiumSignalCard.premium .evSignalPurpose {
-            color: #d8adff !important;
+            color: #ffe1a4 !important;
           }
           .evPremiumSignalCard.premium .evSignalAction {
             color: #ffd99a !important;
           }
           .evPremiumSignalCard.premium:after {
-            background: linear-gradient(135deg, #8d57ff, #e2a353) !important;
+            background: linear-gradient(135deg, #f4c362, #d79631) !important;
             opacity: .24 !important;
           }
           .evPremiumSignalCard.premium.futuristic:after {
-            background: linear-gradient(135deg, #23cfff, #8b63ff) !important;
+            background: linear-gradient(135deg, #f6cb6f, #55cdf4) !important;
           }
           .evPremiumSignalCard.premium.ritual:after {
-            background: linear-gradient(135deg, #a46cff, #f0b45f) !important;
+            background: linear-gradient(135deg, #f7d27d, #e5a33e) !important;
             opacity: .3 !important;
           }
         `}</style>

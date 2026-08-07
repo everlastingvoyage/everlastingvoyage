@@ -1,4 +1,4 @@
-export type PremiumAudioCategory = 'study' | 'work' | 'meditation' | 'sleep';
+export type PremiumAudioCategory = 'study' | 'work' | 'meditation' | 'sleep' | 'ritual';
 export type PremiumAudioMode = 'pure' | 'immersive';
 export type PremiumWaveform = OscillatorType;
 export type PremiumNoiseColor = 'white' | 'pink' | 'brown';
@@ -37,20 +37,29 @@ export type PremiumEventLayer = {
   durationSeconds?: number;
 };
 
+export type PremiumAudioCore =
+  | {
+      type: 'binaural';
+      targetDifferenceHz: number;
+      leftCarrierHz: number;
+      rightCarrierHz: number;
+      waveform: PremiumWaveform;
+      gain: number;
+    }
+  | {
+      type: 'pure';
+      pureHz: number;
+      waveform: PremiumWaveform;
+      gain: number;
+    };
+
 export type PremiumAudioRecipe = {
   id: string;
   category: PremiumAudioCategory;
   title: string;
   soundIdentity: string;
   recommendedUse: string;
-  core: {
-    type: 'binaural';
-    targetDifferenceHz: number;
-    leftCarrierHz: number;
-    rightCarrierHz: number;
-    waveform: PremiumWaveform;
-    gain: number;
-  };
+  core: PremiumAudioCore;
   stems: PremiumStemLayer[];
   events: PremiumEventLayer[];
   processing: {
@@ -128,24 +137,54 @@ export const premiumAudioRecipes: Record<string, PremiumAudioRecipe> = {
     preview: { fadeInSeconds: 0.45 }
   },
   'beta-18': {
-    id: 'beta-18', category: 'study', title: 'Focused Drive', soundIdentity: 'Momentum focus environment',
-    recommendedUse: 'A forward-moving focus environment for productive work and active study.',
-    core: { type: 'binaural', targetDifferenceHz: 18, leftCarrierHz: 186, rightCarrierHz: 204, waveform: 'sine', gain: 0.53 },
+    id: 'beta-18', category: 'study', title: 'Learning Momentum', soundIdentity: 'Luminous momentum field',
+    recommendedUse: 'Positive forward energy for active study, productive review and sustained learning.',
+    core: { type: 'binaural', targetDifferenceHz: 18, leftCarrierHz: 216, rightCarrierHz: 234, waveform: 'sine', gain: 0.49 },
     stems: [
-      { id: 'drive-warm-tech-pad', role: 'pad', gain: 0.115, rootHz: 93, waveform: 'triangle', intervals: [0, 2, 7, 12], detuneCents: [-6, 5], cutoffHz: 2100, movementHz: 0.038 },
-      { id: 'drive-forward-pulse', role: 'pulse', gain: 0.052, rootHz: 186, waveform: 'triangle', pulseHz: 0.72, pulseDepth: 0.58, cutoffHz: 2300 },
-      { id: 'drive-air', role: 'noise', gain: 0.022, noiseColor: 'pink', cutoffHz: 1700, movementHz: 0.045 }
+      { id: 'momentum-luminous-pad', role: 'pad', gain: 0.145, rootHz: 144, waveform: 'sine', intervals: [0, 4, 7, 11], detuneCents: [-7, 0, 6], cutoffHz: 3400, movementHz: 0.031 },
+      { id: 'momentum-glass', role: 'glass', gain: 0.052, rootHz: 432, waveform: 'sine', intervals: [0, 7, 12, 16], detuneCents: [-5, 5], cutoffHz: 5200, movementHz: 0.064 },
+      { id: 'momentum-pulse', role: 'pulse', gain: 0.035, rootHz: 288, waveform: 'triangle', pulseHz: 0.36, pulseDepth: 0.46, cutoffHz: 2600 },
+      { id: 'momentum-air', role: 'noise', gain: 0.014, noiseColor: 'pink', cutoffHz: 1900, movementHz: 0.028 }
     ],
     events: [
-      { id: 'drive-motif', role: 'motif', minIntervalSeconds: 14, maxIntervalSeconds: 27, probability: 0.7, gainMin: 0.02, gainMax: 0.032, panMin: -0.3, panMax: 0.3, frequenciesHz: [372, 465, 558, 465], durationSeconds: 3.2 },
-      { id: 'drive-swell', role: 'swell', minIntervalSeconds: 20, maxIntervalSeconds: 38, probability: 0.5, gainMin: 0.014, gainMax: 0.024, panMin: -0.24, panMax: 0.24, frequenciesHz: [186, 279, 372], durationSeconds: 4.6 }
+      { id: 'momentum-motif', role: 'motif', minIntervalSeconds: 17, maxIntervalSeconds: 33, probability: 0.72, gainMin: 0.021, gainMax: 0.034, panMin: -0.34, panMax: 0.34, frequenciesHz: [576, 720, 864, 720], durationSeconds: 4.1 },
+      { id: 'momentum-crystal', role: 'crystal', minIntervalSeconds: 25, maxIntervalSeconds: 46, probability: 0.48, gainMin: 0.014, gainMax: 0.025, panMin: -0.5, panMax: 0.5, frequenciesHz: [1152, 1440, 1728], durationSeconds: 2.5 }
     ],
-    processing: { highpassHz: 32, lowpassHz: 5000, compressorThreshold: -23, compressorRatio: 3.4, stereoWidth: 0.58 },
-    preview: { representativeEventAtSeconds: 5.2, fadeInSeconds: 0.36 }
+    processing: { highpassHz: 34, lowpassHz: 5800, compressorThreshold: -23, compressorRatio: 3.3, stereoWidth: 0.7 },
+    preview: { representativeEventAtSeconds: 4.4, fadeInSeconds: 0.35 }
+  },
+  'alpha-7': {
+    id: 'alpha-7', category: 'study', title: 'Recall Spark', soundIdentity: 'Crystalline recall field',
+    recommendedUse: 'A bright review environment with crystalline detail and spacious, low-pressure clarity.',
+    core: { type: 'binaural', targetDifferenceHz: 7, leftCarrierHz: 224, rightCarrierHz: 231, waveform: 'sine', gain: 0.49 },
+    stems: [
+      { id: 'recall-pad', role: 'pad', gain: 0.135, rootHz: 168, waveform: 'sine', intervals: [0, 4, 7, 14], detuneCents: [-6, 0, 6], cutoffHz: 3600, movementHz: 0.026 },
+      { id: 'recall-glass', role: 'glass', gain: 0.06, rootHz: 504, waveform: 'sine', intervals: [0, 7, 12, 19], detuneCents: [-5, 5], cutoffHz: 5900, movementHz: 0.078 },
+      { id: 'recall-air', role: 'noise', gain: 0.012, noiseColor: 'white', cutoffHz: 2600, movementHz: 0.032 }
+    ],
+    events: [
+      { id: 'recall-motif', role: 'motif', minIntervalSeconds: 18, maxIntervalSeconds: 34, probability: 0.74, gainMin: 0.02, gainMax: 0.034, panMin: -0.36, panMax: 0.36, frequenciesHz: [672, 840, 1008, 840], durationSeconds: 4.0 },
+      { id: 'recall-crystal', role: 'crystal', minIntervalSeconds: 25, maxIntervalSeconds: 48, probability: 0.48, gainMin: 0.015, gainMax: 0.025, panMin: -0.55, panMax: 0.55, frequenciesHz: [1344, 1680, 2016], durationSeconds: 2.4 }
+    ],
+    processing: { highpassHz: 38, lowpassHz: 6400, compressorThreshold: -23, compressorRatio: 3.1, stereoWidth: 0.82 },
+    preview: { representativeEventAtSeconds: 4.2, fadeInSeconds: 0.36 }
+  },
+  'beta-22': {
+    id: 'beta-22', category: 'study', title: 'Knowledge Flow', soundIdentity: 'Flowing study continuum',
+    recommendedUse: 'A smooth extended-learning atmosphere for long reading, practice and connected thinking.',
+    core: { type: 'binaural', targetDifferenceHz: 22, leftCarrierHz: 330, rightCarrierHz: 352, waveform: 'sine', gain: 0.46 },
+    stems: [
+      { id: 'knowledge-pad', role: 'pad', gain: 0.14, rootHz: 110, waveform: 'sine', intervals: [0, 5, 9, 14], detuneCents: [-8, 0, 7], cutoffHz: 3200, movementHz: 0.025 },
+      { id: 'knowledge-glass', role: 'glass', gain: 0.044, rootHz: 440, waveform: 'sine', intervals: [0, 7, 16], detuneCents: [-4, 4], cutoffHz: 5100, movementHz: 0.055 },
+      { id: 'knowledge-pulse', role: 'pulse', gain: 0.032, rootHz: 220, waveform: 'triangle', pulseHz: 0.3, pulseDepth: 0.4, cutoffHz: 2400 }
+    ],
+    events: [{ id: 'knowledge-motif', role: 'motif', minIntervalSeconds: 20, maxIntervalSeconds: 38, probability: 0.68, gainMin: 0.018, gainMax: 0.03, panMin: -0.4, panMax: 0.4, frequenciesHz: [440, 550, 660, 825], durationSeconds: 4.8 }],
+    processing: { highpassHz: 34, lowpassHz: 5700, compressorThreshold: -23, compressorRatio: 3.2, stereoWidth: 0.74 },
+    preview: { representativeEventAtSeconds: 5.1, fadeInSeconds: 0.42 }
   },
   'beta-15': {
-    id: 'beta-15', category: 'work', title: 'Focus Mode', soundIdentity: 'Dry precision field',
-    recommendedUse: 'Execution-heavy work where atmosphere should stay minimal.',
+    id: 'beta-15', category: 'work', title: 'Precision Mode', soundIdentity: 'Clean precision field',
+    recommendedUse: 'Structured work where atmosphere stays minimal and clarity stays high.',
     core: { type: 'binaural', targetDifferenceHz: 15, leftCarrierHz: 140, rightCarrierHz: 155, waveform: 'sine', gain: 0.66 },
     stems: [{ id: 'precision-drone', role: 'drone', gain: 0.025, rootHz: 70, waveform: 'sine', intervals: [0, 12], detuneCents: [-2, 2], cutoffHz: 900, movementHz: 0.012 }],
     events: [],
@@ -170,7 +209,7 @@ export const premiumAudioRecipes: Record<string, PremiumAudioRecipe> = {
     preview: { representativeEventAtSeconds: 3.9, fadeInSeconds: 0.32 }
   },
   'gamma-30': {
-    id: 'gamma-30', category: 'work', title: 'Creative Flow', soundIdentity: 'Expansive creative field',
+    id: 'gamma-30', category: 'work', title: 'Creative Spark', soundIdentity: 'Expansive creative field',
     recommendedUse: 'Creative production, design and exploratory work.',
     core: { type: 'binaural', targetDifferenceHz: 30, leftCarrierHz: 170, rightCarrierHz: 200, waveform: 'sine', gain: 0.47 },
     stems: [
@@ -194,6 +233,35 @@ export const premiumAudioRecipes: Record<string, PremiumAudioRecipe> = {
     events: [{ id: 'peak-focus-swell', role: 'swell', minIntervalSeconds: 17, maxIntervalSeconds: 34, probability: 0.64, gainMin: 0.018, gainMax: 0.03, panMin: -0.3, panMax: 0.3, frequenciesHz: [420, 560, 700], durationSeconds: 4.8 }],
     processing: { highpassHz: 28, lowpassHz: 5600, compressorThreshold: -23, compressorRatio: 3.4, stereoWidth: 0.72 },
     preview: { representativeEventAtSeconds: 5.8, fadeInSeconds: 0.4 }
+  },
+  'beta-25': {
+    id: 'beta-25', category: 'work', title: 'Productive Rhythm', soundIdentity: 'Bright productivity current',
+    recommendedUse: 'A forward, balanced work atmosphere for sustained output without an aggressive edge.',
+    core: { type: 'binaural', targetDifferenceHz: 25, leftCarrierHz: 205, rightCarrierHz: 230, waveform: 'sine', gain: 0.47 },
+    stems: [
+      { id: 'rhythm-pad', role: 'pad', gain: 0.12, rootHz: 102.5, waveform: 'triangle', intervals: [0, 4, 7, 12], detuneCents: [-6, 5], cutoffHz: 2800, movementHz: 0.034 },
+      { id: 'rhythm-pulse', role: 'pulse', gain: 0.045, rootHz: 307.5, waveform: 'sine', pulseHz: 0.44, pulseDepth: 0.54, cutoffHz: 3100 },
+      { id: 'rhythm-air', role: 'noise', gain: 0.015, noiseColor: 'pink', cutoffHz: 2100, movementHz: 0.04 }
+    ],
+    events: [{ id: 'rhythm-motif', role: 'motif', minIntervalSeconds: 17, maxIntervalSeconds: 32, probability: 0.7, gainMin: 0.018, gainMax: 0.03, panMin: -0.34, panMax: 0.34, frequenciesHz: [410, 512.5, 615, 717.5], durationSeconds: 3.8 }],
+    processing: { highpassHz: 34, lowpassHz: 5600, compressorThreshold: -23, compressorRatio: 3.4, stereoWidth: 0.7 },
+    preview: { representativeEventAtSeconds: 4.7, fadeInSeconds: 0.34 }
+  },
+  'gamma-45': {
+    id: 'gamma-45', category: 'work', title: 'Clear Purpose', soundIdentity: 'Radiant high-Gamma field',
+    recommendedUse: 'A bright, expansive work environment for deliberate high-attention sessions.',
+    core: { type: 'binaural', targetDifferenceHz: 45, leftCarrierHz: 360, rightCarrierHz: 405, waveform: 'sine', gain: 0.43 },
+    stems: [
+      { id: 'purpose-pad', role: 'pad', gain: 0.13, rootHz: 180, waveform: 'sine', intervals: [0, 7, 11, 14], detuneCents: [-6, 0, 5], cutoffHz: 4100, movementHz: 0.032 },
+      { id: 'purpose-glass', role: 'glass', gain: 0.055, rootHz: 720, waveform: 'sine', intervals: [0, 7, 12], detuneCents: [-4, 4], cutoffHz: 6800, movementHz: 0.072 },
+      { id: 'purpose-pulse', role: 'pulse', gain: 0.025, rootHz: 270, waveform: 'triangle', pulseHz: 0.24, pulseDepth: 0.36, cutoffHz: 3000 }
+    ],
+    events: [
+      { id: 'purpose-swell', role: 'swell', minIntervalSeconds: 20, maxIntervalSeconds: 39, probability: 0.62, gainMin: 0.016, gainMax: 0.028, panMin: -0.28, panMax: 0.28, frequenciesHz: [540, 720, 900], durationSeconds: 4.6 },
+      { id: 'purpose-crystal', role: 'crystal', minIntervalSeconds: 29, maxIntervalSeconds: 52, probability: 0.42, gainMin: 0.012, gainMax: 0.022, panMin: -0.58, panMax: 0.58, frequenciesHz: [1080, 1440, 1800], durationSeconds: 2.2 }
+    ],
+    processing: { highpassHz: 42, lowpassHz: 7000, compressorThreshold: -22, compressorRatio: 3.5, stereoWidth: 0.86 },
+    preview: { representativeEventAtSeconds: 5.0, fadeInSeconds: 0.32 }
   },
   'theta-5': {
     id: 'theta-5', category: 'meditation', title: 'Inner Stillness', soundIdentity: 'Warm inward drone',
@@ -243,8 +311,40 @@ export const premiumAudioRecipes: Record<string, PremiumAudioRecipe> = {
     processing: { highpassHz: 36, lowpassHz: 5200, compressorThreshold: -26, compressorRatio: 2.6, stereoWidth: 0.86 },
     preview: { representativeEventAtSeconds: 6.8, fadeInSeconds: 0.72 }
   },
+  'theta-3-5': {
+    id: 'theta-3-5', category: 'meditation', title: 'Inner Light', soundIdentity: 'Luminous inward sanctuary',
+    recommendedUse: 'A bright, gentle inward atmosphere for reflective meditation and spacious stillness.',
+    core: { type: 'binaural', targetDifferenceHz: 3.5, leftCarrierHz: 108, rightCarrierHz: 111.5, waveform: 'sine', gain: 0.5 },
+    stems: [
+      { id: 'inner-light-pad', role: 'pad', gain: 0.12, rootHz: 108, waveform: 'sine', intervals: [0, 5, 7, 12], detuneCents: [-6, 0, 6], cutoffHz: 3000, movementHz: 0.018 },
+      { id: 'inner-light-vowel', role: 'vowel', gain: 0.06, rootHz: 72, waveform: 'sawtooth', detuneCents: [-8, 0, 8], formantsHz: [560, 1040, 1680], cutoffHz: 2600, movementHz: 0.014 },
+      { id: 'inner-light-glow', role: 'glass', gain: 0.025, rootHz: 432, waveform: 'sine', intervals: [0, 7, 12], detuneCents: [-4, 4], cutoffHz: 5000, movementHz: 0.038 }
+    ],
+    events: [
+      { id: 'inner-light-bell', role: 'bell', minIntervalSeconds: 26, maxIntervalSeconds: 51, probability: 0.58, gainMin: 0.012, gainMax: 0.022, panMin: -0.3, panMax: 0.3, frequenciesHz: [432, 648, 864], durationSeconds: 5.4 },
+      { id: 'inner-light-swell', role: 'swell', minIntervalSeconds: 33, maxIntervalSeconds: 61, probability: 0.42, gainMin: 0.01, gainMax: 0.019, panMin: -0.22, panMax: 0.22, frequenciesHz: [216, 324, 432], durationSeconds: 6.2 }
+    ],
+    processing: { highpassHz: 26, lowpassHz: 5200, compressorThreshold: -25, compressorRatio: 2.7, stereoWidth: 0.8 },
+    preview: { representativeEventAtSeconds: 5.6, fadeInSeconds: 0.62 }
+  },
+  'alpha-10-5': {
+    id: 'alpha-10-5', category: 'meditation', title: 'Serene Expansion', soundIdentity: 'Wide celestial calm',
+    recommendedUse: 'A spacious, peaceful meditation environment with airy vocal color and slow harmonic expansion.',
+    core: { type: 'binaural', targetDifferenceHz: 10.5, leftCarrierHz: 240, rightCarrierHz: 250.5, waveform: 'sine', gain: 0.44 },
+    stems: [
+      { id: 'expansion-pad', role: 'pad', gain: 0.13, rootHz: 120, waveform: 'sine', intervals: [0, 7, 14, 21], detuneCents: [-8, 0, 7], cutoffHz: 3600, movementHz: 0.018 },
+      { id: 'expansion-vowel', role: 'vowel', gain: 0.05, rootHz: 80, waveform: 'sawtooth', detuneCents: [-9, 0, 9], formantsHz: [500, 900, 1500], cutoffHz: 2400, movementHz: 0.012 },
+      { id: 'expansion-air', role: 'noise', gain: 0.012, noiseColor: 'pink', cutoffHz: 1500, movementHz: 0.014 }
+    ],
+    events: [
+      { id: 'expansion-breath', role: 'breath', minIntervalSeconds: 28, maxIntervalSeconds: 55, probability: 0.55, gainMin: 0.009, gainMax: 0.016, panMin: -0.45, panMax: 0.45, durationSeconds: 5.0 },
+      { id: 'expansion-swell', role: 'swell', minIntervalSeconds: 35, maxIntervalSeconds: 66, probability: 0.4, gainMin: 0.009, gainMax: 0.017, panMin: -0.3, panMax: 0.3, frequenciesHz: [240, 360, 480], durationSeconds: 7.0 }
+    ],
+    processing: { highpassHz: 30, lowpassHz: 5000, compressorThreshold: -26, compressorRatio: 2.6, stereoWidth: 0.92 },
+    preview: { representativeEventAtSeconds: 6.2, fadeInSeconds: 0.72 }
+  },
   'delta-1': {
-    id: 'delta-1', category: 'sleep', title: 'Deep Rest', soundIdentity: 'Deep brown-noise rest',
+    id: 'delta-1', category: 'sleep', title: 'Warm Rest', soundIdentity: 'Deep brown-noise rest',
     recommendedUse: 'Very low-motion rest and quiet nighttime listening.',
     core: { type: 'binaural', targetDifferenceHz: 1, leftCarrierHz: 55, rightCarrierHz: 56, waveform: 'sine', gain: 0.58 },
     stems: [
@@ -269,16 +369,16 @@ export const premiumAudioRecipes: Record<string, PremiumAudioRecipe> = {
     preview: { fadeInSeconds: 0.82 }
   },
   'delta-2-5': {
-    id: 'delta-2-5', category: 'sleep', title: 'Slow Descent', soundIdentity: 'Descending dark bed',
-    recommendedUse: 'A darker, denser descent toward sleep.',
-    core: { type: 'binaural', targetDifferenceHz: 2.5, leftCarrierHz: 140, rightCarrierHz: 142.5, waveform: 'sine', gain: 0.5 },
+    id: 'delta-2-5', category: 'sleep', title: 'Sleep Serenity', soundIdentity: 'Serene night atmosphere',
+    recommendedUse: 'A soft, warm transition toward sleep with gentle filtered air and a peaceful tonal bed.',
+    core: { type: 'binaural', targetDifferenceHz: 2.5, leftCarrierHz: 140, rightCarrierHz: 142.5, waveform: 'sine', gain: 0.48 },
     stems: [
-      { id: 'descent-noise', role: 'noise', gain: 0.033, noiseColor: 'brown', cutoffHz: 430, movementHz: 0.009 },
-      { id: 'descent-pad', role: 'pad', gain: 0.045, rootHz: 70, waveform: 'triangle', intervals: [0, 5, 12], detuneCents: [-4, 3], cutoffHz: 900, movementHz: 0.008 }
+      { id: 'serenity-air', role: 'noise', gain: 0.024, noiseColor: 'pink', cutoffHz: 620, movementHz: 0.009 },
+      { id: 'serenity-pad', role: 'pad', gain: 0.065, rootHz: 84, waveform: 'sine', intervals: [0, 7, 12, 16], detuneCents: [-4, 4], cutoffHz: 1400, movementHz: 0.009 }
     ],
-    events: [{ id: 'slow-swell', role: 'swell', minIntervalSeconds: 32, maxIntervalSeconds: 58, probability: 0.42, gainMin: 0.006, gainMax: 0.012, panMin: -0.15, panMax: 0.15, frequenciesHz: [70, 105], durationSeconds: 8 }],
-    processing: { highpassHz: 16, lowpassHz: 1400, compressorThreshold: -28, compressorRatio: 2.3, stereoWidth: 0.3 },
-    preview: { representativeEventAtSeconds: 8.5, fadeInSeconds: 0.9 }
+    events: [],
+    processing: { highpassHz: 18, lowpassHz: 1800, compressorThreshold: -28, compressorRatio: 2.3, stereoWidth: 0.34 },
+    preview: { fadeInSeconds: 0.9 }
   },
   'delta-3': {
     id: 'delta-3', category: 'sleep', title: 'Sleep Preparation', soundIdentity: 'Warm sleep horizon',
@@ -292,7 +392,65 @@ export const premiumAudioRecipes: Record<string, PremiumAudioRecipe> = {
     events: [],
     processing: { highpassHz: 18, lowpassHz: 1800, compressorThreshold: -27, compressorRatio: 2.4, stereoWidth: 0.42 },
     preview: { fadeInSeconds: 0.85 }
-  }
+  },
+  'delta-0-8': {
+    id: 'delta-0-8', category: 'sleep', title: 'Moonlit Ease', soundIdentity: 'Warm moonlit rest field',
+    recommendedUse: 'A soft, safe nighttime atmosphere with slow air, gentle warmth and minimal movement.',
+    core: { type: 'binaural', targetDifferenceHz: 0.8, leftCarrierHz: 64, rightCarrierHz: 64.8, waveform: 'sine', gain: 0.52 },
+    stems: [
+      { id: 'moonlit-pad', role: 'pad', gain: 0.06, rootHz: 64, waveform: 'sine', intervals: [0, 7, 12], detuneCents: [-3, 3], cutoffHz: 1200, movementHz: 0.007 },
+      { id: 'moonlit-air', role: 'noise', gain: 0.022, noiseColor: 'pink', cutoffHz: 600, movementHz: 0.007 },
+      { id: 'moonlit-night', role: 'sample', gain: 0.025, assetPath: '/audio/ambience/night-ambience-loop.m4a', startOffsetSeconds: 55 }
+    ],
+    events: [],
+    processing: { highpassHz: 16, lowpassHz: 1600, compressorThreshold: -28, compressorRatio: 2.3, stereoWidth: 0.34 },
+    preview: { fadeInSeconds: 0.95 }
+  },
+  'theta-3-8': {
+    id: 'theta-3-8', category: 'sleep', title: 'Quiet Horizon', soundIdentity: 'Soft sleep horizon',
+    recommendedUse: 'A peaceful, slightly brighter nighttime field for easing into sustained rest.',
+    core: { type: 'binaural', targetDifferenceHz: 3.8, leftCarrierHz: 172, rightCarrierHz: 175.8, waveform: 'sine', gain: 0.44 },
+    stems: [
+      { id: 'horizon-pad', role: 'pad', gain: 0.07, rootHz: 86, waveform: 'sine', intervals: [0, 5, 12], detuneCents: [-4, 4], cutoffHz: 1500, movementHz: 0.009 },
+      { id: 'horizon-air', role: 'noise', gain: 0.016, noiseColor: 'pink', cutoffHz: 900, movementHz: 0.008 },
+      { id: 'horizon-wind', role: 'sample', gain: 0.018, assetPath: '/audio/ambience/wind-open-loop.m4a', startOffsetSeconds: 23 }
+    ],
+    events: [],
+    processing: { highpassHz: 18, lowpassHz: 1900, compressorThreshold: -27, compressorRatio: 2.4, stereoWidth: 0.46 },
+    preview: { fadeInSeconds: 0.88 }
+  },
+  'ritual-639': {
+    id: 'ritual-639', category: 'ritual', title: 'Solar Harmony', soundIdentity: 'Golden celestial ritual world',
+    recommendedUse: 'A warm ceremonial atmosphere for intention, visualization and expansive ritual listening.',
+    core: { type: 'pure', pureHz: 639, waveform: 'sine', gain: 0.42 },
+    stems: [
+      { id: 'solar-pad', role: 'pad', gain: 0.11, rootHz: 106.5, waveform: 'sine', intervals: [0, 4, 7, 12], detuneCents: [-7, 0, 6], cutoffHz: 3600, movementHz: 0.018 },
+      { id: 'solar-vowel', role: 'vowel', gain: 0.06, rootHz: 79.875, waveform: 'sawtooth', detuneCents: [-8, 0, 8], formantsHz: [540, 980, 1580], cutoffHz: 2500, movementHz: 0.014 },
+      { id: 'solar-glow', role: 'glass', gain: 0.035, rootHz: 319.5, waveform: 'sine', intervals: [0, 7, 12], detuneCents: [-4, 4], cutoffHz: 5800, movementHz: 0.05 }
+    ],
+    events: [
+      { id: 'solar-bell', role: 'bell', minIntervalSeconds: 21, maxIntervalSeconds: 43, probability: 0.7, gainMin: 0.016, gainMax: 0.028, panMin: -0.42, panMax: 0.42, frequenciesHz: [639, 958.5, 1278], durationSeconds: 5.2 },
+      { id: 'solar-swell', role: 'swell', minIntervalSeconds: 31, maxIntervalSeconds: 59, probability: 0.46, gainMin: 0.012, gainMax: 0.022, panMin: -0.28, panMax: 0.28, frequenciesHz: [213, 319.5, 426], durationSeconds: 6.4 }
+    ],
+    processing: { highpassHz: 28, lowpassHz: 6500, compressorThreshold: -24, compressorRatio: 2.9, stereoWidth: 0.88 },
+    preview: { representativeEventAtSeconds: 4.4, fadeInSeconds: 0.5 }
+  },
+  'ritual-741': {
+    id: 'ritual-741', category: 'ritual', title: 'Celestial Radiance', soundIdentity: 'Crystalline celestial ritual world',
+    recommendedUse: 'A bright ritual atmosphere with airy vocal color, crystalline detail and spacious movement.',
+    core: { type: 'pure', pureHz: 741, waveform: 'sine', gain: 0.4 },
+    stems: [
+      { id: 'radiance-pad', role: 'pad', gain: 0.105, rootHz: 123.5, waveform: 'sine', intervals: [0, 5, 9, 14], detuneCents: [-7, 0, 7], cutoffHz: 4200, movementHz: 0.022 },
+      { id: 'radiance-glass', role: 'glass', gain: 0.07, rootHz: 370.5, waveform: 'sine', intervals: [0, 7, 12, 19], detuneCents: [-5, 5], cutoffHz: 7000, movementHz: 0.075 },
+      { id: 'radiance-vowel', role: 'vowel', gain: 0.045, rootHz: 82.333, waveform: 'sawtooth', detuneCents: [-9, 0, 9], formantsHz: [620, 1160, 1900], cutoffHz: 3000, movementHz: 0.017 }
+    ],
+    events: [
+      { id: 'radiance-crystal', role: 'crystal', minIntervalSeconds: 16, maxIntervalSeconds: 34, probability: 0.76, gainMin: 0.018, gainMax: 0.03, panMin: -0.6, panMax: 0.6, frequenciesHz: [741, 1111.5, 1482], durationSeconds: 3.0 },
+      { id: 'radiance-motif', role: 'motif', minIntervalSeconds: 25, maxIntervalSeconds: 47, probability: 0.54, gainMin: 0.013, gainMax: 0.023, panMin: -0.36, panMax: 0.36, frequenciesHz: [494, 618, 741, 988], durationSeconds: 4.6 }
+    ],
+    processing: { highpassHz: 36, lowpassHz: 7600, compressorThreshold: -24, compressorRatio: 3.0, stereoWidth: 0.94 },
+    preview: { representativeEventAtSeconds: 3.7, fadeInSeconds: 0.42 }
+  },
 };
 
 export function getPremiumAudioRecipe(id: string | null | undefined): PremiumAudioRecipe | null {
@@ -302,6 +460,7 @@ export function getPremiumAudioRecipe(id: string | null | undefined): PremiumAud
 export function getPremiumRecipeTechnical(id: string | null | undefined): string | null {
   const recipe = getPremiumAudioRecipe(id);
   if (!recipe) return null;
+  if (recipe.core.type === 'pure') return `Pure ${recipe.core.pureHz} Hz tone · Immersive frequency world`;
   return `Left ${recipe.core.leftCarrierHz} Hz · Right ${recipe.core.rightCarrierHz} Hz · ${recipe.core.targetDifferenceHz} Hz difference`;
 }
 
@@ -388,6 +547,17 @@ function addSlowStereoMovement(context: AudioContext, bag: RuntimeBag, input: Au
 }
 
 function addCore(context: AudioContext, bag: RuntimeBag, recipe: PremiumAudioRecipe, destination: AudioNode) {
+  if (recipe.core.type === 'pure') {
+    const oscillator = registerSource(bag, context.createOscillator());
+    const gain = registerNode(bag, context.createGain());
+    oscillator.type = recipe.core.waveform;
+    oscillator.frequency.value = recipe.core.pureHz;
+    gain.gain.value = recipe.core.gain;
+    oscillator.connect(gain);
+    gain.connect(destination);
+    oscillator.start();
+    return;
+  }
   const merger = registerNode(bag, context.createChannelMerger(2));
   const leftGain = registerNode(bag, context.createGain());
   const rightGain = registerNode(bag, context.createGain());
