@@ -1,0 +1,762 @@
+name: V12.5.2 no-Vercel work
+
+on:
+  push:
+    branches:
+      - _no-vercel/v12-5-2-work
+    paths:
+      - .github/workflows/v12-5-2-work.yml
+
+permissions:
+  contents: write
+
+jobs:
+  build-batch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: _no-vercel/v12-5-2-work
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Apply V12.5.2 batch
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def read(path):
+              return Path(path).read_text()
+
+          def write(path, text):
+              Path(path).write_text(text)
+
+          def replace_once(text, old, new, label):
+              if old not in text:
+                  raise SystemExit(f"Missing replacement target: {label}")
+              return text.replace(old, new, 1)
+
+          # ------------------------------------------------------------
+          # premium-audio-engine.ts
+          # ------------------------------------------------------------
+          path = 'app/premium-audio-engine.ts'
+          s = read(path)
+          s = replace_once(s,
+              "export type PremiumAudioCategory = 'study' | 'work' | 'meditation' | 'sleep';",
+              "export type PremiumAudioCategory = 'study' | 'work' | 'meditation' | 'sleep' | 'ritual';",
+              'audio category ritual')
+
+          old_core = """export type PremiumAudioRecipe = {
+  id: string;
+  category: PremiumAudioCategory;
+  title: string;
+  soundIdentity: string;
+  recommendedUse: string;
+  core: {
+    type: 'binaural';
+    targetDifferenceHz: number;
+    leftCarrierHz: number;
+    rightCarrierHz: number;
+    waveform: PremiumWaveform;
+    gain: number;
+  };
+"""
+          new_core = """export type PremiumAudioCore =
+  | {
+      type: 'binaural';
+      targetDifferenceHz: number;
+      leftCarrierHz: number;
+      rightCarrierHz: number;
+      waveform: PremiumWaveform;
+      gain: number;
+    }
+  | {
+      type: 'pure';
+      pureHz: number;
+      waveform: PremiumWaveform;
+      gain: number;
+    };
+
+export type PremiumAudioRecipe = {
+  id: string;
+  category: PremiumAudioCategory;
+  title: string;
+  soundIdentity: string;
+  recommendedUse: string;
+  core: PremiumAudioCore;
+"""
+          s = replace_once(s, old_core, new_core, 'audio core union')
+
+          old_beta18 = """  'beta-18': {
+    id: 'beta-18', category: 'study', title: 'Focused Drive', soundIdentity: 'Momentum focus environment',
+    recommendedUse: 'A forward-moving focus environment for productive work and active study.',
+    core: { type: 'binaural', targetDifferenceHz: 18, leftCarrierHz: 186, rightCarrierHz: 204, waveform: 'sine', gain: 0.53 },
+    stems: [
+      { id: 'drive-warm-tech-pad', role: 'pad', gain: 0.115, rootHz: 93, waveform: 'triangle', intervals: [0, 2, 7, 12], detuneCents: [-6, 5], cutoffHz: 2100, movementHz: 0.038 },
+      { id: 'drive-forward-pulse', role: 'pulse', gain: 0.052, rootHz: 186, waveform: 'triangle', pulseHz: 0.72, pulseDepth: 0.58, cutoffHz: 2300 },
+      { id: 'drive-air', role: 'noise', gain: 0.022, noiseColor: 'pink', cutoffHz: 1700, movementHz: 0.045 }
+    ],
+    events: [
+      { id: 'drive-motif', role: 'motif', minIntervalSeconds: 14, maxIntervalSeconds: 27, probability: 0.7, gainMin: 0.02, gainMax: 0.032, panMin: -0.3, panMax: 0.3, frequenciesHz: [372, 465, 558, 465], durationSeconds: 3.2 },
+      { id: 'drive-swell', role: 'swell', minIntervalSeconds: 20, maxIntervalSeconds: 38, probability: 0.5, gainMin: 0.014, gainMax: 0.024, panMin: -0.24, panMax: 0.24, frequenciesHz: [186, 279, 372], durationSeconds: 4.6 }
+    ],
+    processing: { highpassHz: 32, lowpassHz: 5000, compressorThreshold: -23, compressorRatio: 3.4, stereoWidth: 0.58 },
+    preview: { representativeEventAtSeconds: 5.2, fadeInSeconds: 0.36 }
+  },
+"""
+          new_beta18 = """  'beta-18': {
+    id: 'beta-18', category: 'study', title: 'Learning Momentum', soundIdentity: 'Luminous momentum field',
+    recommendedUse: 'Positive forward energy for active study, productive review and sustained learning.',
+    core: { type: 'binaural', targetDifferenceHz: 18, leftCarrierHz: 216, rightCarrierHz: 234, waveform: 'sine', gain: 0.49 },
+    stems: [
+      { id: 'momentum-luminous-pad', role: 'pad', gain: 0.145, rootHz: 144, waveform: 'sine', intervals: [0, 4, 7, 11], detuneCents: [-7, 0, 6], cutoffHz: 3400, movementHz: 0.031 },
+      { id: 'momentum-glass', role: 'glass', gain: 0.052, rootHz: 432, waveform: 'sine', intervals: [0, 7, 12, 16], detuneCents: [-5, 5], cutoffHz: 5200, movementHz: 0.064 },
+      { id: 'momentum-pulse', role: 'pulse', gain: 0.035, rootHz: 288, waveform: 'triangle', pulseHz: 0.36, pulseDepth: 0.46, cutoffHz: 2600 },
+      { id: 'momentum-air', role: 'noise', gain: 0.014, noiseColor: 'pink', cutoffHz: 1900, movementHz: 0.028 }
+    ],
+    events: [
+      { id: 'momentum-motif', role: 'motif', minIntervalSeconds: 17, maxIntervalSeconds: 33, probability: 0.72, gainMin: 0.021, gainMax: 0.034, panMin: -0.34, panMax: 0.34, frequenciesHz: [576, 720, 864, 720], durationSeconds: 4.1 },
+      { id: 'momentum-crystal', role: 'crystal', minIntervalSeconds: 25, maxIntervalSeconds: 46, probability: 0.48, gainMin: 0.014, gainMax: 0.025, panMin: -0.5, panMax: 0.5, frequenciesHz: [1152, 1440, 1728], durationSeconds: 2.5 }
+    ],
+    processing: { highpassHz: 34, lowpassHz: 5800, compressorThreshold: -23, compressorRatio: 3.3, stereoWidth: 0.7 },
+    preview: { representativeEventAtSeconds: 4.4, fadeInSeconds: 0.35 }
+  },
+"""
+          s = replace_once(s, old_beta18, new_beta18, 'beta18 rebuild')
+
+          s = replace_once(s,
+              "id: 'beta-15', category: 'work', title: 'Focus Mode', soundIdentity: 'Dry precision field',\n    recommendedUse: 'Execution-heavy work where atmosphere should stay minimal.',",
+              "id: 'beta-15', category: 'work', title: 'Precision Mode', soundIdentity: 'Clean precision field',\n    recommendedUse: 'Structured work where atmosphere stays minimal and clarity stays high.',",
+              'beta15 naming')
+
+          old_sleep = """  'delta-2-5': {
+    id: 'delta-2-5', category: 'sleep', title: 'Slow Descent', soundIdentity: 'Descending dark bed',
+    recommendedUse: 'A darker, denser descent toward sleep.',
+    core: { type: 'binaural', targetDifferenceHz: 2.5, leftCarrierHz: 140, rightCarrierHz: 142.5, waveform: 'sine', gain: 0.5 },
+    stems: [
+      { id: 'descent-noise', role: 'noise', gain: 0.033, noiseColor: 'brown', cutoffHz: 430, movementHz: 0.009 },
+      { id: 'descent-pad', role: 'pad', gain: 0.045, rootHz: 70, waveform: 'triangle', intervals: [0, 5, 12], detuneCents: [-4, 3], cutoffHz: 900, movementHz: 0.008 }
+    ],
+    events: [{ id: 'slow-swell', role: 'swell', minIntervalSeconds: 32, maxIntervalSeconds: 58, probability: 0.42, gainMin: 0.006, gainMax: 0.012, panMin: -0.15, panMax: 0.15, frequenciesHz: [70, 105], durationSeconds: 8 }],
+    processing: { highpassHz: 16, lowpassHz: 1400, compressorThreshold: -28, compressorRatio: 2.3, stereoWidth: 0.3 },
+    preview: { representativeEventAtSeconds: 8.5, fadeInSeconds: 0.9 }
+  },
+"""
+          new_sleep = """  'delta-2-5': {
+    id: 'delta-2-5', category: 'sleep', title: 'Sleep Serenity', soundIdentity: 'Serene night atmosphere',
+    recommendedUse: 'A soft, warm transition toward sleep with gentle filtered air and a peaceful tonal bed.',
+    core: { type: 'binaural', targetDifferenceHz: 2.5, leftCarrierHz: 140, rightCarrierHz: 142.5, waveform: 'sine', gain: 0.48 },
+    stems: [
+      { id: 'serenity-air', role: 'noise', gain: 0.024, noiseColor: 'pink', cutoffHz: 620, movementHz: 0.009 },
+      { id: 'serenity-pad', role: 'pad', gain: 0.065, rootHz: 84, waveform: 'sine', intervals: [0, 7, 12, 16], detuneCents: [-4, 4], cutoffHz: 1400, movementHz: 0.009 }
+    ],
+    events: [],
+    processing: { highpassHz: 18, lowpassHz: 1800, compressorThreshold: -28, compressorRatio: 2.3, stereoWidth: 0.34 },
+    preview: { fadeInSeconds: 0.9 }
+  },
+"""
+          s = replace_once(s, old_sleep, new_sleep, 'positive sleep recipe')
+          s = s.replace("id: 'delta-1', category: 'sleep', title: 'Deep Rest',", "id: 'delta-1', category: 'sleep', title: 'Warm Rest',", 1)
+
+          # Add two new recipes per non-Ritual category.
+          study_insert = """  'alpha-7': {
+    id: 'alpha-7', category: 'study', title: 'Recall Spark', soundIdentity: 'Crystalline recall field',
+    recommendedUse: 'A bright review environment with crystalline detail and spacious, low-pressure clarity.',
+    core: { type: 'binaural', targetDifferenceHz: 7, leftCarrierHz: 224, rightCarrierHz: 231, waveform: 'sine', gain: 0.49 },
+    stems: [
+      { id: 'recall-pad', role: 'pad', gain: 0.135, rootHz: 168, waveform: 'sine', intervals: [0, 4, 7, 14], detuneCents: [-6, 0, 6], cutoffHz: 3600, movementHz: 0.026 },
+      { id: 'recall-glass', role: 'glass', gain: 0.06, rootHz: 504, waveform: 'sine', intervals: [0, 7, 12, 19], detuneCents: [-5, 5], cutoffHz: 5900, movementHz: 0.078 },
+      { id: 'recall-air', role: 'noise', gain: 0.012, noiseColor: 'white', cutoffHz: 2600, movementHz: 0.032 }
+    ],
+    events: [
+      { id: 'recall-motif', role: 'motif', minIntervalSeconds: 18, maxIntervalSeconds: 34, probability: 0.74, gainMin: 0.02, gainMax: 0.034, panMin: -0.36, panMax: 0.36, frequenciesHz: [672, 840, 1008, 840], durationSeconds: 4.0 },
+      { id: 'recall-crystal', role: 'crystal', minIntervalSeconds: 25, maxIntervalSeconds: 48, probability: 0.48, gainMin: 0.015, gainMax: 0.025, panMin: -0.55, panMax: 0.55, frequenciesHz: [1344, 1680, 2016], durationSeconds: 2.4 }
+    ],
+    processing: { highpassHz: 38, lowpassHz: 6400, compressorThreshold: -23, compressorRatio: 3.1, stereoWidth: 0.82 },
+    preview: { representativeEventAtSeconds: 4.2, fadeInSeconds: 0.36 }
+  },
+  'beta-22': {
+    id: 'beta-22', category: 'study', title: 'Knowledge Flow', soundIdentity: 'Flowing study continuum',
+    recommendedUse: 'A smooth extended-learning atmosphere for long reading, practice and connected thinking.',
+    core: { type: 'binaural', targetDifferenceHz: 22, leftCarrierHz: 330, rightCarrierHz: 352, waveform: 'sine', gain: 0.46 },
+    stems: [
+      { id: 'knowledge-pad', role: 'pad', gain: 0.14, rootHz: 110, waveform: 'sine', intervals: [0, 5, 9, 14], detuneCents: [-8, 0, 7], cutoffHz: 3200, movementHz: 0.025 },
+      { id: 'knowledge-glass', role: 'glass', gain: 0.044, rootHz: 440, waveform: 'sine', intervals: [0, 7, 16], detuneCents: [-4, 4], cutoffHz: 5100, movementHz: 0.055 },
+      { id: 'knowledge-pulse', role: 'pulse', gain: 0.032, rootHz: 220, waveform: 'triangle', pulseHz: 0.3, pulseDepth: 0.4, cutoffHz: 2400 }
+    ],
+    events: [{ id: 'knowledge-motif', role: 'motif', minIntervalSeconds: 20, maxIntervalSeconds: 38, probability: 0.68, gainMin: 0.018, gainMax: 0.03, panMin: -0.4, panMax: 0.4, frequenciesHz: [440, 550, 660, 825], durationSeconds: 4.8 }],
+    processing: { highpassHz: 34, lowpassHz: 5700, compressorThreshold: -23, compressorRatio: 3.2, stereoWidth: 0.74 },
+    preview: { representativeEventAtSeconds: 5.1, fadeInSeconds: 0.42 }
+  },
+"""
+          s = replace_once(s, "  'beta-15': {", study_insert + "  'beta-15': {", 'insert new study recipes')
+
+          work_insert = """  'beta-25': {
+    id: 'beta-25', category: 'work', title: 'Productive Rhythm', soundIdentity: 'Bright productivity current',
+    recommendedUse: 'A forward, balanced work atmosphere for sustained output without an aggressive edge.',
+    core: { type: 'binaural', targetDifferenceHz: 25, leftCarrierHz: 205, rightCarrierHz: 230, waveform: 'sine', gain: 0.47 },
+    stems: [
+      { id: 'rhythm-pad', role: 'pad', gain: 0.12, rootHz: 102.5, waveform: 'triangle', intervals: [0, 4, 7, 12], detuneCents: [-6, 5], cutoffHz: 2800, movementHz: 0.034 },
+      { id: 'rhythm-pulse', role: 'pulse', gain: 0.045, rootHz: 307.5, waveform: 'sine', pulseHz: 0.44, pulseDepth: 0.54, cutoffHz: 3100 },
+      { id: 'rhythm-air', role: 'noise', gain: 0.015, noiseColor: 'pink', cutoffHz: 2100, movementHz: 0.04 }
+    ],
+    events: [{ id: 'rhythm-motif', role: 'motif', minIntervalSeconds: 17, maxIntervalSeconds: 32, probability: 0.7, gainMin: 0.018, gainMax: 0.03, panMin: -0.34, panMax: 0.34, frequenciesHz: [410, 512.5, 615, 717.5], durationSeconds: 3.8 }],
+    processing: { highpassHz: 34, lowpassHz: 5600, compressorThreshold: -23, compressorRatio: 3.4, stereoWidth: 0.7 },
+    preview: { representativeEventAtSeconds: 4.7, fadeInSeconds: 0.34 }
+  },
+  'gamma-45': {
+    id: 'gamma-45', category: 'work', title: 'Clear Purpose', soundIdentity: 'Radiant high-Gamma field',
+    recommendedUse: 'A bright, expansive work environment for deliberate high-attention sessions.',
+    core: { type: 'binaural', targetDifferenceHz: 45, leftCarrierHz: 360, rightCarrierHz: 405, waveform: 'sine', gain: 0.43 },
+    stems: [
+      { id: 'purpose-pad', role: 'pad', gain: 0.13, rootHz: 180, waveform: 'sine', intervals: [0, 7, 11, 14], detuneCents: [-6, 0, 5], cutoffHz: 4100, movementHz: 0.032 },
+      { id: 'purpose-glass', role: 'glass', gain: 0.055, rootHz: 720, waveform: 'sine', intervals: [0, 7, 12], detuneCents: [-4, 4], cutoffHz: 6800, movementHz: 0.072 },
+      { id: 'purpose-pulse', role: 'pulse', gain: 0.025, rootHz: 270, waveform: 'triangle', pulseHz: 0.24, pulseDepth: 0.36, cutoffHz: 3000 }
+    ],
+    events: [
+      { id: 'purpose-swell', role: 'swell', minIntervalSeconds: 20, maxIntervalSeconds: 39, probability: 0.62, gainMin: 0.016, gainMax: 0.028, panMin: -0.28, panMax: 0.28, frequenciesHz: [540, 720, 900], durationSeconds: 4.6 },
+      { id: 'purpose-crystal', role: 'crystal', minIntervalSeconds: 29, maxIntervalSeconds: 52, probability: 0.42, gainMin: 0.012, gainMax: 0.022, panMin: -0.58, panMax: 0.58, frequenciesHz: [1080, 1440, 1800], durationSeconds: 2.2 }
+    ],
+    processing: { highpassHz: 42, lowpassHz: 7000, compressorThreshold: -22, compressorRatio: 3.5, stereoWidth: 0.86 },
+    preview: { representativeEventAtSeconds: 5.0, fadeInSeconds: 0.32 }
+  },
+"""
+          s = replace_once(s, "  'theta-5': {", work_insert + "  'theta-5': {", 'insert new work recipes')
+
+          meditation_insert = """  'theta-3-5': {
+    id: 'theta-3-5', category: 'meditation', title: 'Inner Light', soundIdentity: 'Luminous inward sanctuary',
+    recommendedUse: 'A bright, gentle inward atmosphere for reflective meditation and spacious stillness.',
+    core: { type: 'binaural', targetDifferenceHz: 3.5, leftCarrierHz: 108, rightCarrierHz: 111.5, waveform: 'sine', gain: 0.5 },
+    stems: [
+      { id: 'inner-light-pad', role: 'pad', gain: 0.12, rootHz: 108, waveform: 'sine', intervals: [0, 5, 7, 12], detuneCents: [-6, 0, 6], cutoffHz: 3000, movementHz: 0.018 },
+      { id: 'inner-light-vowel', role: 'vowel', gain: 0.06, rootHz: 72, waveform: 'sawtooth', detuneCents: [-8, 0, 8], formantsHz: [560, 1040, 1680], cutoffHz: 2600, movementHz: 0.014 },
+      { id: 'inner-light-glow', role: 'glass', gain: 0.025, rootHz: 432, waveform: 'sine', intervals: [0, 7, 12], detuneCents: [-4, 4], cutoffHz: 5000, movementHz: 0.038 }
+    ],
+    events: [
+      { id: 'inner-light-bell', role: 'bell', minIntervalSeconds: 26, maxIntervalSeconds: 51, probability: 0.58, gainMin: 0.012, gainMax: 0.022, panMin: -0.3, panMax: 0.3, frequenciesHz: [432, 648, 864], durationSeconds: 5.4 },
+      { id: 'inner-light-swell', role: 'swell', minIntervalSeconds: 33, maxIntervalSeconds: 61, probability: 0.42, gainMin: 0.01, gainMax: 0.019, panMin: -0.22, panMax: 0.22, frequenciesHz: [216, 324, 432], durationSeconds: 6.2 }
+    ],
+    processing: { highpassHz: 26, lowpassHz: 5200, compressorThreshold: -25, compressorRatio: 2.7, stereoWidth: 0.8 },
+    preview: { representativeEventAtSeconds: 5.6, fadeInSeconds: 0.62 }
+  },
+  'alpha-10-5': {
+    id: 'alpha-10-5', category: 'meditation', title: 'Serene Expansion', soundIdentity: 'Wide celestial calm',
+    recommendedUse: 'A spacious, peaceful meditation environment with airy vocal color and slow harmonic expansion.',
+    core: { type: 'binaural', targetDifferenceHz: 10.5, leftCarrierHz: 240, rightCarrierHz: 250.5, waveform: 'sine', gain: 0.44 },
+    stems: [
+      { id: 'expansion-pad', role: 'pad', gain: 0.13, rootHz: 120, waveform: 'sine', intervals: [0, 7, 14, 21], detuneCents: [-8, 0, 7], cutoffHz: 3600, movementHz: 0.018 },
+      { id: 'expansion-vowel', role: 'vowel', gain: 0.05, rootHz: 80, waveform: 'sawtooth', detuneCents: [-9, 0, 9], formantsHz: [500, 900, 1500], cutoffHz: 2400, movementHz: 0.012 },
+      { id: 'expansion-air', role: 'noise', gain: 0.012, noiseColor: 'pink', cutoffHz: 1500, movementHz: 0.014 }
+    ],
+    events: [
+      { id: 'expansion-breath', role: 'breath', minIntervalSeconds: 28, maxIntervalSeconds: 55, probability: 0.55, gainMin: 0.009, gainMax: 0.016, panMin: -0.45, panMax: 0.45, durationSeconds: 5.0 },
+      { id: 'expansion-swell', role: 'swell', minIntervalSeconds: 35, maxIntervalSeconds: 66, probability: 0.4, gainMin: 0.009, gainMax: 0.017, panMin: -0.3, panMax: 0.3, frequenciesHz: [240, 360, 480], durationSeconds: 7.0 }
+    ],
+    processing: { highpassHz: 30, lowpassHz: 5000, compressorThreshold: -26, compressorRatio: 2.6, stereoWidth: 0.92 },
+    preview: { representativeEventAtSeconds: 6.2, fadeInSeconds: 0.72 }
+  },
+"""
+          s = replace_once(s, "  'delta-1': {", meditation_insert + "  'delta-1': {", 'insert meditation recipes')
+
+          sleep_insert = """  'delta-0-8': {
+    id: 'delta-0-8', category: 'sleep', title: 'Moonlit Ease', soundIdentity: 'Warm moonlit rest field',
+    recommendedUse: 'A soft, safe nighttime atmosphere with slow air, gentle warmth and minimal movement.',
+    core: { type: 'binaural', targetDifferenceHz: 0.8, leftCarrierHz: 64, rightCarrierHz: 64.8, waveform: 'sine', gain: 0.52 },
+    stems: [
+      { id: 'moonlit-pad', role: 'pad', gain: 0.06, rootHz: 64, waveform: 'sine', intervals: [0, 7, 12], detuneCents: [-3, 3], cutoffHz: 1200, movementHz: 0.007 },
+      { id: 'moonlit-air', role: 'noise', gain: 0.022, noiseColor: 'pink', cutoffHz: 600, movementHz: 0.007 },
+      { id: 'moonlit-night', role: 'sample', gain: 0.025, assetPath: '/audio/ambience/night-ambience-loop.m4a', startOffsetSeconds: 55 }
+    ],
+    events: [],
+    processing: { highpassHz: 16, lowpassHz: 1600, compressorThreshold: -28, compressorRatio: 2.3, stereoWidth: 0.34 },
+    preview: { fadeInSeconds: 0.95 }
+  },
+  'theta-3-8': {
+    id: 'theta-3-8', category: 'sleep', title: 'Quiet Horizon', soundIdentity: 'Soft sleep horizon',
+    recommendedUse: 'A peaceful, slightly brighter nighttime field for easing into sustained rest.',
+    core: { type: 'binaural', targetDifferenceHz: 3.8, leftCarrierHz: 172, rightCarrierHz: 175.8, waveform: 'sine', gain: 0.44 },
+    stems: [
+      { id: 'horizon-pad', role: 'pad', gain: 0.07, rootHz: 86, waveform: 'sine', intervals: [0, 5, 12], detuneCents: [-4, 4], cutoffHz: 1500, movementHz: 0.009 },
+      { id: 'horizon-air', role: 'noise', gain: 0.016, noiseColor: 'pink', cutoffHz: 900, movementHz: 0.008 },
+      { id: 'horizon-wind', role: 'sample', gain: 0.018, assetPath: '/audio/ambience/wind-open-loop.m4a', startOffsetSeconds: 23 }
+    ],
+    events: [],
+    processing: { highpassHz: 18, lowpassHz: 1900, compressorThreshold: -27, compressorRatio: 2.4, stereoWidth: 0.46 },
+    preview: { fadeInSeconds: 0.88 }
+  },
+"""
+          s = replace_once(s, "};\n\nexport function getPremiumAudioRecipe", sleep_insert + "  'ritual-639': {\n    id: 'ritual-639', category: 'ritual', title: 'Solar Harmony', soundIdentity: 'Golden celestial ritual world',\n    recommendedUse: 'A warm ceremonial atmosphere for intention, visualization and expansive ritual listening.',\n    core: { type: 'pure', pureHz: 639, waveform: 'sine', gain: 0.42 },\n    stems: [\n      { id: 'solar-pad', role: 'pad', gain: 0.11, rootHz: 106.5, waveform: 'sine', intervals: [0, 4, 7, 12], detuneCents: [-7, 0, 6], cutoffHz: 3600, movementHz: 0.018 },\n      { id: 'solar-vowel', role: 'vowel', gain: 0.06, rootHz: 79.875, waveform: 'sawtooth', detuneCents: [-8, 0, 8], formantsHz: [540, 980, 1580], cutoffHz: 2500, movementHz: 0.014 },\n      { id: 'solar-glow', role: 'glass', gain: 0.035, rootHz: 319.5, waveform: 'sine', intervals: [0, 7, 12], detuneCents: [-4, 4], cutoffHz: 5800, movementHz: 0.05 }\n    ],\n    events: [\n      { id: 'solar-bell', role: 'bell', minIntervalSeconds: 21, maxIntervalSeconds: 43, probability: 0.7, gainMin: 0.016, gainMax: 0.028, panMin: -0.42, panMax: 0.42, frequenciesHz: [639, 958.5, 1278], durationSeconds: 5.2 },\n      { id: 'solar-swell', role: 'swell', minIntervalSeconds: 31, maxIntervalSeconds: 59, probability: 0.46, gainMin: 0.012, gainMax: 0.022, panMin: -0.28, panMax: 0.28, frequenciesHz: [213, 319.5, 426], durationSeconds: 6.4 }\n    ],\n    processing: { highpassHz: 28, lowpassHz: 6500, compressorThreshold: -24, compressorRatio: 2.9, stereoWidth: 0.88 },\n    preview: { representativeEventAtSeconds: 4.4, fadeInSeconds: 0.5 }\n  },\n  'ritual-741': {\n    id: 'ritual-741', category: 'ritual', title: 'Celestial Radiance', soundIdentity: 'Crystalline celestial ritual world',\n    recommendedUse: 'A bright ritual atmosphere with airy vocal color, crystalline detail and spacious movement.',\n    core: { type: 'pure', pureHz: 741, waveform: 'sine', gain: 0.4 },\n    stems: [\n      { id: 'radiance-pad', role: 'pad', gain: 0.105, rootHz: 123.5, waveform: 'sine', intervals: [0, 5, 9, 14], detuneCents: [-7, 0, 7], cutoffHz: 4200, movementHz: 0.022 },\n      { id: 'radiance-glass', role: 'glass', gain: 0.07, rootHz: 370.5, waveform: 'sine', intervals: [0, 7, 12, 19], detuneCents: [-5, 5], cutoffHz: 7000, movementHz: 0.075 },\n      { id: 'radiance-vowel', role: 'vowel', gain: 0.045, rootHz: 82.333, waveform: 'sawtooth', detuneCents: [-9, 0, 9], formantsHz: [620, 1160, 1900], cutoffHz: 3000, movementHz: 0.017 }\n    ],\n    events: [\n      { id: 'radiance-crystal', role: 'crystal', minIntervalSeconds: 16, maxIntervalSeconds: 34, probability: 0.76, gainMin: 0.018, gainMax: 0.03, panMin: -0.6, panMax: 0.6, frequenciesHz: [741, 1111.5, 1482], durationSeconds: 3.0 },\n      { id: 'radiance-motif', role: 'motif', minIntervalSeconds: 25, maxIntervalSeconds: 47, probability: 0.54, gainMin: 0.013, gainMax: 0.023, panMin: -0.36, panMax: 0.36, frequenciesHz: [494, 618, 741, 988], durationSeconds: 4.6 }\n    ],\n    processing: { highpassHz: 36, lowpassHz: 7600, compressorThreshold: -24, compressorRatio: 3.0, stereoWidth: 0.94 },\n    preview: { representativeEventAtSeconds: 3.7, fadeInSeconds: 0.42 }\n  }\n};\n\nexport function getPremiumAudioRecipe", 'insert sleep and ritual recipes')
+
+          old_technical = """export function getPremiumRecipeTechnical(id: string | null | undefined): string | null {
+  const recipe = getPremiumAudioRecipe(id);
+  if (!recipe) return null;
+  return `Left ${recipe.core.leftCarrierHz} Hz · Right ${recipe.core.rightCarrierHz} Hz · ${recipe.core.targetDifferenceHz} Hz difference`;
+}
+"""
+          new_technical = """export function getPremiumRecipeTechnical(id: string | null | undefined): string | null {
+  const recipe = getPremiumAudioRecipe(id);
+  if (!recipe) return null;
+  if (recipe.core.type === 'pure') return `Pure ${recipe.core.pureHz} Hz tone · Immersive frequency world`;
+  return `Left ${recipe.core.leftCarrierHz} Hz · Right ${recipe.core.rightCarrierHz} Hz · ${recipe.core.targetDifferenceHz} Hz difference`;
+}
+"""
+          s = replace_once(s, old_technical, new_technical, 'technical pure support')
+
+          old_addcore = """function addCore(context: AudioContext, bag: RuntimeBag, recipe: PremiumAudioRecipe, destination: AudioNode) {
+  const merger = registerNode(bag, context.createChannelMerger(2));
+  const leftGain = registerNode(bag, context.createGain());
+  const rightGain = registerNode(bag, context.createGain());
+  const left = registerSource(bag, context.createOscillator());
+  const right = registerSource(bag, context.createOscillator());
+  left.type = recipe.core.waveform;
+  right.type = recipe.core.waveform;
+  left.frequency.value = recipe.core.leftCarrierHz;
+  right.frequency.value = recipe.core.rightCarrierHz;
+  leftGain.gain.value = recipe.core.gain;
+  rightGain.gain.value = recipe.core.gain;
+  left.connect(leftGain);
+  right.connect(rightGain);
+  leftGain.connect(merger, 0, 0);
+  rightGain.connect(merger, 0, 1);
+  merger.connect(destination);
+  left.start();
+  right.start();
+}
+"""
+          new_addcore = """function addCore(context: AudioContext, bag: RuntimeBag, recipe: PremiumAudioRecipe, destination: AudioNode) {
+  if (recipe.core.type === 'pure') {
+    const oscillator = registerSource(bag, context.createOscillator());
+    const gain = registerNode(bag, context.createGain());
+    oscillator.type = recipe.core.waveform;
+    oscillator.frequency.value = recipe.core.pureHz;
+    gain.gain.value = recipe.core.gain;
+    oscillator.connect(gain);
+    gain.connect(destination);
+    oscillator.start();
+    return;
+  }
+
+  const merger = registerNode(bag, context.createChannelMerger(2));
+  const leftGain = registerNode(bag, context.createGain());
+  const rightGain = registerNode(bag, context.createGain());
+  const left = registerSource(bag, context.createOscillator());
+  const right = registerSource(bag, context.createOscillator());
+  left.type = recipe.core.waveform;
+  right.type = recipe.core.waveform;
+  left.frequency.value = recipe.core.leftCarrierHz;
+  right.frequency.value = recipe.core.rightCarrierHz;
+  leftGain.gain.value = recipe.core.gain;
+  rightGain.gain.value = recipe.core.gain;
+  left.connect(leftGain);
+  right.connect(rightGain);
+  leftGain.connect(merger, 0, 0);
+  rightGain.connect(merger, 0, 1);
+  merger.connect(destination);
+  left.start();
+  right.start();
+}
+"""
+          s = replace_once(s, old_addcore, new_addcore, 'pure addCore support')
+          write(path, s)
+
+          # ------------------------------------------------------------
+          # V10ProductFlow.tsx
+          # ------------------------------------------------------------
+          path = 'app/V10ProductFlow.tsx'
+          s = read(path)
+          s = s.replace("label: 'Focused Drive'", "label: 'Learning Momentum'", 1)
+          s = s.replace("purpose: 'A forward-moving focus environment for productive work and active study.'", "purpose: 'Positive forward energy for active study, productive review and sustained learning.'", 1)
+          s = s.replace("description: 'Warm technological pad, restrained pulse and positive forward movement around an 18 Hz foundation.'", "description: 'Luminous harmony, crystalline detail and gentle forward motion around a precise 18 Hz foundation.'", 1)
+          s = s.replace("leftHz: 186, rightHz: 204", "leftHz: 216, rightHz: 234", 1)
+          s = s.replace("label: 'Deep Focus'", "label: 'Gamma Clarity'", 1)
+          s = s.replace("description: 'The free Gamma flagship for demanding focus sessions.'", "description: 'The free Gamma flagship for demanding clarity and high-attention sessions.'", 1)
+          s = s.replace("label: 'Focus Mode'", "label: 'Precision Mode'", 1)
+          s = s.replace("purpose: 'A clean, minimal signal for focused execution.'", "purpose: 'A clean, minimal frequency for structured precision work.'", 1)
+          s = s.replace("description: 'Minimal binaural presentation with no distracting sound bed.'", "description: 'Minimal binaural presentation with a dry, distraction-free precision field.'", 1)
+          s = s.replace("label: 'Creative Flow'", "label: 'Reflective Space'", 1)
+          s = s.replace("description: 'The free Theta flagship for reflective and meditative sessions.'", "description: 'The free Theta flagship for reflection, meditation and ideation.'", 1)
+          s = s.replace("label: 'Creative Flow'", "label: 'Creative Spark'", 1)
+          s = s.replace("purpose: 'A futuristic Gamma experience for creative production.'", "purpose: 'A spacious Gamma experience for creative production and exploratory work.'", 1)
+          s = s.replace("label: 'Deep Rest', purpose: 'A very slow Delta signal", "label: 'Warm Rest', purpose: 'A very slow Delta frequency", 1)
+          s = s.replace("label: 'Slow Descent'", "label: 'Sleep Serenity'", 1)
+          s = s.replace("purpose: 'A slow Delta signal supported by a dark filtered-noise bed.'", "purpose: 'A soft Delta experience with gentle filtered air and a peaceful tonal bed.'", 1)
+          s = s.replace("description: 'Binaural signal with a soft brown-noise-style texture underneath.'", "description: 'A warm, serene sleep atmosphere with smooth low-motion texture.'", 1)
+          s = s.replace("purpose: 'A gentle nighttime signal with a soft dark atmosphere.'", "purpose: 'A gentle nighttime frequency with a soft warm atmosphere.'", 1)
+          s = s.replace("description: 'Pure tone with a dark low drone, subtle metallic shimmer and slow pulse.'", "description: 'Pure tone with a deep low drone, subtle metallic shimmer and slow pulse.'", 1)
+
+          study_new = """  { id: 'alpha-7', category: 'study', family: 'Alpha', hz: 7, label: 'Recall Spark', purpose: 'A bright review environment with crystalline detail and spacious, low-pressure clarity.', description: 'Luminous pad, glass detail and a gentle recall motif around a precise 7 Hz foundation.', premium: true, pure: false, soundProfile: 'focus', leftHz: 224, rightHz: 231 },
+  { id: 'beta-22', category: 'study', family: 'Beta', hz: 22, label: 'Knowledge Flow', purpose: 'A smooth extended-learning atmosphere for long reading, practice and connected thinking.', description: 'Flowing harmony, soft pulse and melodic movement around a precise 22 Hz foundation.', premium: true, pure: false, soundProfile: 'focus', leftHz: 330, rightHz: 352 },
+"""
+          s = replace_once(s, "\n  { id: 'gamma', category: 'work'", "\n" + study_new + "\n  { id: 'gamma', category: 'work'", 'product add study')
+
+          work_new = """  { id: 'beta-25', category: 'work', family: 'Beta', hz: 25, label: 'Productive Rhythm', purpose: 'A forward, balanced work atmosphere for sustained output without an aggressive edge.', description: 'Bright pad, gentle rhythmic motion and positive work energy around a precise 25 Hz foundation.', premium: true, pure: false, soundProfile: 'futuristic', leftHz: 205, rightHz: 230 },
+  { id: 'gamma-45', category: 'work', family: 'Gamma', hz: 45, label: 'Clear Purpose', purpose: 'A bright, expansive work environment for deliberate high-attention sessions.', description: 'Radiant high-Gamma atmosphere with polished harmonics, crystal detail and controlled motion.', premium: true, pure: false, soundProfile: 'futuristic', leftHz: 360, rightHz: 405 },
+"""
+          s = replace_once(s, "\n  { id: 'theta', category: 'meditation'", "\n" + work_new + "\n  { id: 'theta', category: 'meditation'", 'product add work')
+
+          med_new = """  { id: 'theta-3-5', category: 'meditation', family: 'Theta', hz: 3.5, label: 'Inner Light', purpose: 'A bright, gentle inward atmosphere for reflective meditation and spacious stillness.', description: 'Luminous pad, airy vowel color and soft resonant detail around a precise 3.5 Hz foundation.', premium: true, pure: false, soundProfile: 'meditative', leftHz: 108, rightHz: 111.5 },
+  { id: 'alpha-10-5', category: 'meditation', family: 'Alpha', hz: 10.5, label: 'Serene Expansion', purpose: 'A spacious, peaceful meditation environment with airy vocal color and slow harmonic expansion.', description: 'Wide celestial harmony, warm vowel texture and gentle breathing motion around a 10.5 Hz foundation.', premium: true, pure: false, soundProfile: 'meditative', leftHz: 240, rightHz: 250.5 },
+"""
+          s = replace_once(s, "\n  { id: 'delta', category: 'sleep'", "\n" + med_new + "\n  { id: 'delta', category: 'sleep'", 'product add meditation')
+
+          sleep_new = """  { id: 'delta-0-8', category: 'sleep', family: 'Delta', hz: 0.8, label: 'Moonlit Ease', purpose: 'A soft, safe nighttime atmosphere with slow air, gentle warmth and minimal movement.', description: 'Warm pad, soft night air and a very slow 0.8 Hz foundation for quiet rest.', premium: true, pure: false, soundProfile: 'sleep', leftHz: 64, rightHz: 64.8 },
+  { id: 'theta-3-8', category: 'sleep', family: 'Theta', hz: 3.8, label: 'Quiet Horizon', purpose: 'A peaceful, slightly brighter nighttime field for easing into sustained rest.', description: 'Soft harmonic horizon, filtered air and subtle environmental texture around a 3.8 Hz foundation.', premium: true, pure: false, soundProfile: 'sleep', leftHz: 172, rightHz: 175.8 },
+"""
+          s = replace_once(s, "\n  { id: 'abundance', category: 'ritual'", "\n" + sleep_new + "\n  { id: 'abundance', category: 'ritual'", 'product add sleep')
+
+          ritual_new = """  { id: 'ritual-639', category: 'ritual', family: 'Ritual Frequency', hz: 639, label: 'Solar Harmony', purpose: 'A warm ceremonial atmosphere for intention, visualization and expansive ritual listening.', description: 'Exact 639 Hz foundation with a luminous pad, original vowel color, golden bells and spacious harmonic movement.', premium: true, pure: false, soundProfile: 'ritual', pureHz: 639 },
+  { id: 'ritual-741', category: 'ritual', family: 'Ritual Frequency', hz: 741, label: 'Celestial Radiance', purpose: 'A bright ritual atmosphere with airy vocal color, crystalline detail and spacious movement.', description: 'Exact 741 Hz foundation with celestial glass, original vowel texture and crystalline ritual accents.', premium: true, pure: false, soundProfile: 'ritual', pureHz: 741 },
+"""
+          s = replace_once(s, "\n];\n\nconst premiumSignalCount", "\n" + ritual_new + "];\n\nconst premiumSignalCount", 'product add ritual')
+
+          s = s.replace("signal.premium && signal.category !== 'ritual' ? getPremiumAudioRecipe(signal.id) : null", "signal.premium ? getPremiumAudioRecipe(signal.id) : null", 1)
+          s = s.replace("Premium opens four deeper frequency experiences in each state.", "Premium opens six deeper frequency experiences in each state.", 1)
+          s = s.replace("<span>{premiumSignalCount} Premium Frequencies</span><span>{premiumCollectionCount} Collections</span><span>Exclusive Soundscapes</span><span>Unlimited Voyages</span><span>No Ads</span>", "<span>{premiumSignalCount} Premium Frequencies</span><span>{premiumCollectionCount} Collections</span><span>Exclusive Soundscapes</span><span className=\"evFutureBenefit\">15 Sound Effects · Coming Next</span><span>Unlimited Voyages</span><span>No Ads</span>", 1)
+          s = s.replace("<div><p className=\"eyebrow\">Premium frequency library</p><h2 id=\"ev-library-title\">", "<div><p className=\"evPremiumLibraryTitle\">Premium Frequency Library</p><h2 id=\"ev-library-title\">", 1)
+          s = s.replace("<div className=\"evSuccessBenefits\"><span>20 Premium Frequencies</span>", "<div className=\"evSuccessBenefits\"><span>{premiumSignalCount} Premium Frequencies</span>", 1)
+          s = s.replace("<article className=\"evCheckoutBenefitCard evBenefitCyan\"><span className=\"evCheckoutBenefitIcon\" aria-hidden=\"true\">◉</span><div><strong>20 Premium Frequencies</strong>", "<article className=\"evCheckoutBenefitCard evBenefitCyan\"><span className=\"evCheckoutBenefitIcon\" aria-hidden=\"true\">◉</span><div><strong>{premiumSignalCount} Premium Frequencies</strong>", 1)
+          s = s.replace("<p className=\"evCheckoutBenefitMeta\"><span>5 collections</span><span>No ads</span><span>No account required</span></p>", "<p className=\"evCheckoutBenefitMeta\"><span>5 collections</span><span>No ads</span><span>No account required</span></p><p className=\"evCheckoutComingSoon\"><strong>Coming to Premium:</strong> 15 immersive sound effects</p>", 1)
+
+          # ProductFlow typography and gold hierarchy refinements.
+          s = s.replace(".evPremiumLibraryHeader h2{font-size:clamp(30px,3.8vw,50px)}", ".evPremiumLibraryTitle{margin:0 0 12px;color:#f0c66f;font-size:clamp(22px,2.5vw,34px);font-weight:950;letter-spacing:.12em;text-transform:uppercase;text-shadow:0 0 26px rgba(240,190,91,.16)}\n        .evPremiumLibraryHeader h2{font-size:clamp(34px,4.2vw,56px)}", 1)
+          s = s.replace(".evPremiumLibraryHeader>p{margin:0;color:rgba(216,232,248,.6);line-height:1.7}", ".evPremiumLibraryHeader>p{margin:0;color:rgba(224,237,249,.78);font-size:clamp(15px,1.45vw,18px);line-height:1.65}", 1)
+          s = s.replace(".evPremiumCategoryTabs button{min-width:150px;min-height:96px;padding:15px;", ".evPremiumCategoryTabs button{min-width:190px;min-height:128px;padding:18px;", 1)
+          s = s.replace(".evPremiumCategoryTabs button>span{display:block;color:#83ddff;font-size:18px}", ".evPremiumCategoryTabs button>span{display:block;color:#83ddff;font-size:21px}", 1)
+          s = s.replace(".evPremiumCategoryTabs strong{display:block;margin-top:7px;font-size:12px}", ".evPremiumCategoryTabs strong{display:block;margin-top:10px;color:#eef7ff;font-size:clamp(18px,1.55vw,22px);line-height:1.12;letter-spacing:-.02em}", 1)
+          s = s.replace(".evPremiumCategoryTabs small{display:block;margin-top:4px;color:rgba(203,225,243,.44);font-size:9px;line-height:1.35}", ".evPremiumCategoryTabs small{display:block;margin-top:8px;color:rgba(216,232,247,.72);font-size:clamp(13px,1.05vw,15px);line-height:1.4}", 1)
+          s = s.replace(".evCheckoutFinePrint{margin:16px 0 0", ".evCheckoutComingSoon{margin:12px 0 0;padding:10px 12px;border:1px solid rgba(235,190,111,.18);border-radius:12px;color:rgba(222,235,247,.72);background:rgba(132,86,20,.06);font-size:12px;line-height:1.45;text-align:center}.evCheckoutComingSoon strong{color:#ffe0aa}\n        .evCheckoutFinePrint{margin:16px 0 0", 1)
+          s = s.replace(".evPremiumLibraryHeader h2{font-size:32px}\n        .evPremiumLibraryHeader>p{font-size:12px}", ".evPremiumLibraryTitle{margin-bottom:10px;font-size:22px;line-height:1.1;letter-spacing:.1em}\n        .evPremiumLibraryHeader h2{font-size:36px}\n        .evPremiumLibraryHeader>p{font-size:15px;line-height:1.55}", 1)
+          s = s.replace(".evPremiumCategoryTabs button{min-width:138px;min-height:88px;padding:13px}", ".evPremiumCategoryTabs button{min-width:205px;min-height:136px;padding:17px}", 1)
+          s = s.replace("@media(max-width:390px){.evPremiumSignalGrid", "@media(max-width:390px){.evPremiumCategoryTabs button{min-width:190px}.evPremiumCategoryTabs strong{font-size:19px}.evPremiumCategoryTabs small{font-size:13px}\n        .evPremiumSignalGrid", 1)
+          write(path, s)
+
+          # ------------------------------------------------------------
+          # V10VoyageEngine.tsx
+          # ------------------------------------------------------------
+          path = 'app/V10VoyageEngine.tsx'
+          s = read(path)
+          union_anchor = "  | 'pure-963';"
+          union_new = """  | 'alpha-7'
+  | 'beta-22'
+  | 'beta-25'
+  | 'gamma-45'
+  | 'theta-3-5'
+  | 'alpha-10-5'
+  | 'delta-0-8'
+  | 'theta-3-8'
+  | 'ritual-639'
+  | 'ritual-741'
+  | 'pure-963';"""
+          s = replace_once(s, union_anchor, union_new, 'voyage union new ids')
+          s = s.replace("frequency: 'Gamma', hz: '40 Hz', state: 'Deep Focus'", "frequency: 'Gamma', hz: '40 Hz', state: 'Gamma Clarity'", 1)
+          s = s.replace("frequency: 'Theta', hz: '4 Hz', state: 'Creative Flow'", "frequency: 'Theta', hz: '4 Hz', state: 'Reflective Space'", 1)
+          s = s.replace("state: 'Focused Drive'", "state: 'Learning Momentum'", 1)
+          s = s.replace("purpose: 'A forward-moving focus environment for productive work and active study.'", "purpose: 'Positive forward energy for active study, productive review and sustained learning.'", 1)
+          s = s.replace("technical: 'Left 186 Hz · Right 204 Hz · 18 Hz difference'", "technical: 'Left 216 Hz · Right 234 Hz · 18 Hz difference'", 1)
+          s = s.replace("state: 'Focus Mode'", "state: 'Precision Mode'", 1)
+          s = s.replace("purpose: 'A clean, minimal signal for focused execution.'", "purpose: 'A clean, minimal frequency for structured precision work.'", 1)
+          s = s.replace("state: 'Creative Flow',\n    purpose: 'A futuristic Gamma experience for creative production.'", "state: 'Creative Spark',\n    purpose: 'A spacious Gamma experience for creative production and exploratory work.'", 1)
+          s = s.replace("id: 'delta-1', themeId: 'delta', frequency: 'Delta', hz: '1 Hz', state: 'Deep Rest'", "id: 'delta-1', themeId: 'delta', frequency: 'Delta', hz: '1 Hz', state: 'Warm Rest'", 1)
+          s = s.replace("id: 'delta-2-5', themeId: 'delta', frequency: 'Delta', hz: '2.5 Hz', state: 'Slow Descent'", "id: 'delta-2-5', themeId: 'delta', frequency: 'Delta', hz: '2.5 Hz', state: 'Sleep Serenity'", 1)
+          s = s.replace("purpose: 'A slow Delta signal supported by a dark filtered-noise bed.'", "purpose: 'A soft Delta experience with gentle filtered air and a peaceful tonal bed.'", 1)
+          s = s.replace("purpose: 'A gentle nighttime signal with a soft dark atmosphere.'", "purpose: 'A gentle nighttime frequency with a soft warm atmosphere.'", 1)
+
+          study_defs = """  'alpha-7': {
+    id: 'alpha-7', themeId: 'alpha', frequency: 'Alpha', hz: '7 Hz', state: 'Recall Spark',
+    purpose: 'A bright review environment with crystalline detail and spacious, low-pressure clarity.',
+    technical: 'Left 224 Hz · Right 231 Hz · 7 Hz difference', note: 'Headphones recommended · Premium',
+    premium: true, soundProfile: 'focus', leftHz: 224, rightHz: 231
+  },
+  'beta-22': {
+    id: 'beta-22', themeId: 'alpha', frequency: 'Beta', hz: '22 Hz', state: 'Knowledge Flow',
+    purpose: 'A smooth extended-learning atmosphere for long reading, practice and connected thinking.',
+    technical: 'Left 330 Hz · Right 352 Hz · 22 Hz difference', note: 'Headphones recommended · Premium',
+    premium: true, soundProfile: 'focus', leftHz: 330, rightHz: 352
+  },
+"""
+          s = replace_once(s, "  'beta-15': {", study_defs + "  'beta-15': {", 'voyage study defs')
+          work_defs = """  'beta-25': {
+    id: 'beta-25', themeId: 'gamma', frequency: 'Beta', hz: '25 Hz', state: 'Productive Rhythm',
+    purpose: 'A forward, balanced work atmosphere for sustained output without an aggressive edge.',
+    technical: 'Left 205 Hz · Right 230 Hz · 25 Hz difference', note: 'Headphones recommended · Premium',
+    premium: true, soundProfile: 'futuristic', leftHz: 205, rightHz: 230
+  },
+  'gamma-45': {
+    id: 'gamma-45', themeId: 'gamma', frequency: 'Gamma', hz: '45 Hz', state: 'Clear Purpose',
+    purpose: 'A bright, expansive work environment for deliberate high-attention sessions.',
+    technical: 'Left 360 Hz · Right 405 Hz · 45 Hz difference', note: 'Headphones recommended · Premium',
+    premium: true, soundProfile: 'futuristic', leftHz: 360, rightHz: 405
+  },
+"""
+          s = replace_once(s, "  'theta-5': {", work_defs + "  'theta-5': {", 'voyage work defs')
+          med_defs = """  'theta-3-5': {
+    id: 'theta-3-5', themeId: 'theta', frequency: 'Theta', hz: '3.5 Hz', state: 'Inner Light',
+    purpose: 'A bright, gentle inward atmosphere for reflective meditation and spacious stillness.',
+    technical: 'Left 108 Hz · Right 111.5 Hz · 3.5 Hz difference', note: 'Headphones recommended · Premium',
+    premium: true, soundProfile: 'meditative', leftHz: 108, rightHz: 111.5
+  },
+  'alpha-10-5': {
+    id: 'alpha-10-5', themeId: 'theta', frequency: 'Alpha', hz: '10.5 Hz', state: 'Serene Expansion',
+    purpose: 'A spacious, peaceful meditation environment with airy vocal color and slow harmonic expansion.',
+    technical: 'Left 240 Hz · Right 250.5 Hz · 10.5 Hz difference', note: 'Headphones recommended · Premium',
+    premium: true, soundProfile: 'meditative', leftHz: 240, rightHz: 250.5
+  },
+"""
+          s = replace_once(s, "  'delta-1': {", med_defs + "  'delta-1': {", 'voyage meditation defs')
+          sleep_defs = """  'delta-0-8': {
+    id: 'delta-0-8', themeId: 'delta', frequency: 'Delta', hz: '0.8 Hz', state: 'Moonlit Ease',
+    purpose: 'A soft, safe nighttime atmosphere with slow air, gentle warmth and minimal movement.',
+    technical: 'Left 64 Hz · Right 64.8 Hz · 0.8 Hz difference', note: 'Headphones recommended · Premium',
+    premium: true, soundProfile: 'sleep', leftHz: 64, rightHz: 64.8
+  },
+  'theta-3-8': {
+    id: 'theta-3-8', themeId: 'delta', frequency: 'Theta', hz: '3.8 Hz', state: 'Quiet Horizon',
+    purpose: 'A peaceful, slightly brighter nighttime field for easing into sustained rest.',
+    technical: 'Left 172 Hz · Right 175.8 Hz · 3.8 Hz difference', note: 'Headphones recommended · Premium',
+    premium: true, soundProfile: 'sleep', leftHz: 172, rightHz: 175.8
+  },
+"""
+          s = replace_once(s, "  'pure-222': {", sleep_defs + "  'pure-222': {", 'voyage sleep defs')
+          ritual_defs = """  'ritual-639': {
+    id: 'ritual-639', themeId: 'abundance', frequency: 'Ritual Frequency', hz: '639 Hz', state: 'Solar Harmony',
+    purpose: 'A warm ceremonial atmosphere for intention, visualization and expansive ritual listening.',
+    technical: 'Pure 639 Hz tone · Immersive frequency world', note: 'Speakers or headphones · Premium',
+    premium: true, soundProfile: 'ritual', pureHz: 639
+  },
+  'ritual-741': {
+    id: 'ritual-741', themeId: 'abundance', frequency: 'Ritual Frequency', hz: '741 Hz', state: 'Celestial Radiance',
+    purpose: 'A bright ritual atmosphere with airy vocal color, crystalline detail and spacious movement.',
+    technical: 'Pure 741 Hz tone · Immersive frequency world', note: 'Speakers or headphones · Premium',
+    premium: true, soundProfile: 'ritual', pureHz: 741
+  },
+"""
+          s = replace_once(s, "  'pure-963': {", ritual_defs + "  'pure-963': {", 'voyage ritual defs')
+          s = s.replace("signal.premium && signal.soundProfile !== 'ritual' ? getPremiumAudioRecipe(signal.id) : null", "signal.premium ? getPremiumAudioRecipe(signal.id) : null", 1)
+          write(path, s)
+
+          # ------------------------------------------------------------
+          # page.tsx: visible free names, frequency terminology, YouTube origin
+          # ------------------------------------------------------------
+          path = 'app/page.tsx'
+          s = read(path)
+          s = s.replace("state: 'Deep Focus',\n    frequency: 'Gamma'", "state: 'Gamma Clarity',\n    frequency: 'Gamma'", 1)
+          s = s.replace("state: 'Creative Flow',\n    frequency: 'Theta'", "state: 'Reflective Space',\n    frequency: 'Theta'", 1)
+          s = s.replace("title: 'Pure signals'", "title: 'Pure frequencies'", 1)
+          s = s.replace("Clean tones with transparent signal information.", "Clean tones with transparent frequency information.", 1)
+          s = s.replace("Pure signals with nothing hidden.", "Pure frequencies with nothing hidden.", 1)
+          s = s.replace("humanoid signal", "frequency figure")
+          s = s.replace("Tap a frequency to expand the signal", "Tap a frequency to explore the experience", 1)
+
+          youtube_block = """
+        <aside className="youtubeOrigin" aria-label="Everlasting Voyage YouTube origin">
+          <span className="youtubeOriginQuote" aria-hidden="true">“</span>
+          <div className="youtubeOriginIcon" aria-hidden="true">
+            <svg viewBox="0 0 28 20" role="presentation">
+              <rect x="0.5" y="0.5" width="27" height="19" rx="5" fill="#ff0033" />
+              <path d="M11 5.5 19 10l-8 4.5z" fill="#fff" />
+            </svg>
+          </div>
+          <blockquote>
+            <p>Born from the Everlasting Voyage YouTube channel — expanded into a more personal and immersive frequency experience for the community.</p>
+            <cite>Everlasting Voyage · YouTube</cite>
+          </blockquote>
+        </aside>
+
+"""
+          s = replace_once(s, "        <article className=\"sessionBuilder glassCard\" id=\"session-builder\">", youtube_block + "        <article className=\"sessionBuilder glassCard\" id=\"session-builder\">", 'youtube markup')
+          write(path, s)
+
+          # ------------------------------------------------------------
+          # v10-product-flow.css: YouTube origin editorial bridge
+          # ------------------------------------------------------------
+          path = 'app/v10-product-flow.css'
+          s = read(path)
+          youtube_css = r'''
+
+/* V12.5.2 — editorial bridge from the YouTube channel into the interactive product */
+.youtubeOrigin { display: none; }
+.ev-product-route .youtubeOrigin {
+  position: relative;
+  width: min(660px, calc(100% - 44px));
+  margin: 0 auto 30px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  color: #dce9f7;
+  text-align: left;
+}
+.ev-product-route .youtubeOrigin::before,
+.ev-product-route .youtubeOrigin::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  width: min(82%, 500px);
+  height: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, transparent, rgba(115, 199, 255, .25), rgba(157, 135, 255, .2), transparent);
+}
+.ev-product-route .youtubeOrigin::before { top: -12px; }
+.ev-product-route .youtubeOrigin::after { bottom: -12px; }
+.ev-product-route .youtubeOriginIcon {
+  position: relative;
+  z-index: 1;
+  width: 42px;
+  height: 31px;
+  filter: drop-shadow(0 0 14px rgba(255, 0, 51, .18));
+}
+.ev-product-route .youtubeOriginIcon svg { display: block; width: 100%; height: 100%; }
+.ev-product-route .youtubeOrigin blockquote { margin: 0; min-width: 0; }
+.ev-product-route .youtubeOrigin p {
+  margin: 0;
+  color: rgba(229, 239, 249, .82);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(13px, 1.12vw, 15px);
+  font-style: italic;
+  line-height: 1.55;
+  letter-spacing: .005em;
+}
+.ev-product-route .youtubeOrigin cite {
+  display: block;
+  margin-top: 5px;
+  color: rgba(137, 210, 255, .72);
+  font-family: inherit;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+.ev-product-route .youtubeOriginQuote {
+  position: absolute;
+  left: 45px;
+  top: -22px;
+  color: rgba(126, 192, 255, .1);
+  font-family: Georgia, serif;
+  font-size: 66px;
+  line-height: 1;
+  pointer-events: none;
+}
+@media (max-width: 760px) {
+  .ev-product-route .heroSection { padding-top: 104px !important; }
+  .ev-product-route .youtubeOrigin {
+    width: min(100% - 42px, 520px);
+    margin-bottom: 30px;
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 12px;
+  }
+  .ev-product-route .youtubeOriginIcon { width: 36px; height: 26px; }
+  .ev-product-route .youtubeOrigin p { font-size: 13.5px; line-height: 1.5; }
+  .ev-product-route .youtubeOrigin cite { font-size: 10px; }
+  .ev-product-route .youtubeOriginQuote { left: 38px; top: -19px; font-size: 56px; }
+}
+@media (max-width: 390px) {
+  .ev-product-route .youtubeOrigin { width: calc(100% - 34px); grid-template-columns: 32px minmax(0, 1fr); gap: 10px; }
+  .ev-product-route .youtubeOriginIcon { width: 32px; height: 24px; }
+  .ev-product-route .youtubeOrigin p { font-size: 13px; }
+}
+'''
+          if 'V12.5.2 — editorial bridge' in s:
+              raise SystemExit('YouTube CSS already present unexpectedly')
+          s += youtube_css
+          write(path, s)
+
+          # ------------------------------------------------------------
+          # layout.tsx: remove old purple !important override by converting it to gold.
+          # ------------------------------------------------------------
+          path = 'app/layout.tsx'
+          s = read(path)
+          old_premium = """          .evPremiumSignalCard.premium {
+            border-color: rgba(183, 137, 255, .38) !important;
+            background: radial-gradient(circle at 84% 7%, rgba(150, 85, 255, .2), transparent 35%), linear-gradient(155deg, rgba(27, 20, 58, .96), rgba(7, 8, 25, .99)) !important;
+            box-shadow: inset 0 1px 0 rgba(234, 213, 255, .055), 0 14px 38px rgba(74, 40, 150, .08);
+          }
+          .evPremiumSignalCard.premium:hover {
+            border-color: rgba(224, 179, 255, .67) !important;
+            box-shadow: 0 22px 50px rgba(99, 55, 190, .19), inset 0 0 36px rgba(160, 100, 255, .07) !important;
+          }
+          .evPremiumSignalCard.premium .evSignalCardTopline {
+            color: #e2bcff !important;
+          }
+"""
+          new_premium = """          .evPremiumSignalCard.premium {
+            border-color: rgba(235, 193, 105, .48) !important;
+            background: radial-gradient(circle at 84% 7%, rgba(247, 195, 91, .18), transparent 35%), linear-gradient(155deg, rgba(29, 23, 24, .97), rgba(7, 9, 20, .99)) !important;
+            box-shadow: inset 0 1px 0 rgba(255, 238, 199, .065), 0 16px 42px rgba(128, 84, 16, .11);
+          }
+          .evPremiumSignalCard.premium:hover {
+            border-color: rgba(255, 219, 142, .74) !important;
+            box-shadow: 0 22px 52px rgba(175, 119, 25, .2), inset 0 0 36px rgba(245, 191, 83, .065) !important;
+          }
+          .evPremiumSignalCard.premium .evSignalCardTopline {
+            color: #ffe0a4 !important;
+          }
+"""
+          s = replace_once(s, old_premium, new_premium, 'layout premium gold base')
+          s = s.replace("color: #d8adff !important;", "color: #ffe1a4 !important;", 1)
+          s = s.replace("background: linear-gradient(135deg, #8d57ff, #e2a353) !important;", "background: linear-gradient(135deg, #f4c362, #d79631) !important;", 1)
+          s = s.replace("background: linear-gradient(135deg, #23cfff, #8b63ff) !important;", "background: linear-gradient(135deg, #f6cb6f, #55cdf4) !important;", 1)
+          s = s.replace("background: linear-gradient(135deg, #a46cff, #f0b45f) !important;", "background: linear-gradient(135deg, #f7d27d, #e5a33e) !important;", 1)
+          write(path, s)
+
+          # ------------------------------------------------------------
+          # Static data sanity checks before build.
+          # ------------------------------------------------------------
+          product = read('app/V10ProductFlow.tsx')
+          engine = read('app/premium-audio-engine.ts')
+          voyage = read('app/V10VoyageEngine.tsx')
+          required_ids = ['alpha-7','beta-22','beta-25','gamma-45','theta-3-5','alpha-10-5','delta-0-8','theta-3-8','ritual-639','ritual-741']
+          for rid in required_ids:
+              if product.count(f"id: '{rid}'") != 1:
+                  raise SystemExit(f'Product catalog id count wrong: {rid}')
+              if engine.count(f"id: '{rid}'") != 1:
+                  raise SystemExit(f'Audio recipe id count wrong: {rid}')
+              if voyage.count(f"id: '{rid}'") != 1:
+                  raise SystemExit(f'Voyage catalog id count wrong: {rid}')
+
+          if '20 Premium Frequencies' in product or 'four deeper frequency experiences' in product:
+              raise SystemExit('Stale Premium product counts remain')
+          if 'Descending dark bed' in engine or 'Descending dark bed' in product:
+              raise SystemExit('Negative sleep profile remains')
+          if 'Focused Drive' in product or 'Focused Drive' in engine or 'Focused Drive' in voyage:
+              raise SystemExit('Focused Drive remains')
+          if "signal.premium && signal.category !== 'ritual'" in product or "signal.premium && signal.soundProfile !== 'ritual'" in voyage:
+              raise SystemExit('New Ritual shared-recipe path not enabled')
+
+          # Existing approved Ritual legacy IDs must not be added to the new recipe engine.
+          for legacy in ['pure-222','pure-444','pure-528','pure-963']:
+              if f"'{legacy}': {{" in engine:
+                  raise SystemExit(f'Legacy Ritual recipe was unexpectedly migrated: {legacy}')
+          PY
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Production build
+        run: npm run build
+
+      - name: Verify approved Ritual audio lines were not modified
+        shell: bash
+        run: |
+          changed=$(git diff -U0 -- app/V10VoyageEngine.tsx app/premium-audio-engine.ts | grep '^+' | grep -E "pure-(222|444|528|963)|888 Hz" || true)
+          if [ -n "$changed" ]; then
+            echo "Approved Ritual audio lines changed unexpectedly:"
+            echo "$changed"
+            exit 1
+          fi
+
+      - name: Commit validated batch and remove temporary workflow
+        shell: bash
+        run: |
+          rm .github/workflows/v12-5-2-work.yml
+          git config user.name "Everlasting Voyage Build"
+          git config user.email "actions@users.noreply.github.com"
+          git add app .github/workflows/v12-5-2-work.yml
+          git status --short
+          git commit -m "V12.5.2 validated product batch"
+          git push origin HEAD:_no-vercel/v12-5-2-work
