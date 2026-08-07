@@ -90,6 +90,12 @@ type SquareVerificationDetails = {
   billingContact: Record<string, never>;
 };
 
+type SquareCardStyle = Record<string, Record<string, string>>;
+
+type SquareCardOptions = {
+  style?: SquareCardStyle;
+};
+
 type SquareCard = {
   attach(selector: string): Promise<void>;
   tokenize(details: SquareVerificationDetails): Promise<SquareTokenResult>;
@@ -97,7 +103,7 @@ type SquareCard = {
 };
 
 type SquarePayments = {
-  card(): Promise<SquareCard>;
+  card(options?: SquareCardOptions): Promise<SquareCard>;
   setLocale?(locale: string): Promise<unknown>;
 };
 
@@ -157,6 +163,10 @@ const premiumCollectionCount = premiumCategories.length;
 const previewDurationSeconds = 24;
 const FALLBACK_ENTITLEMENT_KEY = 'ev-premium-entitlement';
 const FALLBACK_PENDING_KEY = 'ev-premium-pending-attempt';
+
+function customerFrequencyCopy(value: string) {
+  return value.replace(/\bsignals\b/gi, 'frequencies').replace(/\bsignal\b/gi, 'frequency');
+}
 
 function createNoiseBuffer(context: AudioContext, seconds = 2) {
   const frameCount = Math.max(1, Math.floor(context.sampleRate * seconds));
@@ -301,7 +311,7 @@ export default function V10ProductFlow() {
 
   const startPreview = useCallback(async (signal: PremiumSignal) => {
     if (document.body.classList.contains('v10-session-open')) {
-      setPreviewMessage('End or close the active Voyage before previewing another signal.');
+      setPreviewMessage('End or close the active Voyage before previewing another frequency.');
       return;
     }
     stopPreview();
@@ -715,7 +725,14 @@ export default function V10ProductFlow() {
         if (cancelled || !window.Square) return;
         const payments = window.Square.payments(checkoutConfig.applicationId, checkoutConfig.locationId);
         if (payments.setLocale) await payments.setLocale('en-CA');
-        const card = await payments.card();
+        const card = await payments.card({
+          style: {
+            '.message-text': { color: '#cfe7f7', fontSize: '14px', fontWeight: '600' },
+            '.message-icon': { color: '#88dcff' },
+            '.message-text.is-error': { color: '#ffb7c0', fontSize: '14px', fontWeight: '700' },
+            '.message-icon.is-error': { color: '#ff9eaa' }
+          }
+        });
         if (cancelled) {
           await card.destroy();
           return;
@@ -880,11 +897,11 @@ export default function V10ProductFlow() {
       {builderPremiumMount && selectedPremiumSignal && createPortal(
         <div className={`evPremiumBuilderSelection ${selectedPremiumSignal.soundProfile}`} role="status">
           <div>
-            <span>Premium signal selected · Founding Member</span>
+            <span>Premium frequency selected · Founding Member</span>
             <strong>{selectedPremiumSignal.family} · {selectedPremiumSignal.hz} Hz</strong>
-            <p>{selectedPremiumSignal.label} — {selectedPremiumSignal.purpose}</p>
+            <p>{selectedPremiumSignal.label} — {customerFrequencyCopy(selectedPremiumSignal.purpose)}</p>
           </div>
-          <button type="button" onClick={clearPremiumSelection}>Use a free signal instead</button>
+          <button type="button" onClick={clearPremiumSelection}>Use a free frequency instead</button>
         </div>, builderPremiumMount
       )}
 
@@ -899,28 +916,28 @@ export default function V10ProductFlow() {
                   <span className="evPremiumKicker">Everlasting Premium</span>
                   <span className="evFounderBadge">{premiumState === 'premium' ? 'Founding Member' : 'Founder access · through Aug 31'}</span>
                 </div>
-                <h2 id="ev-premium-title">{premiumState === 'premium' ? 'Premium is active. Your full signal library is open.' : 'Your Voyage is unlimited. Premium lets you go deeper.'}</h2>
-                <p>{premiumState === 'premium' ? `All ${premiumSignalCount} Premium signals are ready for full Voyages across five collections.` : `Unlock ${premiumSignalCount} additional signals across Study, Deep Work, Meditation, Sleep and Manifestation — including exclusive immersive sound experiences.`}</p>
+                <h2 id="ev-premium-title">{premiumState === 'premium' ? 'Premium is active. Your full frequency library is open.' : 'Your Voyage is unlimited. Premium lets you go deeper.'}</h2>
+                <p>{premiumState === 'premium' ? `All ${premiumSignalCount} Premium frequencies are ready for full Voyages across five collections.` : `Unlock ${premiumSignalCount} additional Premium frequencies across Study, Deep Work, Meditation, Sleep and Ritual — including exclusive immersive soundscapes.`}</p>
                 <div className="evPremiumBenefitRow" aria-label="Premium benefits">
-                  <span>{premiumSignalCount} premium signals</span><span>{premiumCollectionCount} collections</span><span>Exclusive soundscapes</span><span>Unlimited Voyages</span><span>No ads</span>
+                  <span>{premiumSignalCount} Premium Frequencies</span><span>{premiumCollectionCount} Collections</span><span>Exclusive Soundscapes</span><span>Unlimited Voyages</span><span>No Ads</span>
                 </div>
               </div>
               <div className="evPremiumOffer">
                 <span className="evPremiumOfferLabel">{premiumState === 'premium' ? 'Premium active' : founderOfferOpen ? 'Founding Member' : 'Founder access ended'}</span>
                 {premiumState === 'premium' ? (
-                  <><strong>Lifetime</strong><small>Founding Member Premium</small><button type="button" className="evPremiumPrimary" onClick={explorePremium}>Choose a Premium signal</button><button type="button" className="evPremiumSecondary" onClick={() => { setCheckoutOpen(true); setCheckoutStatus('restore'); }}>Recovery code</button></>
+                  <><strong>Lifetime</strong><small>Founding Member Premium</small><button type="button" className="evPremiumPrimary" onClick={explorePremium}>Choose a Premium frequency</button><button type="button" className="evPremiumSecondary" onClick={() => { setCheckoutOpen(true); setCheckoutStatus('restore'); }}>Recovery code</button></>
                 ) : (
-                  <><strong>{founderPriceLabel}</strong><small>One time · Lifetime Premium</small><span className="evCadCharge">{checkoutConfig?.chargePriceCad ? `Charged as ${checkoutConfig.chargePriceCad} through Square` : 'Final CAD charge is shown before payment'}</span><button type="button" className="evPremiumPrimary" onClick={() => startCheckout(null)} disabled={premiumState === 'checking' || !founderOfferOpen}>{premiumState === 'checking' ? 'Checking access…' : founderOfferOpen ? 'Unlock Premium' : 'Founder offer ended'}</button><button type="button" className="evPremiumSecondary" onClick={explorePremium}>Explore premium signals</button><button type="button" className="evRestoreInline" onClick={() => { setCheckoutOpen(true); setCheckoutStatus('restore'); setCheckoutMessage(''); }}>Restore Founder access</button></>
+                  <><strong>{founderPriceLabel}</strong><small>One time · Lifetime Premium</small><span className="evCadCharge">{checkoutConfig?.chargePriceCad ? `Charged as ${checkoutConfig.chargePriceCad} through Square` : 'Final CAD charge is shown before payment'}</span><button type="button" className="evPremiumPrimary" onClick={() => startCheckout(null)} disabled={premiumState === 'checking' || !founderOfferOpen}>{premiumState === 'checking' ? 'Checking access…' : founderOfferOpen ? 'Unlock Premium' : 'Founder offer ended'}</button><button type="button" className="evPremiumSecondary" onClick={explorePremium}>Explore Premium Frequencies</button><button type="button" className="evRestoreInline" onClick={() => { setCheckoutOpen(true); setCheckoutStatus('restore'); setCheckoutMessage(''); }}>Restore Founder access</button></>
                 )}
-                <p>The five core signals and unlimited free Voyages remain free.</p>
+                <p>The five core frequencies and unlimited free Voyages remain free.</p>
               </div>
             </article>
           </section>
 
           <section className="evPremiumLibrary section" id="ev-premium-library" aria-labelledby="ev-library-title">
             <div className="evPremiumLibraryHeader">
-              <div><p className="eyebrow">Premium signal library</p><h2 id="ev-library-title">{totalSignalCount} signals. Five ways to enter.</h2></div>
-              <p>Every collection includes a free flagship. Premium opens four deeper signal experiences in each state.</p>
+              <div><p className="eyebrow">Premium frequency library</p><h2 id="ev-library-title">{totalSignalCount} frequencies. Five ways to enter.</h2></div>
+              <p>Every collection includes a free flagship. Premium opens four deeper frequency experiences in each state.</p>
             </div>
             <div className="evPremiumCategoryTabs" role="tablist" aria-label="Premium frequency collections">
               {premiumCategories.map((category) => (
@@ -935,12 +952,12 @@ export default function V10ProductFlow() {
                 return (
                   <button key={signal.id} type="button" className={`evPremiumSignalCard ${signal.premium ? 'premium' : 'free'} ${signal.soundProfile} ${unlocked ? 'unlocked' : ''}`} onClick={() => openSignal(signal)}>
                     <span className="evSignalCardTopline"><span>{signal.premium ? (unlocked ? 'Premium active' : 'Premium') : 'Free flagship'}</span><i aria-hidden="true">{signal.premium ? (unlocked ? '✓' : '◇') : '✓'}</i></span>
-                    <strong>{signal.family}</strong><b>{signal.hz} Hz</b><span className="evSignalPurpose">{signal.label}</span><small>{signal.purpose}</small><span className="evSignalAction">{signal.premium ? (unlocked ? 'Use this signal →' : 'Preview signal →') : 'Use free signal →'}</span>
+                    <strong>{signal.family}</strong><b>{signal.hz} Hz</b><span className="evSignalPurpose">{signal.label}</span><small>{customerFrequencyCopy(signal.purpose)}</small><span className="evSignalAction">{signal.premium ? (unlocked ? 'Use this frequency →' : 'Preview frequency →') : 'Use free frequency →'}</span>
                   </button>
                 );
               })}
             </div>
-            <div className="evPremiumLibraryNote"><span>Premium is an expansion, not a gate.</span><p>Unlimited free Voyages remain available with the five original signals.</p></div>
+            <div className="evPremiumLibraryNote"><span>Premium is an expansion, not a gate.</span><p>Unlimited free Voyages remain available with the five original frequencies.</p></div>
           </section>
         </>, premiumMount
       )}
@@ -948,8 +965,8 @@ export default function V10ProductFlow() {
       {aboutMount && createPortal(
         <section className="evAboutCompact section" id="about" aria-labelledby="ev-about-title">
           <div className="evAboutHeader"><div><p className="eyebrow">About Everlasting Voyage</p><h2 id="ev-about-title">Three choices. One focused environment.</h2></div><p>Pure frequencies, a precise timer and one clear intention live together without feeds, comments or setup friction.</p></div>
-          <div className="evAboutRitual" aria-label="How Everlasting Voyage works"><article><span>01</span><strong>Choose your state</strong><p>Select the atmosphere that matches the moment.</p></article><i aria-hidden="true">→</i><article><span>02</span><strong>Set your time</strong><p>Choose a session length and one intention.</p></article><i aria-hidden="true">→</i><article><span>03</span><strong>Enter the voyage</strong><p>Signal, timer and thought capture remain together.</p></article></div>
-          <div className="evAboutSignals"><span>Pure signals</span><span>Built for sessions</span><span>No forced setup</span><span>Saved spaces</span></div>
+          <div className="evAboutRitual" aria-label="How Everlasting Voyage works"><article><span>01</span><strong>Choose your state</strong><p>Select the atmosphere that matches the moment.</p></article><i aria-hidden="true">→</i><article><span>02</span><strong>Set your time</strong><p>Choose a session length and one intention.</p></article><i aria-hidden="true">→</i><article><span>03</span><strong>Enter the voyage</strong><p>Frequency, timer and thought capture remain together.</p></article></div>
+          <div className="evAboutSignals"><span>Pure frequencies</span><span>Built for sessions</span><span>No forced setup</span><span>Saved spaces</span></div>
         </section>, aboutMount
       )}
 
@@ -957,7 +974,7 @@ export default function V10ProductFlow() {
         <footer className="evProductFooter">
           <a href="/" className="evFooterBrand" aria-label="Everlasting Voyage entrance"><img src="/brand-infinity.png" alt="" /><img src="/brand-wordmark.png" alt="Everlasting Voyage" /></a>
           <nav aria-label="Footer navigation"><a href="#session-builder">Build a voyage</a><a href="#ev-premium-library">Premium</a><a href="#library">Frequencies</a><a href="#about">About</a></nav>
-          <p>© 2026 Everlasting Voyage. Pure signals, clearly presented.</p>
+          <p>© 2026 Everlasting Voyage. Pure frequencies, clearly presented.</p>
         </footer>, footerMount
       )}
 
@@ -965,9 +982,9 @@ export default function V10ProductFlow() {
         <div className="evPremiumModalBackdrop" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) closePreview(); }}>
           <article className={`evPremiumModal ${previewSignal.soundProfile}`} role="dialog" aria-modal="true" aria-labelledby="ev-preview-title">
             <button type="button" className="evPremiumModalClose" onClick={closePreview} aria-label="Close premium preview">×</button>
-            <div className="evPremiumModalMeta"><span>Premium signal</span><span>{premiumCategories.find((category) => category.id === previewSignal.category)?.title}</span></div>
-            <h2 id="ev-preview-title">{previewSignal.family} <strong>{previewSignal.hz} Hz</strong></h2><h3>{previewSignal.label}</h3><p>{previewSignal.description}</p>
-            <div className="evPremiumSoundProfile"><span>Sound profile</span><strong>{previewSignal.soundProfile === 'ritual' ? 'Ritual soundscape' : previewSignal.soundProfile === 'futuristic' ? 'Futuristic focus' : previewSignal.soundProfile === 'sleep' ? 'Sleep ambience' : previewSignal.soundProfile === 'meditative' ? 'Meditative ambience' : previewSignal.soundProfile === 'focus' ? 'Minimal focus bed' : 'Clean signal'}</strong></div>
+            <div className="evPremiumModalMeta"><span>Premium frequency</span><span>{premiumCategories.find((category) => category.id === previewSignal.category)?.title}</span></div>
+            <h2 id="ev-preview-title">{previewSignal.family} <strong>{previewSignal.hz} Hz</strong></h2><h3>{previewSignal.label}</h3><p>{customerFrequencyCopy(previewSignal.description)}</p>
+            <div className="evPremiumSoundProfile"><span>Sound profile</span><strong>{previewSignal.soundProfile === 'ritual' ? 'Ritual soundscape' : previewSignal.soundProfile === 'futuristic' ? 'Futuristic focus' : previewSignal.soundProfile === 'sleep' ? 'Sleep ambience' : previewSignal.soundProfile === 'meditative' ? 'Meditative ambience' : previewSignal.soundProfile === 'focus' ? 'Minimal focus bed' : 'Clean frequency'}</strong></div>
             <div className="evPremiumPreviewControls">
               <button type="button" className={`evPreviewButton ${previewing ? 'playing' : ''}`} onClick={() => previewing ? stopPreview() : startPreview(previewSignal)}>{previewing ? `Stop preview · ${previewSeconds}s` : `Preview ${previewDurationSeconds} seconds`}</button>
               <small>{previewSignal.pure ? `Pure ${previewSignal.pureHz} Hz tone` : `Left ${previewSignal.leftHz} Hz · Right ${previewSignal.rightHz} Hz · ${previewSignal.hz} Hz difference`}</small>
@@ -990,7 +1007,7 @@ export default function V10ProductFlow() {
                 <p className="evCheckoutEyebrow">Founding Member · Premium active</p>
                 <h2 id="ev-checkout-title">Premium unlocked.</h2>
                 <h3>Your library just got deeper.</h3>
-                <div className="evSuccessBenefits"><span>20 Premium signals</span><span>5 collections</span><span>Lifetime Founder Premium</span><span>No ads</span></div>
+                <div className="evSuccessBenefits"><span>20 Premium Frequencies</span><span>5 collections</span><span>Lifetime Founder Premium</span><span>No ads</span></div>
                 <div className="evRecoveryBox">
                   <strong>Founder Recovery Code</strong>
                   <p>Save this code. It restores Premium on another browser or device. Treat it like a private access key.</p>
@@ -1004,7 +1021,7 @@ export default function V10ProductFlow() {
                     if (target) usePremiumSignal(target);
                     else explorePremium();
                   }}>Enter the Voyage →</button>
-                  <button type="button" className="evPremiumSecondary" onClick={() => { setCheckoutOpen(false); explorePremium(); }}>Explore Premium Signals</button>
+                  <button type="button" className="evPremiumSecondary" onClick={() => { setCheckoutOpen(false); explorePremium(); }}>Explore Premium Frequencies</button>
                 </div>
                 {receiptUrl ? <a className="evReceiptLink" href={receiptUrl} target="_blank" rel="noreferrer">View Square receipt ↗</a> : null}
               </div>
@@ -1043,7 +1060,7 @@ export default function V10ProductFlow() {
                 <section className="evCheckoutValue" aria-labelledby="ev-checkout-benefits-title">
                   <h3 id="ev-checkout-benefits-title">Everything you unlock</h3>
                   <div className="evCheckoutBenefitGrid">
-                    <article className="evCheckoutBenefitCard evBenefitCyan"><span className="evCheckoutBenefitIcon" aria-hidden="true">◉</span><div><strong>20 Premium Signals</strong><p>Explore deeper frequencies across Study, Deep Work, Meditation, Sleep and Ritual.</p></div></article>
+                    <article className="evCheckoutBenefitCard evBenefitCyan"><span className="evCheckoutBenefitIcon" aria-hidden="true">◉</span><div><strong>20 Premium Frequencies</strong><p>Explore deeper frequencies across Study, Deep Work, Meditation, Sleep and Ritual.</p></div></article>
                     <article className="evCheckoutBenefitCard evBenefitViolet"><span className="evCheckoutBenefitIcon" aria-hidden="true">✦</span><div><strong>Premium Soundscapes</strong><p>Immersive focus, meditation, sleep and ritual listening environments.</p></div></article>
                     <article className="evCheckoutBenefitCard evBenefitAqua"><span className="evCheckoutBenefitIcon" aria-hidden="true">∞</span><div><strong>Unlimited Voyages</strong><p>Enter whenever you want. No session limits.</p></div></article>
                     <article className="evCheckoutBenefitCard evBenefitGold"><span className="evCheckoutBenefitIcon" aria-hidden="true">◇</span><div><strong>Lifetime Founder Access</strong><p>One payment. Premium stays unlocked as a Founding Member.</p></div></article>
@@ -1098,9 +1115,15 @@ export default function V10ProductFlow() {
         .evPremiumShowcase h2,.evPremiumLibraryHeader h2{margin:0;color:#f3f8ff;font-size:clamp(30px,4.2vw,58px);line-height:.98;letter-spacing:-.045em;max-width:900px}
         .evPremiumShowcaseCopy>p{max-width:780px;margin:22px 0 0;color:rgba(220,235,249,.7);font-size:clamp(15px,1.5vw,18px);line-height:1.65}
         .evPremiumBenefitRow{display:flex;flex-wrap:wrap;gap:9px;margin-top:26px}
-        .evPremiumBenefitRow span{padding:9px 12px;border-radius:999px;border:1px solid rgba(139,197,255,.12);color:rgba(222,239,255,.8);background:rgba(255,255,255,.025);font-size:11px;font-weight:700;letter-spacing:.04em}
+        .evPremiumBenefitRow span{--ev-chip:110,206,255;position:relative;padding:9px 12px;border-radius:999px;border:1px solid rgba(var(--ev-chip),.28);color:rgba(239,249,255,.94);background:linear-gradient(135deg,rgba(var(--ev-chip),.11),rgba(255,255,255,.025));box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 0 22px rgba(var(--ev-chip),.055);font-size:11px;font-weight:800;letter-spacing:.04em;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+        .evPremiumBenefitRow span:nth-child(1){--ev-chip:74,212,255;color:#bcefff}
+        .evPremiumBenefitRow span:nth-child(2){--ev-chip:104,166,255;color:#d2e5ff}
+        .evPremiumBenefitRow span:nth-child(3){--ev-chip:164,111,255;color:#e1d2ff}
+        .evPremiumBenefitRow span:nth-child(4){--ev-chip:74,226,213;color:#bff8ef}
+        .evPremiumBenefitRow span:nth-child(5){--ev-chip:231,185,108;color:#ffe0aa}
+        .evPremiumBenefitRow span:hover{transform:translateY(-1px);border-color:rgba(var(--ev-chip),.42);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 0 26px rgba(var(--ev-chip),.10)}
         .evPremiumOffer{display:flex;flex-direction:column;justify-content:center;align-items:stretch;padding:24px;border-radius:24px;border:1px solid rgba(160,202,255,.14);background:linear-gradient(180deg,rgba(20,40,72,.42),rgba(8,12,29,.5))}
-        .evPremiumOfferLabel{color:rgba(201,226,248,.63);font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase}
+        .evPremiumOfferLabel{align-self:flex-start;display:inline-flex;align-items:center;min-height:31px;padding:0 11px;border:1px solid rgba(235,190,111,.28);border-radius:999px;color:#ffe0a8;background:linear-gradient(135deg,rgba(147,92,35,.14),rgba(126,78,216,.11));box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 0 28px rgba(224,171,91,.06);text-shadow:0 0 18px rgba(255,212,143,.13);font-size:13px;font-weight:900;letter-spacing:.13em;text-transform:uppercase}
         .evPremiumOffer>strong{margin-top:9px;color:#fff;font-size:34px;letter-spacing:-.04em}
         .evPremiumOffer>small{color:rgba(220,232,246,.58);margin:2px 0 8px}
         .evCadCharge{display:block;margin:0 0 16px;color:#ffd79a;font-size:10px;line-height:1.45}
@@ -1267,8 +1290,9 @@ export default function V10ProductFlow() {
         .evPremiumShowcase h2{font-size:34px}
         .evPremiumShowcaseCopy>p{margin-top:16px;font-size:14px}
         .evPremiumBenefitRow{gap:7px;margin-top:18px}
-        .evPremiumBenefitRow span{font-size:9px;padding:8px 10px}
+        .evPremiumBenefitRow span{font-size:10.5px;padding:8px 11px}
         .evPremiumOffer{padding:18px;border-radius:18px}
+        .evPremiumOfferLabel{font-size:12.5px;min-height:30px}
         .evPremiumLibrary{padding-top:22px!important}
         .evPremiumLibraryHeader{gap:12px;margin-bottom:18px}
         .evPremiumLibraryHeader h2{font-size:32px}
