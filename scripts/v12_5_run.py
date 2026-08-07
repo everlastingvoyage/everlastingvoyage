@@ -49,3 +49,5 @@ archive_base = Path('popup-motion-qa/v12-5-patched-source')
 if patched_dir.exists():
     shutil.make_archive(str(archive_base), 'zip', root_dir=patched_dir)
     shutil.rmtree(patched_dir)
+
+# This runner-only file is removed before the validated product batch is committed.
