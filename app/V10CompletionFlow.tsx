@@ -259,6 +259,7 @@ export default function V10CompletionFlow() {
       if (activeCompletionRef.current !== completion && overlay) {
         activeCompletionRef.current = completion;
         resetCompletionPosition(overlay, completion);
+        window.dispatchEvent(new CustomEvent('ev:voyage-completed'));
       }
     };
 
@@ -297,32 +298,42 @@ export default function V10CompletionFlow() {
         if (endButton.dataset.voyageEnding === 'true') {
           event.preventDefault();
           event.stopPropagation();
+          event.stopImmediatePropagation();
           return;
         }
         endButton.dataset.voyageEnding = 'true';
         endButton.setAttribute('aria-disabled', 'true');
         setText(endButton, 'Ending…');
-        window.requestAnimationFrame(scheduleSync);
       }
 
       const returnButton = target?.closest<HTMLButtonElement>('.evCompletionReturn');
       if (returnButton) {
-        if (returnButton.dataset.returningHome === 'true') {
-          event.preventDefault();
-          event.stopPropagation();
-          return;
-        }
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        if (returnButton.dataset.returningHome === 'true') return;
+
         returnButton.dataset.returningHome = 'true';
         returnButton.setAttribute('aria-disabled', 'true');
         setText(returnButton, 'Returning home…');
+
+        const root = document.documentElement;
+        const previousBehavior = root.style.scrollBehavior;
+        root.style.scrollBehavior = 'auto';
+
+        const closeButton = document.querySelector<HTMLButtonElement>('.v10CloseSession');
+        if (closeButton) {
+          closeButton.dataset.skipScrollRestore = 'true';
+          closeButton.click();
+        }
+
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
         window.setTimeout(() => {
-          const root = document.documentElement;
-          const previousBehavior = root.style.scrollBehavior;
-          root.style.scrollBehavior = 'auto';
           window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
           window.dispatchEvent(new CustomEvent('ev:voyage-return-home'));
           window.setTimeout(() => { root.style.scrollBehavior = previousBehavior; }, 40);
         }, 0);
+        return;
       }
 
       if (target?.closest('.v10CompletionActions')) scheduleSync();
