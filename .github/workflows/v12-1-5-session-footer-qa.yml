@@ -45,6 +45,22 @@ jobs:
           PY
           python3 /tmp/v12-5-2-apply.py
 
+      - name: Repair generated insertion separators
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('app/premium-audio-engine.ts')
+          s = p.read_text()
+          s = s.replace("    preview: { fadeInSeconds: 0.85 }\n  }\n  'delta-0-8': {", "    preview: { fadeInSeconds: 0.85 }\n  },\n  'delta-0-8': {", 1)
+          p.write_text(s)
+
+          p = Path('app/V10ProductFlow.tsx')
+          s = p.read_text()
+          s = s.replace("soundProfile: 'ritual', pureHz: 963 }\n  { id: 'ritual-639'", "soundProfile: 'ritual', pureHz: 963 },\n  { id: 'ritual-639'", 1)
+          p.write_text(s)
+          PY
+
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
