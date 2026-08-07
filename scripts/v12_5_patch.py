@@ -1,0 +1,373 @@
+from pathlib import Path
+import re
+import shutil
+
+
+def read(path: str) -> str:
+    return Path(path).read_text()
+
+
+def write(path: str, text: str) -> None:
+    Path(path).write_text(text)
+
+
+def replace_once(text: str, old: str, new: str, label: str) -> str:
+    count = text.count(old)
+    if count != 1:
+        raise SystemExit(f"{label}: expected exactly one match, found {count}")
+    return text.replace(old, new, 1)
+
+
+# V10ProductFlow — shared non-Ritual Preview engine, Ritual first/default,
+# and supported Square helper-message styles only.
+path = "app/V10ProductFlow.tsx"
+text = read(path)
+text = replace_once(
+    text,
+    "import { usePathname } from 'next/navigation';\n",
+    "import { usePathname } from 'next/navigation';\nimport {\n  getPremiumAudioRecipe,\n  getPremiumRecipeTechnical,\n  getPremiumSoundIdentity,\n  startPremiumAudioRecipe\n} from './premium-audio-engine';\n",
+    "ProductFlow premium engine import",
+)
+text = replace_once(
+    text,
+    "const premiumCategories: PremiumCategory[] = [\n  { id: 'study', title: 'Study & Memory', subtitle: 'Learn. Read. Retain.', icon: '⌁' },\n  { id: 'work', title: 'Deep Work', subtitle: 'Lock in. Create. Execute.', icon: '⚡' },\n  { id: 'meditation', title: 'Meditation', subtitle: 'Slow down. Go inward.', icon: '◌' },\n  { id: 'sleep', title: 'Sleep', subtitle: 'Disconnect. Slow down. Rest.', icon: '☾' },\n  { id: 'ritual', title: 'Manifestation & Ritual', subtitle: 'Intention. Visualization. Ritual.', icon: '∞' }\n];",
+    "const premiumCategories: PremiumCategory[] = [\n  { id: 'ritual', title: 'Manifestation & Ritual', subtitle: 'Intention. Visualization. Ritual.', icon: '∞' },\n  { id: 'study', title: 'Study & Memory', subtitle: 'Learn. Read. Retain.', icon: '⌁' },\n  { id: 'work', title: 'Deep Work', subtitle: 'Lock in. Create. Execute.', icon: '⚡' },\n  { id: 'meditation', title: 'Meditation', subtitle: 'Slow down. Go inward.', icon: '◌' },\n  { id: 'sleep', title: 'Sleep', subtitle: 'Disconnect. Slow down. Rest.', icon: '☾' }\n];",
+    "ProductFlow Ritual-first category order",
+)
+text = replace_once(
+    text,
+    "const [selectedCategory, setSelectedCategory] = useState<PremiumCategoryId>('study');",
+    "const [selectedCategory, setSelectedCategory] = useState<PremiumCategoryId>('ritual');",
+    "ProductFlow default Ritual category",
+)
+text = replace_once(
+    text,
+    "      master.connect(context.destination);\n\n      const sources: AudioScheduledSourceNode[] = [];",
+    "      master.connect(context.destination);\n\n      // V12.5: non-Ritual Premium previews use the same canonical recipe as the full Voyage.\n      // Manifestation & Ritual deliberately stays on the approved legacy path below.\n      const premiumRecipe = signal.premium && signal.category !== 'ritual' ? getPremiumAudioRecipe(signal.id) : null;\n      if (premiumRecipe) {\n        const premiumHandle = await startPremiumAudioRecipe(context, master, signal.id, { mode: 'immersive', preview: true });\n        audioCleanupRef.current = () => {\n          premiumHandle.stop(0.18);\n          window.setTimeout(() => context.close().catch(() => undefined), 240);\n        };\n        setPreviewing(true);\n        setPreviewSeconds(previewDurationSeconds);\n        previewTickRef.current = window.setInterval(() => setPreviewSeconds((current) => Math.max(0, current - 1)), 1000);\n        previewTimerRef.current = window.setTimeout(stopPreview, previewDurationSeconds * 1000);\n        return;\n      }\n\n      const sources: AudioScheduledSourceNode[] = [];",
+    "ProductFlow shared preview branch",
+)
+text = replace_once(
+    text,
+    "            '.message-text': { color: '#cfe7f7', fontSize: '14px', fontWeight: '600' },\n            '.message-icon': { color: '#88dcff' },\n            '.message-text.is-error': { color: '#ffb7c0', fontSize: '14px', fontWeight: '700' },\n            '.message-icon.is-error': { color: '#ff9eaa' }",
+    "            '.message-text': { color: '#cfe7f7' },\n            '.message-icon': { color: '#88dcff' },\n            '.message-text.is-error': { color: '#ffb7c0' },\n            '.message-icon.is-error': { color: '#ff9eaa' }",
+    "ProductFlow supported Square message styles",
+)
+text = replace_once(
+    text,
+    "            <h2 id=\"ev-preview-title\">{previewSignal.family} <strong>{previewSignal.hz} Hz</strong></h2><h3>{previewSignal.label}</h3><p>{customerFrequencyCopy(previewSignal.description)}</p>\n            <div className=\"evPremiumSoundProfile\"><span>Sound profile</span><strong>{previewSignal.soundProfile === 'ritual' ? 'Ritual soundscape' : previewSignal.soundProfile === 'futuristic' ? 'Futuristic focus' : previewSignal.soundProfile === 'sleep' ? 'Sleep ambience' : previewSignal.soundProfile === 'meditative' ? 'Meditative ambience' : previewSignal.soundProfile === 'focus' ? 'Minimal focus bed' : 'Clean frequency'}</strong></div>\n            <div className=\"evPremiumPreviewControls\">\n              <button type=\"button\" className={`evPreviewButton ${previewing ? 'playing' : ''}`} onClick={() => previewing ? stopPreview() : startPreview(previewSignal)}>{previewing ? `Stop preview · ${previewSeconds}s` : `Preview ${previewDurationSeconds} seconds`}</button>\n              <small>{previewSignal.pure ? `Pure ${previewSignal.pureHz} Hz tone` : `Left ${previewSignal.leftHz} Hz · Right ${previewSignal.rightHz} Hz · ${previewSignal.hz} Hz difference`}</small>",
+    "            <h2 id=\"ev-preview-title\">{previewSignal.family} <strong>{previewSignal.hz} Hz</strong></h2><h3>{previewSignal.label}</h3><p>{getPremiumAudioRecipe(previewSignal.id)?.recommendedUse ?? customerFrequencyCopy(previewSignal.description)}</p>\n            <div className=\"evPremiumSoundProfile\"><span>Sound profile</span><strong>{getPremiumSoundIdentity(previewSignal.id) ?? (previewSignal.soundProfile === 'ritual' ? 'Ritual soundscape' : previewSignal.soundProfile === 'futuristic' ? 'Futuristic focus' : previewSignal.soundProfile === 'sleep' ? 'Sleep ambience' : previewSignal.soundProfile === 'meditative' ? 'Meditative ambience' : previewSignal.soundProfile === 'focus' ? 'Minimal focus bed' : 'Clean frequency')}</strong></div>\n            <div className=\"evPremiumPreviewControls\">\n              <button type=\"button\" className={`evPreviewButton ${previewing ? 'playing' : ''}`} onClick={() => previewing ? stopPreview() : startPreview(previewSignal)}>{previewing ? `Stop preview · ${previewSeconds}s` : `Preview ${previewDurationSeconds} seconds`}</button>\n              <small>{getPremiumRecipeTechnical(previewSignal.id) ?? (previewSignal.pure ? `Pure ${previewSignal.pureHz} Hz tone` : `Left ${previewSignal.leftHz} Hz · Right ${previewSignal.rightHz} Hz · ${previewSignal.hz} Hz difference`)}</small>",
+    "ProductFlow canonical preview metadata",
+)
+write(path, text)
+
+
+# V10VoyageEngine — same canonical recipe in full non-Ritual Premium Voyage.
+path = "app/V10VoyageEngine.tsx"
+text = read(path)
+text = replace_once(
+    text,
+    "import { useCallback, useEffect, useMemo, useRef, useState } from 'react';\n",
+    "import { useCallback, useEffect, useMemo, useRef, useState } from 'react';\nimport {\n  getPremiumAudioRecipe,\n  getPremiumRecipeTechnical,\n  startPremiumAudioRecipe,\n  type PremiumAudioHandle\n} from './premium-audio-engine';\n",
+    "VoyageEngine premium engine import",
+)
+text = replace_once(
+    text,
+    "  const nodeRefs = useRef<AudioNode[]>([]);\n  const completionPlayedRef = useRef(false);",
+    "  const nodeRefs = useRef<AudioNode[]>([]);\n  const premiumAudioHandleRef = useRef<PremiumAudioHandle | null>(null);\n  const completionPlayedRef = useRef(false);",
+    "VoyageEngine premium handle ref",
+)
+text = replace_once(
+    text,
+    "  const stopAudio = useCallback((fadeSeconds = 0.35) => {\n    const context = audioContextRef.current;\n    const gain = masterGainRef.current;\n    const sources = sourceRefs.current;\n    const nodes = nodeRefs.current;\n    if (!context || !gain) return;",
+    "  const stopAudio = useCallback((fadeSeconds = 0.35) => {\n    premiumAudioHandleRef.current?.stop(fadeSeconds);\n    premiumAudioHandleRef.current = null;\n    const context = audioContextRef.current;\n    const gain = masterGainRef.current;\n    const sources = sourceRefs.current;\n    const nodes = nodeRefs.current;\n    if (!context || !gain) return;",
+    "VoyageEngine shared engine cleanup",
+)
+text = replace_once(
+    text,
+    "    masterGain.connect(context.destination);\n    masterGainRef.current = masterGain;\n\n    const sources: AudioScheduledSourceNode[] = [];",
+    "    masterGain.connect(context.destination);\n    masterGainRef.current = masterGain;\n\n    // V12.5: redesigned non-Ritual Premium experiences share Preview/full Voyage recipes.\n    // Approved Manifestation & Ritual remains on the exact legacy implementation below.\n    const premiumRecipe = signal.premium && signal.soundProfile !== 'ritual' ? getPremiumAudioRecipe(signal.id) : null;\n    if (premiumRecipe) {\n      premiumAudioHandleRef.current = await startPremiumAudioRecipe(context, masterGain, signal.id, { mode: 'immersive', preview: false });\n      sourceRefs.current = [];\n      nodeRefs.current = [masterGain];\n      return;\n    }\n\n    const sources: AudioScheduledSourceNode[] = [];",
+    "VoyageEngine shared full Voyage branch",
+)
+text = text.replace("<h2>The signal is quiet.</h2>", "<h2>The frequency is quiet.</h2>")
+text = text.replace("{status === 'running' ? 'Signal active' : status === 'paused' ? 'Voyage paused' : 'Ready to begin'}", "{status === 'running' ? 'Frequency active' : status === 'paused' ? 'Voyage paused' : 'Ready to begin'}")
+text = text.replace("{status === 'running' ? 'Pure signal playing' : 'Pure signal ready'}", "{status === 'running' ? (signal.premium ? 'Immersive frequency playing' : 'Pure frequency playing') : (signal.premium ? 'Immersive frequency ready' : 'Pure frequency ready')}")
+text = replace_once(
+    text,
+    "            <span>{signal.technical}</span>",
+    "            <span>{getPremiumRecipeTechnical(signal.id) ?? signal.technical}</span>",
+    "VoyageEngine canonical technical footer",
+)
+write(path, text)
+
+
+# V11AmbientMixer — resilient automatic recovery for paused/stalled Storm and browser returns.
+path = "app/V11AmbientMixer.tsx"
+text = read(path)
+pattern = re.compile(r"  useEffect\(\(\) => \{\n    if \(!enabled\) return;\n\n    const markRestoreRequired = \(\) => \{.*?\n  \}, \[enabled, publishRuntime\]\);", re.S)
+match = pattern.search(text)
+if not match:
+    raise SystemExit("AmbientMixer lifecycle effect not found")
+replacement = """  useEffect(() => {
+    if (!enabled) return;
+
+    const hasEnabledLayers = () => layersRef.current.some(
+      (layer) => layer.enabled && isPlayableAmbientId(layer.id)
+    );
+
+    const markRestoreRequired = () => {
+      if (getSessionStatus() !== 'running' || !hasEnabledLayers()) return;
+      restoreRequiredRef.current = true;
+      publishRuntime();
+    };
+
+    const recoverEnabledAudio = async () => {
+      if (document.visibilityState === 'hidden') return;
+      if (getSessionStatus() !== 'running' || !hasEnabledLayers()) return;
+      try {
+        const engine = await ensureEngine();
+        const stormLayer = layersRef.current.find((layer) => layer.id === 'storm' && layer.enabled);
+        const stormRuntime = runtimeStatesRef.current.storm;
+        if (stormLayer && stormRuntime?.playbackState === 'error') {
+          await engine.retryLayer('storm', stormLayer.volume);
+        }
+        await syncEngine(layersRef.current, true);
+        restoreRequiredRef.current = false;
+        publishRuntime();
+      } catch {
+        restoreRequiredRef.current = true;
+        publishRuntime();
+      }
+    };
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        markRestoreRequired();
+        return;
+      }
+      void recoverEnabledAudio();
+    };
+
+    const handlePageShow = () => { void recoverEnabledAudio(); };
+    const handleFocus = () => { void recoverEnabledAudio(); };
+    const mediaDevices = navigator.mediaDevices;
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('pagehide', markRestoreRequired);
+    window.addEventListener('pageshow', handlePageShow);
+    window.addEventListener('focus', handleFocus);
+    mediaDevices?.addEventListener?.('devicechange', markRestoreRequired);
+
+    const watchdog = window.setInterval(() => {
+      if (document.visibilityState === 'hidden' || getSessionStatus() !== 'running') return;
+      const selectedLayers = layersRef.current.filter((layer) => layer.enabled && isPlayableAmbientId(layer.id));
+      if (!selectedLayers.length) return;
+      const needsRecovery = contextRef.current?.state === 'suspended' || selectedLayers.some((layer) => {
+        const state = runtimeStatesRef.current[layer.id]?.playbackState;
+        return state === 'paused' || (layer.id === 'storm' && state === 'error');
+      });
+      if (needsRecovery) void recoverEnabledAudio();
+    }, 10000);
+
+    return () => {
+      window.clearInterval(watchdog);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('pagehide', markRestoreRequired);
+      window.removeEventListener('pageshow', handlePageShow);
+      window.removeEventListener('focus', handleFocus);
+      mediaDevices?.removeEventListener?.('devicechange', markRestoreRequired);
+    };
+  }, [enabled, ensureEngine, publishRuntime, syncEngine]);"""
+text = text[: match.start()] + replacement + text[match.end() :]
+write(path, text)
+
+
+# V10CompletionFlow — remove repeated 80/220/520ms scroll fights and throttle global mutation sync.
+path = "app/V10CompletionFlow.tsx"
+text = read(path)
+text = replace_once(
+    text,
+    "  const scrollTimersRef = useRef<number[]>([]);",
+    "  const scrollFrameRef = useRef<number | null>(null);",
+    "Completion scroll ref",
+)
+old_reset = """    const clearScrollTimers = () => {
+      scrollTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+      scrollTimersRef.current = [];
+    };
+
+    const resetCompletionPosition = (overlay: HTMLElement, completion: HTMLElement) => {
+      clearScrollTimers();
+
+      const reset = () => {
+        const previousBehavior = overlay.style.scrollBehavior;
+        overlay.style.scrollBehavior = 'auto';
+        overlay.scrollTop = 0;
+        overlay.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        completion.scrollIntoView({ block: 'start', behavior: 'auto' });
+        overlay.scrollTop = 0;
+        overlay.style.scrollBehavior = previousBehavior;
+      };
+
+      reset();
+      window.requestAnimationFrame(reset);
+      [80, 220, 520].forEach((delay) => {
+        scrollTimersRef.current.push(window.setTimeout(reset, delay));
+      });
+    };"""
+new_reset = """    const resetCompletionPosition = (overlay: HTMLElement, completion: HTMLElement) => {
+      if (scrollFrameRef.current !== null) window.cancelAnimationFrame(scrollFrameRef.current);
+      const reset = () => {
+        const previousBehavior = overlay.style.scrollBehavior;
+        overlay.style.scrollBehavior = 'auto';
+        overlay.scrollTop = 0;
+        completion.scrollIntoView({ block: 'start', behavior: 'auto' });
+        overlay.scrollTop = 0;
+        overlay.style.scrollBehavior = previousBehavior;
+      };
+      reset();
+      scrollFrameRef.current = window.requestAnimationFrame(() => {
+        scrollFrameRef.current = null;
+        reset();
+      });
+    };"""
+text = replace_once(text, old_reset, new_reset, "Completion scroll reset simplification")
+old_observer = """    syncCompletion();
+    const observer = new MutationObserver(() => window.requestAnimationFrame(syncCompletion));
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+      attributes: true,
+      attributeFilter: ['disabled', 'class']
+    });
+
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as Element | null;
+      const saveButton = target?.closest<HTMLButtonElement>('.evSaveNotesButton.is-saved');
+      if (!saveButton) return;
+      event.preventDefault();
+      event.stopPropagation();
+      document.querySelector<HTMLButtonElement>('.evNotesTrigger')?.click();
+    };
+
+    document.addEventListener('click', handleClick, true);
+    return () => {
+      clearScrollTimers();
+      observer.disconnect();
+      document.removeEventListener('click', handleClick, true);
+    };"""
+new_observer = """    let syncFrame: number | null = null;
+    const scheduleSync = () => {
+      if (syncFrame !== null) return;
+      syncFrame = window.requestAnimationFrame(() => {
+        syncFrame = null;
+        syncCompletion();
+      });
+    };
+
+    syncCompletion();
+    const observer = new MutationObserver(scheduleSync);
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as Element | null;
+      if (target?.closest('.v10CompletionActions')) scheduleSync();
+      const saveButton = target?.closest<HTMLButtonElement>('.evSaveNotesButton.is-saved');
+      if (!saveButton) return;
+      event.preventDefault();
+      event.stopPropagation();
+      document.querySelector<HTMLButtonElement>('.evNotesTrigger')?.click();
+    };
+
+    document.addEventListener('click', handleClick, true);
+    return () => {
+      if (syncFrame !== null) window.cancelAnimationFrame(syncFrame);
+      if (scrollFrameRef.current !== null) window.cancelAnimationFrame(scrollFrameRef.current);
+      observer.disconnect();
+      document.removeEventListener('click', handleClick, true);
+    };"""
+text = replace_once(text, old_observer, new_observer, "Completion observer throttling")
+write(path, text)
+
+
+# Return Home — contained secondary CTA.
+path = "app/v11-8-completion-polish.css"
+text = read(path)
+pattern = re.compile(
+    r"\.v10Completion\.evCompletionPolished \.evCompletionReturn \{.*?\n\}\n\n\.v10Completion\.evCompletionPolished \.evCompletionReturn:hover,\n\.v10Completion\.evCompletionPolished \.evCompletionReturn:focus-visible \{.*?\n\}",
+    re.S,
+)
+match = pattern.search(text)
+if not match:
+    raise SystemExit("Completion Return Home CSS block not found")
+replacement = """.v10Completion.evCompletionPolished .evCompletionReturn {
+  grid-column: 1 / -1 !important;
+  justify-self: center !important;
+  width: min(360px, 100%) !important;
+  min-height: 56px !important;
+  margin: 16px auto 0 !important;
+  padding: 0 20px !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 1px solid rgba(105, 195, 247, 0.26) !important;
+  border-radius: 18px !important;
+  color: #cdeaff !important;
+  background: linear-gradient(180deg, rgba(11, 30, 52, 0.86), rgba(3, 13, 29, 0.94)) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035), 0 12px 30px rgba(0, 0, 0, 0.16) !important;
+  font-size: 0.98rem !important;
+  font-weight: 780 !important;
+  line-height: 1.25 !important;
+  text-align: center !important;
+  transition: color 160ms ease, border-color 160ms ease, background 160ms ease, transform 160ms ease !important;
+}
+
+.v10Completion.evCompletionPolished .evCompletionReturn:hover,
+.v10Completion.evCompletionPolished .evCompletionReturn:focus-visible {
+  color: #f0f9ff !important;
+  border-color: rgba(117, 211, 255, 0.46) !important;
+  background: linear-gradient(180deg, rgba(15, 42, 70, 0.94), rgba(4, 17, 36, 0.98)) !important;
+  transform: translateY(-1px) !important;
+}"""
+text = text[: match.start()] + replacement + text[match.end() :]
+write(path, text)
+
+
+# Hard regression guards.
+product = read("app/V10ProductFlow.tsx")
+voyage = read("app/V10VoyageEngine.tsx")
+if "fontSize: '14px'" in product or "fontWeight: '700'" in product:
+    raise SystemExit("Unsupported Square message styles remain")
+
+ritual_anchor = """      if (signal.soundProfile === 'ritual') {
+        const base = signal.pureHz ? Math.max(74, signal.pureHz / 4) : 111;
+        addPad(base, 0.03);
+        addPad(base * 1.5, 0.012, 'triangle');
+        [3.2, 10.2, 17.2].forEach((offset, index) => {"""
+if ritual_anchor not in product:
+    raise SystemExit("Approved Ritual Preview audio changed")
+if ritual_anchor not in voyage:
+    raise SystemExit("Approved Ritual full Voyage audio changed")
+
+for forbidden in ["The signal is quiet.", "'Signal active'", "'Pure signal playing'", "'Pure signal ready'"]:
+    if forbidden in voyage:
+        raise SystemExit(f"Customer-facing old terminology remains: {forbidden}")
+
+# Export exact patched source so it can be applied to the real scratch branch
+# after this isolated GitHub Actions build validates it.
+out = Path("popup-motion-qa/patched")
+out.mkdir(parents=True, exist_ok=True)
+for source in [
+    "app/V10ProductFlow.tsx",
+    "app/V10VoyageEngine.tsx",
+    "app/V11AmbientMixer.tsx",
+    "app/V10CompletionFlow.tsx",
+    "app/v11-8-completion-polish.css",
+]:
+    destination = out / source
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(source, destination)
+
+print("V12.5 patch complete; patched source staged for QA artifact.")
