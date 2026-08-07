@@ -1,3 +1,4 @@
+# Existing trusted workflow path temporarily repurposed on an ignored branch only.
 name: V12.5.2 Trusted No-Vercel Executor
 
 on:
