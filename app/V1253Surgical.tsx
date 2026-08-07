@@ -88,6 +88,7 @@ export default function V1253Surgical() {
   useEffect(() => {
     if (!active) return;
     let syncFrame: number | null = null;
+    let spotlightTimer: number | null = null;
 
     const ensureBuilderGateway = () => {
       const root = document.getElementById('ev-premium-builder-root');
@@ -155,30 +156,45 @@ export default function V1253Surgical() {
       if (syncFrame !== null) return;
       syncFrame = window.requestAnimationFrame(() => { syncFrame = null; sync(); });
     };
+    const premiumSyncSelector = '#ev-premium-builder-root,.evCheckoutForm,.evPremiumBenefitRow,.evSuccessBenefits,.evCheckoutBenefitMeta,.evPremiumOffer,.evCheckoutActions';
+    const nodeTouchesPremiumUi = (node: Node) => {
+      if (!(node instanceof Element)) return false;
+      return node.matches(premiumSyncSelector) || Boolean(node.querySelector(premiumSyncSelector));
+    };
+    const mutationNeedsPremiumSync = (mutations: MutationRecord[]) => mutations.some((mutation) =>
+      [...mutation.addedNodes, ...mutation.removedNodes].some(nodeTouchesPremiumUi)
+    );
     const handleClick = (event: MouseEvent) => {
       const target = event.target as Element | null;
       if (target?.closest('.evBuilderPremiumExplore')) {
         document.getElementById('ev-premium-library')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        return;
       }
-      if (!target?.closest('.evCompletionReturn')) return;
+    };
+    const handleReturnHome = () => {
+      if (spotlightTimer !== null) return;
       const lastShown = Number(localStorage.getItem(FOUNDER_SPOTLIGHT_KEY) || '0');
       if (Date.now() - lastShown < FOUNDER_SPOTLIGHT_COOLDOWN_MS) return;
-      window.setTimeout(() => {
+      spotlightTimer = window.setTimeout(() => {
+        spotlightTimer = null;
         if (!founderOfferCanOpen()) return;
         localStorage.setItem(FOUNDER_SPOTLIGHT_KEY, String(Date.now()));
         setSpotlightOpen(true);
-      }, 550);
+      }, 500);
     };
 
     sync();
-    const observer = new MutationObserver(scheduleSync);
+    const observer = new MutationObserver((mutations) => {
+      if (mutationNeedsPremiumSync(mutations)) scheduleSync();
+    });
     observer.observe(document.body, { childList: true, subtree: true });
     document.addEventListener('click', handleClick, true);
+    window.addEventListener('ev:voyage-return-home', handleReturnHome);
     return () => {
       if (syncFrame !== null) window.cancelAnimationFrame(syncFrame);
+      if (spotlightTimer !== null) window.clearTimeout(spotlightTimer);
       observer.disconnect();
       document.removeEventListener('click', handleClick, true);
+      window.removeEventListener('ev:voyage-return-home', handleReturnHome);
     };
   }, [active]);
 

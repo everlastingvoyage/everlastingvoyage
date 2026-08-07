@@ -37,6 +37,7 @@ import './v12-1-3-popup-motion-polish.css';
 import './v12-1-4-session-layout-navigation.css';
 import './v12-1-5-session-footer-cleanup.css';
 import './v12-5-3-surgical.css';
+import './v12-5-4-navigation.css';
 import HumanoidSwap from './HumanoidSwap';
 import SignalChamberPolish from './SignalChamberPolish';
 import SignalChamberBlend from './SignalChamberBlend';
@@ -60,6 +61,7 @@ import V12SessionBrandFooter from './V12SessionBrandFooter';
 import V12SessionHistoryNavigation from './V12SessionHistoryNavigation';
 import V12DesktopAtmosphereFlow from './V12DesktopAtmosphereFlow';
 import V1253Surgical from './V1253Surgical';
+import V1254QuickAccess from './V1254QuickAccess';
 
 export const metadata: Metadata = {
   title: 'Everlasting Voyage — Pure Frequencies & Focus Sessions',
@@ -95,6 +97,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <V10Notes />
         <V10ProductFlow />
         <V1253Surgical />
+        <V1254QuickAccess />
         <V11AmbientMixer />
         <V11SessionAtmosphere />
         <V12DesktopAtmosphereFlow />

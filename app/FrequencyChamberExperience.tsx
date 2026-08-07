@@ -41,8 +41,8 @@ export default function FrequencyChamberExperience() {
     library.dataset.performanceMode = isMobile ? 'mobile' : 'desktop';
     stage.dataset.performanceMode = isMobile ? 'mobile' : 'desktop';
     eyebrow.textContent = 'Frequency chamber';
-    title.textContent = 'Explore the signal behind every state.';
-    hintText.textContent = 'Tap a frequency to expand the signal';
+    title.textContent = 'Explore the frequency behind every state.';
+    hintText.textContent = 'Tap a frequency to explore the experience';
     hint.setAttribute('aria-hidden', 'false');
     legacyCopy?.classList.add('evFrequencyLegacyCopy');
 

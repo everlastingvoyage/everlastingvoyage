@@ -35,8 +35,8 @@ const MAX_NOTES = 60;
 
 const stateMeta: Record<StateId, { frequency: string; hz: string; state: string }> = {
   alpha: { frequency: 'Alpha', hz: '10 Hz', state: 'Calm Focus' },
-  gamma: { frequency: 'Gamma', hz: '40 Hz', state: 'Deep Focus' },
-  theta: { frequency: 'Theta', hz: '4 Hz', state: 'Creative Flow' },
+  gamma: { frequency: 'Gamma', hz: '40 Hz', state: 'Gamma Clarity' },
+  theta: { frequency: 'Theta', hz: '4 Hz', state: 'Reflective Space' },
   delta: { frequency: 'Delta', hz: '2 Hz', state: 'Deep Rest' },
   abundance: { frequency: 'Pure Tone', hz: '888 Hz', state: 'Abundance' }
 };
@@ -105,7 +105,7 @@ function formatNoteText(note: VoyageNote) {
     note.title || defaultTitle(note.stateId, note.durationMinutes),
     '',
     `State: ${meta.state}`,
-    `Signal: ${meta.frequency} · ${meta.hz}`,
+    `Frequency: ${meta.frequency} · ${meta.hz}`,
     `Duration: ${note.durationMinutes} minutes`,
     note.intention ? `Intention: ${note.intention}` : 'Intention: Open focus',
     `Saved: ${new Date(note.createdAt).toLocaleString()}`,
@@ -179,6 +179,7 @@ export default function V10Notes() {
 
   useEffect(() => {
     if (!enabled) return;
+    let syncFrame: number | null = null;
 
     const syncMount = () => {
       const actions = document.querySelector<HTMLElement>('.v10CompletionActions');
@@ -194,13 +195,32 @@ export default function V10Notes() {
         mount.id = 'ev-save-notes-root';
         actions.appendChild(mount);
       }
-      setSaveMount(mount);
+      setSaveMount((current) => current === mount ? current : mount);
+    };
+
+    const scheduleSync = () => {
+      if (syncFrame !== null) return;
+      syncFrame = window.requestAnimationFrame(() => {
+        syncFrame = null;
+        syncMount();
+      });
+    };
+
+    const handleCompletionNavigation = (event: MouseEvent) => {
+      const target = event.target as Element | null;
+      if (target?.closest('.v10CompletionActions, .v10CloseSession')) window.setTimeout(scheduleSync, 0);
     };
 
     syncMount();
-    const observer = new MutationObserver(syncMount);
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
+    window.addEventListener('ev:voyage-completed', scheduleSync);
+    window.addEventListener('ev:voyage-return-home', scheduleSync);
+    document.addEventListener('click', handleCompletionNavigation, true);
+    return () => {
+      if (syncFrame !== null) window.cancelAnimationFrame(syncFrame);
+      window.removeEventListener('ev:voyage-completed', scheduleSync);
+      window.removeEventListener('ev:voyage-return-home', scheduleSync);
+      document.removeEventListener('click', handleCompletionNavigation, true);
+    };
   }, [enabled]);
 
   useEffect(() => {
