@@ -102,6 +102,80 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <V10SessionUtilities />
         <V11CompletionSaveSpace />
         <V10CompletionFlow />
+        <style id="v12-3-premium-tier-colors">{`
+          .evPremiumSignalCard.free {
+            border-color: rgba(76, 216, 255, .54) !important;
+            background: radial-gradient(circle at 82% 8%, rgba(41, 190, 255, .18), transparent 34%), linear-gradient(155deg, rgba(7, 40, 67, .96), rgba(3, 15, 31, .98)) !important;
+            box-shadow: inset 0 1px 0 rgba(171, 239, 255, .08), 0 14px 36px rgba(0, 116, 177, .08);
+          }
+          .evPremiumSignalCard.free:hover {
+            border-color: rgba(96, 226, 255, .8) !important;
+            box-shadow: 0 20px 46px rgba(0, 153, 219, .16), inset 0 0 34px rgba(55, 199, 255, .07) !important;
+          }
+          .evPremiumSignalCard.free .evSignalCardTopline {
+            color: #8be8ff !important;
+          }
+          .evPremiumSignalCard.free .evSignalCardTopline > span {
+            padding: 5px 8px;
+            border-radius: 999px;
+            border: 1px solid rgba(91, 221, 255, .32);
+            background: rgba(22, 155, 205, .13);
+          }
+          .evPremiumSignalCard.free .evSignalCardTopline i {
+            color: #c7f7ff !important;
+            border-color: rgba(95, 225, 255, .46) !important;
+            background: rgba(31, 181, 224, .12);
+          }
+          .evPremiumSignalCard.free .evSignalPurpose,
+          .evPremiumSignalCard.free .evSignalAction {
+            color: #80e6ff !important;
+          }
+          .evPremiumSignalCard.premium {
+            border-color: rgba(183, 137, 255, .38) !important;
+            background: radial-gradient(circle at 84% 7%, rgba(150, 85, 255, .2), transparent 35%), linear-gradient(155deg, rgba(27, 20, 58, .96), rgba(7, 8, 25, .99)) !important;
+            box-shadow: inset 0 1px 0 rgba(234, 213, 255, .055), 0 14px 38px rgba(74, 40, 150, .08);
+          }
+          .evPremiumSignalCard.premium:hover {
+            border-color: rgba(224, 179, 255, .67) !important;
+            box-shadow: 0 22px 50px rgba(99, 55, 190, .19), inset 0 0 36px rgba(160, 100, 255, .07) !important;
+          }
+          .evPremiumSignalCard.premium .evSignalCardTopline {
+            color: #e2bcff !important;
+          }
+          .evPremiumSignalCard.premium .evSignalCardTopline > span {
+            padding: 5px 8px;
+            border-radius: 999px;
+            border: 1px solid rgba(239, 196, 126, .34);
+            color: #ffdca0;
+            background: linear-gradient(135deg, rgba(155, 96, 37, .15), rgba(119, 74, 210, .16));
+          }
+          .evPremiumSignalCard.premium .evSignalCardTopline i {
+            color: #ffd99a !important;
+            border-color: rgba(236, 190, 109, .42) !important;
+            background: rgba(146, 91, 44, .12);
+            box-shadow: 0 0 18px rgba(214, 151, 70, .09);
+          }
+          .evPremiumSignalCard.premium > b {
+            color: #f7f0ff !important;
+          }
+          .evPremiumSignalCard.premium .evSignalPurpose {
+            color: #d8adff !important;
+          }
+          .evPremiumSignalCard.premium .evSignalAction {
+            color: #ffd99a !important;
+          }
+          .evPremiumSignalCard.premium:after {
+            background: linear-gradient(135deg, #8d57ff, #e2a353) !important;
+            opacity: .24 !important;
+          }
+          .evPremiumSignalCard.premium.futuristic:after {
+            background: linear-gradient(135deg, #23cfff, #8b63ff) !important;
+          }
+          .evPremiumSignalCard.premium.ritual:after {
+            background: linear-gradient(135deg, #a46cff, #f0b45f) !important;
+            opacity: .3 !important;
+          }
+        `}</style>
       </body>
     </html>
   );
