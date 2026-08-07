@@ -58,6 +58,7 @@ import V11CompletionSaveSpace from './V11CompletionSaveSpace';
 import V12SessionBrandFooter from './V12SessionBrandFooter';
 import V12SessionHistoryNavigation from './V12SessionHistoryNavigation';
 import V12DesktopAtmosphereFlow from './V12DesktopAtmosphereFlow';
+import V1253Surgical from './V1253Surgical';
 
 export const metadata: Metadata = {
   title: 'Everlasting Voyage — Pure Frequencies & Focus Sessions',
@@ -92,6 +93,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <V10SavedSpaces />
         <V10Notes />
         <V10ProductFlow />
+        <V1253Surgical />
         <V11AmbientMixer />
         <V11SessionAtmosphere />
         <V12DesktopAtmosphereFlow />
