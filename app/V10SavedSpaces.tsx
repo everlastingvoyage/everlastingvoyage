@@ -30,8 +30,8 @@ const MAX_SPACES = 8;
 
 const stateMeta: Record<StateId, { frequency: string; hz: string; state: string }> = {
   alpha: { frequency: 'Alpha', hz: '10 Hz', state: 'Calm Focus' },
-  gamma: { frequency: 'Gamma', hz: '40 Hz', state: 'Deep Focus' },
-  theta: { frequency: 'Theta', hz: '4 Hz', state: 'Creative Flow' },
+  gamma: { frequency: 'Gamma', hz: '40 Hz', state: 'Gamma Clarity' },
+  theta: { frequency: 'Theta', hz: '4 Hz', state: 'Reflective Space' },
   delta: { frequency: 'Delta', hz: '2 Hz', state: 'Deep Rest' },
   abundance: { frequency: 'Pure Tone', hz: '888 Hz', state: 'Abundance' }
 };
@@ -257,7 +257,7 @@ export default function V10SavedSpaces() {
                           <p>{space.intention || 'Open focus — add an intention when you begin.'}</p>
                           <div className="evSavedSpaceMeta">
                             <span>{space.durationMinutes} min</span>
-                            <span>Signal {space.volumePercent}%</span>
+                            <span>Frequency volume {space.volumePercent}%</span>
                             <span>{ambientCount} atmosphere {ambientCount === 1 ? 'layer' : 'layers'}</span>
                           </div>
                           <div className="evSavedSpaceActions">
