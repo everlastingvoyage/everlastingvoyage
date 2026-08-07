@@ -21,8 +21,8 @@ type PreserveOptions = {
 
 const completionMeta: Record<string, CompletionMeta> = {
   alpha: { state: 'Calm Focus', frequency: 'Alpha', hz: '10 Hz' },
-  gamma: { state: 'Deep Focus', frequency: 'Gamma', hz: '40 Hz' },
-  theta: { state: 'Creative Flow', frequency: 'Theta', hz: '4 Hz' },
+  gamma: { state: 'Gamma Clarity', frequency: 'Gamma', hz: '40 Hz' },
+  theta: { state: 'Reflective Space', frequency: 'Theta', hz: '4 Hz' },
   delta: { state: 'Deep Rest', frequency: 'Delta', hz: '2 Hz' },
   abundance: { state: 'Abundance', frequency: 'Pure Tone', hz: '888 Hz' }
 };
@@ -144,20 +144,20 @@ export default function V10CompletionFlow() {
   useEffect(() => {
     if (!enabled) return;
 
+    let syncFrame: number | null = null;
+    let observedOverlay: HTMLElement | null = null;
+    let overlayObserver: MutationObserver | null = null;
+
     const resetCompletionPosition = (overlay: HTMLElement, completion: HTMLElement) => {
       if (scrollFrameRef.current !== null) window.cancelAnimationFrame(scrollFrameRef.current);
-      const reset = () => {
+      scrollFrameRef.current = window.requestAnimationFrame(() => {
+        scrollFrameRef.current = null;
         const previousBehavior = overlay.style.scrollBehavior;
         overlay.style.scrollBehavior = 'auto';
         overlay.scrollTop = 0;
         completion.scrollIntoView({ block: 'start', behavior: 'auto' });
         overlay.scrollTop = 0;
         overlay.style.scrollBehavior = previousBehavior;
-      };
-      reset();
-      scrollFrameRef.current = window.requestAnimationFrame(() => {
-        scrollFrameRef.current = null;
-        reset();
       });
     };
 
@@ -262,7 +262,6 @@ export default function V10CompletionFlow() {
       }
     };
 
-    let syncFrame: number | null = null;
     const scheduleSync = () => {
       if (syncFrame !== null) return;
       syncFrame = window.requestAnimationFrame(() => {
@@ -271,15 +270,61 @@ export default function V10CompletionFlow() {
       });
     };
 
-    syncCompletion();
-    const observer = new MutationObserver(scheduleSync);
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true
-    });
+    const attachOverlayObserver = () => {
+      const nextOverlay = document.querySelector<HTMLElement>('.v10SessionOverlay');
+      if (nextOverlay === observedOverlay) return;
+      overlayObserver?.disconnect();
+      overlayObserver = null;
+      observedOverlay = nextOverlay;
+      if (!nextOverlay) {
+        activeCompletionRef.current = null;
+        return;
+      }
+      overlayObserver = new MutationObserver(scheduleSync);
+      overlayObserver.observe(nextOverlay, { childList: true, subtree: true });
+      scheduleSync();
+    };
+
+    const bodyObserver = new MutationObserver(attachOverlayObserver);
+    bodyObserver.observe(document.body, { childList: true });
+
+    const handleCompleted = () => scheduleSync();
 
     const handleClick = (event: MouseEvent) => {
       const target = event.target as Element | null;
+      const endButton = target?.closest<HTMLButtonElement>('.v10TimerControls .v10TextAction');
+      if (endButton && /end session|ending/i.test(endButton.textContent || '')) {
+        if (endButton.dataset.voyageEnding === 'true') {
+          event.preventDefault();
+          event.stopPropagation();
+          return;
+        }
+        endButton.dataset.voyageEnding = 'true';
+        endButton.setAttribute('aria-disabled', 'true');
+        setText(endButton, 'Ending…');
+        window.requestAnimationFrame(scheduleSync);
+      }
+
+      const returnButton = target?.closest<HTMLButtonElement>('.evCompletionReturn');
+      if (returnButton) {
+        if (returnButton.dataset.returningHome === 'true') {
+          event.preventDefault();
+          event.stopPropagation();
+          return;
+        }
+        returnButton.dataset.returningHome = 'true';
+        returnButton.setAttribute('aria-disabled', 'true');
+        setText(returnButton, 'Returning home…');
+        window.setTimeout(() => {
+          const root = document.documentElement;
+          const previousBehavior = root.style.scrollBehavior;
+          root.style.scrollBehavior = 'auto';
+          window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+          window.dispatchEvent(new CustomEvent('ev:voyage-return-home'));
+          window.setTimeout(() => { root.style.scrollBehavior = previousBehavior; }, 40);
+        }, 0);
+      }
+
       if (target?.closest('.v10CompletionActions')) scheduleSync();
       const saveButton = target?.closest<HTMLButtonElement>('.evSaveNotesButton.is-saved');
       if (!saveButton) return;
@@ -288,12 +333,18 @@ export default function V10CompletionFlow() {
       document.querySelector<HTMLButtonElement>('.evNotesTrigger')?.click();
     };
 
+    attachOverlayObserver();
+    syncCompletion();
     document.addEventListener('click', handleClick, true);
+    window.addEventListener('ev:voyage-completed', handleCompleted);
+
     return () => {
       if (syncFrame !== null) window.cancelAnimationFrame(syncFrame);
       if (scrollFrameRef.current !== null) window.cancelAnimationFrame(scrollFrameRef.current);
-      observer.disconnect();
+      bodyObserver.disconnect();
+      overlayObserver?.disconnect();
       document.removeEventListener('click', handleClick, true);
+      window.removeEventListener('ev:voyage-completed', handleCompleted);
     };
   }, [enabled]);
 
