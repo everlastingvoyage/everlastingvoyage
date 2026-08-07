@@ -58,8 +58,12 @@ export default function V10SessionUtilities() {
 
       // Only a manual session close should restore the pre-session page position.
       // Completion actions own their own navigation (Builder or Home) and must not be overridden here.
-      const closingControl = target?.closest('.v10CloseSession');
+      const closingControl = target?.closest<HTMLButtonElement>('.v10CloseSession');
       if (!closingControl) return;
+      if (closingControl.dataset.skipScrollRestore === 'true') {
+        delete closingControl.dataset.skipScrollRestore;
+        return;
+      }
 
       const active = document.activeElement as HTMLElement | null;
       active?.blur?.();
@@ -79,6 +83,7 @@ export default function V10SessionUtilities() {
 
   useEffect(() => {
     if (!enabled) return;
+    let syncFrame: number | null = null;
 
     const syncMount = () => {
       const actions = document.querySelector<HTMLElement>('.v10CompletionActions');
@@ -93,13 +98,32 @@ export default function V10SessionUtilities() {
         mount.id = 'ev-copy-notes-root';
         actions.appendChild(mount);
       }
-      setCopyMount(mount);
+      setCopyMount((current) => current === mount ? current : mount);
+    };
+
+    const scheduleSync = () => {
+      if (syncFrame !== null) return;
+      syncFrame = window.requestAnimationFrame(() => {
+        syncFrame = null;
+        syncMount();
+      });
+    };
+
+    const handleCompletionNavigation = (event: MouseEvent) => {
+      const target = event.target as Element | null;
+      if (target?.closest('.v10CompletionActions, .v10CloseSession')) window.setTimeout(scheduleSync, 0);
     };
 
     syncMount();
-    const observer = new MutationObserver(syncMount);
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
+    window.addEventListener('ev:voyage-completed', scheduleSync);
+    window.addEventListener('ev:voyage-return-home', scheduleSync);
+    document.addEventListener('click', handleCompletionNavigation, true);
+    return () => {
+      if (syncFrame !== null) window.cancelAnimationFrame(syncFrame);
+      window.removeEventListener('ev:voyage-completed', scheduleSync);
+      window.removeEventListener('ev:voyage-return-home', scheduleSync);
+      document.removeEventListener('click', handleCompletionNavigation, true);
+    };
   }, [enabled]);
 
   const copyNotes = async () => {
