@@ -2,6 +2,9 @@
 name: V12.5.2 Trusted No-Vercel Executor
 
 on:
+  pull_request:
+    branches:
+      - _no-vercel/v12-5-2-work
   push:
     branches:
       - _no-vercel/v12-5-2-work
