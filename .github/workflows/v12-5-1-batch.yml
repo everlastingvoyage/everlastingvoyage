@@ -25,7 +25,9 @@ jobs:
           node-version: 20
 
       - name: Apply V12.5.1 batch
-        run: python .github/scripts/apply-v1251.py
+        run: |
+          sed -i "s/(('alpha-12', 0.14), ('beta-20', 0.15))/(('alpha-12', 0.15), ('beta-20', 0.16))/" .github/scripts/apply-v1251.py
+          python .github/scripts/apply-v1251.py
 
       - name: Remove temporary batching helpers
         run: rm -f .github/scripts/apply-v1251.py .github/workflows/v12-5-1-batch.yml
